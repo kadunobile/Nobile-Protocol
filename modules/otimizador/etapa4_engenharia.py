@@ -31,16 +31,43 @@ Depois, reescreva seguindo RIGOROSAMENTE estas estruturas:
 
 ---
 
-**B) ESTRUTURA DE EXPERIÊNCIA (CV & LINKEDIN):**
+**B) ESTRUTURA DE EXPERIÊNCIA (RIGOROSA):**
 
-Para CADA cargo, use esta estrutura com os dados da Etapa 2:
+Cada experiência DEVE seguir este formato EXATO:
 
-> **[Nome do Cargo]** | [Empresa] | [Datas]
-> *Resumo Estratégico:* [Uma linha definindo escopo principal]
-> • **[COMPETÊNCIA CHAVE 1]:** Verbo Forte + Contexto + **Resultado Numérico (Obrigatório)**
-> • **[COMPETÊNCIA CHAVE 2]:** Verbo Forte + Ferramenta + **Resultado Numérico (Obrigatório)**
-> • **[PROJETO ESPECÍFICO]:** Nome + Problema + Solução + **Ganho Financeiro/Tempo**
-> **Competências:** [5-8 Hard Skills desta função]
+**[Job Title] | [Company Name] | [Start Date] - [End Date/Present]**
+• [Achievement 1]: [Action Verb] + [What] + [Impact with number/metric]
+• [Achievement 2]: [Action Verb] + [What] + [Impact with number/metric]
+• [Achievement 3]: [Action Verb] + [What] + [Impact with number/metric]
+• [Achievement 4]: [Action Verb] + [What] + [Impact with number/metric]
+
+**REGRAS OBRIGATÓRIAS:**
+1. **Usar verbos de ação em inglês** no início de cada bullet (Led, Managed, Implemented, Achieved, Increased, Reduced, Trained, Developed, Coordinated, etc.)
+2. **SEMPRE incluir métrica/número em cada bullet** (%, R$, tempo, quantidade, tamanho de equipe)
+3. **Ordem de impacto:** do maior para o menor resultado
+4. **Máximo 5 bullets** por experiência
+5. **Mínimo 3 bullets** por experiência
+
+**EXEMPLO REAL:**
+
+**Senior Sales Manager | TechCorp Brasil | Jan 2020 - Present**
+• Led cross-functional team of 15 generating R$ 8M annual revenue
+• Implemented Salesforce CRM reducing sales cycle by 30% (90 to 63 days)
+• Achieved 125% of quota for 3 consecutive years (2021-2023)
+• Managed pipeline of 200+ accounts with 45% conversion rate
+• Trained and mentored 8 junior sales reps, 6 promoted within 18 months
+
+**Sales Coordinator | Tech Solutions | Mar 2017 - Dec 2019**
+• Coordinated B2B prospecting campaigns reaching 500+ leads/month
+• Increased customer retention from 60% to 85% through loyalty program
+• Trained team of 5 SDRs on consultative selling techniques
+
+---
+
+**IMPORTANTE:** 
+- Use DADOS REAIS fornecidos nas Etapas 2 e 3
+- NÃO invente métricas - extraia dos dados fornecidos ou peça ao candidato
+- Se faltar métrica, PERGUNTE ao candidato antes de continuar
 
 ---
 

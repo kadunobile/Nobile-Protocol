@@ -26,16 +26,16 @@ Gere um bloco de texto único contendo TUDO para facilitar importação:
 **SEÇÃO 2: CV COMPLETO (COPIAR PARA FLOWCV)**
 ═══════════════════════════════════════════
 
-**FORMATAÇÃO VISUAL (baseada no modelo Carlos Eduardo Nóbile):**
+**FORMATAÇÃO RIGOROSA (baseada no modelo Carlos Eduardo Nóbile):**
 - Use bullets (•) para lista de conquistas
-- Máximo 4-5 bullets por experiência
-- Cada bullet inicia com verbo de ação forte (Gerenciei, Implementei, Aumentei)
-- Sempre inclua métricas (%, R$, tempo, tamanho equipe)
+- Máximo 5 bullets por experiência
+- Mínimo 3 bullets por experiência
+- Cada bullet inicia com verbo de ação forte em INGLÊS (Led, Managed, Implemented, Achieved, Increased, etc.)
+- SEMPRE inclua métricas (%, R$, tempo, tamanho equipe, quantidade)
 - Separe seções com linha em branco
+- **IMPORTANTE: Use cabeçalhos em INGLÊS para ATS** (SUMMARY, EXPERIENCE, EDUCATION, LANGUAGES, CERTIFICATIONS)
 
 ---
-
-Nota: Use cabeçalhos em Inglês para ATS (SUMMARY, EXPERIENCE, EDUCATION)
 
 [Nome Completo]
 [Telefone] | [Email] | [LinkedIn] | [Cidade/Estado]
@@ -50,36 +50,45 @@ Nota: Use cabeçalhos em Inglês para ATS (SUMMARY, EXPERIENCE, EDUCATION)
 
 **EXPERIENCE**
 
-**[Cargo Atual/Mais Recente]**  
-*[Empresa]* | *[Período]*
-
-• [Conquista 1 com métrica]
-• [Conquista 2 com métrica]
-• [Conquista 3 com métrica]
-• [Conquista 4 com métrica]
+**[Job Title]** | [Company Name] | [Start Date] - [End Date/Present]
+• [Achievement with metric - Led/Managed/Implemented + action + number]
+• [Achievement with metric - percentage/value/time improvement]
+• [Achievement with metric - team size/revenue/impact]
+• [Achievement with metric - process/tool/result]
 
 ---
 
-**[Cargo Anterior]**  
-*[Empresa]* | *[Período]*
+**[Previous Job Title]** | [Company Name] | [Start Date] - [End Date]
+• [Achievement with metric]
+• [Achievement with metric]
+• [Achievement with metric]
 
-• [Conquista 1 com métrica]
-• [Conquista 2 com métrica]
-• [Conquista 3 com métrica]
-
-[Repetir para todas as experiências da Etapa 4B]
+[Repetir para todas as experiências da Etapa 4B - SEMPRE com métricas]
 
 ═══════════════════════════════════════════
 
 **EDUCATION**
+
 [Formação acadêmica original do CV]
 
 **LANGUAGES**
+
 [Idiomas originais]
 
 **CERTIFICATIONS**
+
 [Se houver no CV original]
 
 ═══════════════════════════════════════════
+
+**VALIDAÇÃO FINAL:**
+
+Antes de entregar, verifique:
+✅ Todos os bullets têm métricas/números
+✅ Verbos de ação em inglês em cada bullet
+✅ Seções em INGLÊS (SUMMARY, EXPERIENCE, EDUCATION)
+✅ Estrutura segue modelo Carlos Eduardo Nóbile
+✅ Máximo 5 bullets por experiência
+✅ Mínimo 3 bullets por experiência
 
 Após gerar o arquivo completo, avance para ETAPA 7."""

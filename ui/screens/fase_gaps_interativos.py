@@ -125,16 +125,41 @@ def fase_gaps_interativos():
     with col2:
         if st.button("🚀 CONTINUAR OTIMIZAÇÃO", use_container_width=True, type="primary"):
             if respondidos == 0:
-                st.warning("⚠️ Responda pelo menos 1 gap antes de continuar")
+                st.warning("⚠️ Preencha pelo menos 1 keyword antes de continuar")
             else:
-                # Preparar contexto para a IA
+                # Preparar contexto para a IA com keywords preenchidas
                 contexto_gaps = preparar_contexto_gaps()
                 st.session_state.contexto_gaps = contexto_gaps
                 
-                # Ir para chat com módulo otimizador ativo
+                # Salvar contexto das keywords preenchidas
+                if 'keywords_preenchidas' not in st.session_state:
+                    st.session_state.keywords_preenchidas = {}
+                
+                # Copiar gaps_respondidos para keywords_preenchidas
+                for gap_id, dados in st.session_state.gaps_respondidos.items():
+                    if dados['tem_experiencia']:
+                        st.session_state.keywords_preenchidas[dados['nome']] = dados['resposta']
+                
+                # Ativar ETAPA 2 do otimizador (Interrogatório Tático)
                 st.session_state.fase = 'CHAT'
-                st.session_state.modulo_ativo = 'OTIMIZADOR'  # MAIÚSCULA para match no chat
-                st.session_state.etapa_modulo = 'AGUARDANDO_OK'  # Começar do OK
+                st.session_state.modulo_ativo = 'OTIMIZADOR'
+                st.session_state.etapa_modulo = 'ETAPA_2'
+                st.session_state.force_scroll_top = True
+                
+                # Adicionar mensagem de transição no chat
+                mensagem_transicao = f"""✅ **Keywords preenchidas salvas!**
+
+Você forneceu informações sobre {respondidos} keyword(s).
+
+🎯 Avançando para **ETAPA 2: INTERROGATÓRIO TÁTICO**
+
+Agora vou fazer perguntas específicas sobre cada experiência profissional para coletar dados detalhados que incluam essas keywords e outras informações importantes.
+"""
+                st.session_state.mensagens.append({
+                    "role": "assistant", 
+                    "content": mensagem_transicao
+                })
+                
                 st.rerun()
 
 
