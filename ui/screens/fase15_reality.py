@@ -73,7 +73,7 @@ FORMATO EXATO OBRIGATÓRIO:
 
 ⚠️ **REGRA CRÍTICA:** APENAS mencione gaps que sejam:
 - Diretamente relacionados ao cargo {cargo}
-- Corregiveis (não invente barreiras inexistentes)
+- Corrigíveis (não invente barreiras inexistentes)
 - Relevantes para o mercado de {local}
 
 ❌ **NÃO MENCIONE:**
