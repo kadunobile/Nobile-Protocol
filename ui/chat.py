@@ -30,6 +30,31 @@ def fase_chat():
             with st.chat_message("user"):
                 st.markdown(msg["content"])
 
+    # Auto-trigger ETAPA_1_SEO if just entering that state
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_1_SEO' and
+        not st.session_state.get('etapa_1_triggered')):
+        
+        st.session_state.etapa_1_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+            with st.chat_message("assistant"):
+                with st.spinner("🤔 Analisando keywords para seu cargo..."):
+                    resp = chamar_gpt(
+                        st.session_state.openai_client, 
+                        st.session_state.mensagens,
+                        temperature=0.3,
+                        seed=42
+                    )
+                    if resp:
+                        st.markdown(resp)
+                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
+                        # Move to next state
+                        st.session_state.etapa_modulo = 'ETAPA_1'
+            st.rerun()
+
     prompt = st.chat_input("Digite sua pergunta ou resposta...")
 
     if prompt:

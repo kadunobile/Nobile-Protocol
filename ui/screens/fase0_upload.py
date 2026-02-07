@@ -26,23 +26,49 @@ def fase_0_upload():
         # Detecta tipo de arquivo
         tipo_arquivo = arquivo.name.split('.')[-1].lower()
         
-        # Mensagem customizada por tipo
-        mensagens_spinner = {
-            'pdf': '🔍 Varredura Integral de PDF... Lendo 100% do conteúdo...',
-            'docx': '📘 Processando Word... Extraindo texto e tabelas...',
-            'doc': '📘 Processando Word... Extraindo texto e tabelas...',
-            'txt': '📝 Lendo arquivo de texto...'
-        }
-        
-        with st.spinner(mensagens_spinner.get(tipo_arquivo, '🔍 Processando arquivo...')):
-            texto = extrair_texto_universal(arquivo, tipo_arquivo)
+        # Check if file has already been processed and stored
+        if not st.session_state.get('cv_texto_temp') or st.session_state.get('cv_arquivo_nome') != arquivo.name:
+            # Mensagem customizada por tipo
+            mensagens_spinner = {
+                'pdf': '🔍 Varredura Integral de PDF... Lendo 100% do conteúdo...',
+                'docx': '📘 Processando Word... Extraindo texto e tabelas...',
+                'doc': '📘 Processando Word... Extraindo texto e tabelas...',
+                'txt': '📝 Lendo arquivo de texto...'
+            }
             
-            if texto:
-                st.session_state.cv_texto = texto
+            with st.spinner(mensagens_spinner.get(tipo_arquivo, '🔍 Processando arquivo...')):
+                texto = extrair_texto_universal(arquivo, tipo_arquivo)
                 
-                # Mostrar preview
-                with st.expander("👁️ Preview do texto extraído (primeiras 500 caracteres)"):
-                    st.text(texto[:500] + "...")
+                if texto:
+                    # Store temporarily until confirmed
+                    st.session_state.cv_texto_temp = texto
+                    st.session_state.cv_arquivo_nome = arquivo.name
+                    st.session_state.cv_arquivo_tipo = tipo_arquivo
+                    st.rerun()
+        
+        # Show preview and confirmation button
+        if st.session_state.get('cv_texto_temp'):
+            texto = st.session_state.cv_texto_temp
+            tipo_arquivo = st.session_state.cv_arquivo_tipo
+            
+            st.success(f"✅ Arquivo {tipo_arquivo.upper()} carregado com sucesso!")
+            
+            # Mostrar preview
+            with st.expander("Texto extraído (primeiras 500 caracteres)"):
+                st.text(texto[:500] + "...")
+            
+            st.markdown("---")
+            st.info("👉 **Revise o texto extraído acima e clique em OK para continuar.**")
+            
+            if st.button("✅ OK - Continuar com este CV", type="primary", use_container_width=True):
+                # Confirm and proceed with analysis
+                st.session_state.cv_texto = texto
+                st.session_state.cv_upload_confirmed = True
+                
+                # Clear temp state
+                del st.session_state.cv_texto_temp
+                del st.session_state.cv_arquivo_nome
+                del st.session_state.cv_arquivo_tipo
                 
                 msgs = [
                     {"role": "system", "content": SYSTEM_PROMPT},
@@ -65,7 +91,6 @@ Forneça relatório executivo completo. NÃO mostre o CV de volta."""}
                     )
                     
                 if analise:
-                    st.success(f"✅ CV {tipo_arquivo.upper()} processado com sucesso!")
                     st.session_state.analise_inicial = analise
                     st.session_state.fase = 'FASE_1_DIAGNOSTICO'
                     st.rerun()

@@ -3,6 +3,14 @@ def prompt_etapa1(cargo):
 
 Analise o CV do candidato (no contexto) e identifique as 10 KEYWORDS mais importantes para o cargo de {cargo}.
 
+**IMPORTANTE - REGRAS DE ANÁLISE:**
+1. ANTES de marcar algo como ausente, busque SINÔNIMOS e VARIAÇÕES no CV
+   - Ex: "liderança" pode aparecer como "gestão de equipe", "coordenação", "supervisão"
+   - Ex: "Python" pode estar em contextos de "automação", "scripts", "análise de dados"
+   - Ex: "gestão de projetos" pode aparecer como "coordenação de iniciativas"
+2. Só marque como FALTANDO se não encontrado em NENHUMA forma
+3. Se encontrado mas fraco/implícito, marque como "presente mas pode ser reforçado"
+
 Compare cada keyword com o CV atual.
 
 Formato EXATO:
@@ -16,13 +24,29 @@ Formato EXATO:
 ### ✅ **PRESENTE NO SEU CV:**
 
 [Para cada keyword PRESENTE, liste:]
-1. **[Keyword 1]** - [Breve explicação de onde/como aparece no CV - ex: "Mencionado 3 vezes nas experiências", "Você já demonstra liderança"]
+**[Número]. [Keyword]**
+
+📍 **Evidência:** [Onde/como aparece no CV - cite frase específica ou contexto]  
+💡 **Contexto:** [Breve explicação de como é demonstrado]
 
 [Continue para todas as keywords presentes]
 
 ---
 
+### ⚠️ **PRESENTE MAS PODE SER REFORÇADO:**
+
+[Para keywords que aparecem implicitamente ou de forma fraca:]
+
+**[Número]. [Keyword]**
+
+📍 **Evidência atual:** [O que foi encontrado - seja específico]  
+💡 **Como reforçar:** [Sugestão concreta de como destacar melhor]
+
+---
+
 ### ❌ **FALTANDO NO SEU CV:**
+
+[IMPORTANTE: Só liste aqui se REALMENTE ausente após busca por sinônimos]
 
 [Para cada keyword AUSENTE, forneça:]
 
@@ -38,28 +62,13 @@ Formato EXATO:
 
 ---
 
-### 🔴 **AÇÃO NECESSÁRIA:**
+### 🎯 **RESUMO:**
 
-Preencha as lacunas abaixo com informações REAIS da sua experiência para cada keyword faltante:
-
-[Para cada keyword ausente, adicione:]
-
-**Box [Número] - [Nome da Keyword]:**
-[Espaço para o usuário preencher - será solicitado via interface interativa]
+✅ **Presentes:** [X] keywords  
+⚠️ **Para reforçar:** [Y] keywords  
+❌ **Ausentes:** [Z] keywords
 
 ---
 
-⏸️ **Após analisar as keywords acima, você será solicitado a preencher informações sobre as keywords faltantes em boxes interativas.**
-
-**Aguardando seu preenchimento para continuar a otimização...**
-
----
-
-### 📝 IMPORTANTE:
-
-- Você DEVE preencher pelo menos 1 keyword faltante antes de continuar
-- Use informações REAIS da sua experiência profissional
-- Seja específico e inclua números/métricas quando possível
-
-Após preencher, clique em **"🚀 CONTINUAR OTIMIZAÇÃO"** para avançar para a ETAPA 2 (Interrogatório Tático).
+⏸️ **Revise as keywords acima. Se concordar com a análise, responda "CONTINUAR" para avançar para a próxima etapa.**
 """

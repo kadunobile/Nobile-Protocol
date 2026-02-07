@@ -320,36 +320,40 @@ def renderizar_sidebar():
             st.session_state.mensagens = []
             st.session_state.modulo_ativo = None
             st.session_state.etapa_modulo = None
+            st.session_state.force_scroll_top = True  # Force scroll to top
 
             cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
-            intro = f\"\"\"🔧 **OTIMIZAÇÃO COMPLETA DE CV - PROTOCOLO NÓBILE**
+            intro = f\"\"\"# 🔧 OTIMIZAÇÃO COMPLETA DE CV
+## PROTOCOLO NÓBILE
 
 Vou reescrever seu CV **experiência por experiência** seguindo metodologia de Alta Performance.
 
-**O QUE FAREMOS:**
+---
 
-**ETAPA 1:** Mapeamento de SEO  
+## 📋 O QUE FAREMOS:
+
+### **ETAPA 1: Mapeamento de SEO**
 → 10 keywords essenciais para **{cargo}**  
 → Comparação com seu CV atual
 
-**ETAPA 2:** Interrogatório Tático  
+### **ETAPA 2: Interrogatório Tático**
 → Análise de CADA experiência profissional  
 → Cobrança de dados quantitativos
 
-**ETAPA 3:** Curadoria Estratégica  
+### **ETAPA 3: Curadoria Estratégica**
 → Projetos divisores de águas  
 → Diferenciais competitivos
 
-**ETAPA 4:** Engenharia de Texto  
+### **ETAPA 4: Engenharia de Texto**
 → Reescrita com estruturas otimizadas para ATS
 
-**ETAPA 5:** Validação Final  
+### **ETAPA 5: Validação Final**
 → Revisão e ajustes
 
-**ETAPA 6:** Arquivo Mestre  
+### **ETAPA 6: Arquivo Mestre**
 → Compilação completa para exportação
 
-**ETAPA 7:** Instruções de Exportação  
+### **ETAPA 7: Instruções de Exportação**
 → Como usar no FlowCV e LinkedIn
 
 ---
@@ -359,14 +363,14 @@ Vou reescrever seu CV **experiência por experiência** seguindo metodologia de 
 
 ---
 
-✅ **Digite "OK" ou "COMEÇAR" para iniciar a ETAPA 1 (Mapeamento de SEO)**\"\"\"
+🚀 **Vamos começar pela ETAPA 1.**\"\"\"
 
             st.session_state.mensagens = [
                 {"role": "system", "content": SYSTEM_PROMPT + f\"\\n\\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {st.session_state.cv_texto}\\n\\nCARGO-ALVO: {cargo}\"},
                 {"role": "assistant", "content": intro}
             ]
             st.session_state.modulo_ativo = "OTIMIZADOR"
-            st.session_state.etapa_modulo = "AGUARDANDO_OK"
+            st.session_state.etapa_modulo = "ETAPA_1_SEO"  # Start ETAPA 1 directly
             st.rerun()
 
         if st.button("🏢 Empresas Discovery", disabled=not habilitado, key="b2", use_container_width=True):
