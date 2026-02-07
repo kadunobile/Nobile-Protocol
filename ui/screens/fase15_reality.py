@@ -1,0 +1,94 @@
+import streamlit as st
+from core.prompts import SYSTEM_PROMPT
+from core.utils import chamar_gpt, scroll_topo
+
+def fase_15_reality_check():
+    scroll_topo()
+    st.markdown("# 🧠 Reality Check - Processando...")
+    st.markdown("---")
+
+    with st.spinner("🧠 Cruzando CV × Cargo × Salário × Região..."):
+        perfil = st.session_state.perfil
+        pretensao = perfil['pretensao_salarial']
+        cargo = perfil['cargo_alvo']
+        local = perfil['localizacao']
+
+        msgs = [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": f"""REALITY CHECK:
+
+P1 Objetivo: {perfil['objetivo']}
+P2 Cargo: {cargo}
+P3 Pretensão: {pretensao} mensal
+P4 Local: {local}
+Remoto: {'Sim' if perfil.get('remoto') else 'Não'}
+
+DEEP SCAN:
+{st.session_state.analise_inicial}
+
+FORMATO EXATO OBRIGATÓRIO:
+
+🎯 **REALITY CHECK - ANÁLISE ESTRATÉGICA**
+
+**CARGO DESEJADO:** {cargo}
+
+**NOMENCLATURAS SIMILARES NO MERCADO:**
+• [Variação 1]
+• [Variação 2]
+• [Variação 3]
+
+*(Recrutadores usam diferentes nomes para a mesma função)*
+
+---
+
+### 📊 ANÁLISE SALARIAL
+
+**Pretensão Informada:** {pretensao} mensal
+
+**Faixa Salarial Geral:** [mínimo] a [máximo]
+
+**Veredito:** [Abaixo/Na Média/Acima]
+
+[Contexto]
+
+---
+
+### ⚠️ ANÁLISE DE GAP
+
+Para conquistar vaga de **{cargo}**, seu CV precisa demonstrar mais [competência]. Hoje ele passa imagem de [cargo percebido].
+
+1. **[Gap 1]:** [falta]
+2. **[Gap 2]:** [falta]
+3. **[Gap 3]:** [falta]
+
+---
+
+### 🎯 VEREDITO DO HEADHUNTER
+
+**Nível de Desafio:** [Baixo/Médio/Alto]
+
+**Estratégia:** Focar em [ponto forte] para justificar {pretensao}
+
+---
+
+### ✅ PRÓXIMOS PASSOS
+
+Use os **botões na barra lateral** para continuar:
+
+• 🔧 **Otimizar CV + LinkedIn**
+• 🏢 **Empresas Discovery**
+• 🎯 **Analisar Vaga**
+• 🎤 **Prep. Entrevista**
+• 📊 **Análise de Mercado**"""}
+        ]
+
+        reality = chamar_gpt(st.session_state.openai_client, msgs)
+
+        if reality:
+            st.session_state.mensagens = [
+                {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno): {st.session_state.cv_texto}\n\nCARGO-ALVO: {cargo}"},
+                {"role": "assistant", "content": reality}
+            ]
+            st.session_state.force_scroll_top = True
+            st.session_state.fase = 'CHAT'
+            st.rerun()
