@@ -21,56 +21,11 @@ def renderizar_sidebar():
         habilitado = st.session_state.fase == 'CHAT'
 
         if st.button("🔧 Otimizar CV + LinkedIn", disabled=not habilitado, key="b1", use_container_width=True):
+            # Reset state before transitioning to loading phase
             st.session_state.mensagens = []
             st.session_state.modulo_ativo = None
             st.session_state.etapa_modulo = None
-
-            cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
-            intro = f"""🔧 **OTIMIZAÇÃO COMPLETA DE CV - PROTOCOLO NÓBILE**
-
-Vou reescrever seu CV **experiência por experiência** seguindo metodologia de Alta Performance.
-
-**O QUE FAREMOS:**
-
-**ETAPA 1:** Mapeamento de SEO  
-→ 10 keywords essenciais para **{cargo}**  
-→ Comparação com seu CV atual
-
-**ETAPA 2:** Interrogatório Tático  
-→ Análise de CADA experiência profissional  
-→ Cobrança de dados quantitativos
-
-**ETAPA 3:** Curadoria Estratégica  
-→ Projetos divisores de águas  
-→ Diferenciais competitivos
-
-**ETAPA 4:** Engenharia de Texto  
-→ Reescrita com estruturas otimizadas para ATS
-
-**ETAPA 5:** Validação Final  
-→ Revisão e ajustes
-
-**ETAPA 6:** Arquivo Mestre  
-→ Compilação completa para exportação
-
-**ETAPA 7:** Instruções de Exportação  
-→ Como usar no FlowCV e LinkedIn
-
----
-
-⏱️ **TEMPO ESTIMADO:** 15-20 minutos  
-📋 **VOCÊ PRECISARÁ:** Dados de impacto financeiro, tamanho de equipe, resultados
-
----
-
-✅ **Digite "OK" ou "COMEÇAR" para iniciar a ETAPA 1 (Mapeamento de SEO)**"""
-
-            st.session_state.mensagens = [
-                {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {st.session_state.cv_texto}\n\nCARGO-ALVO: {cargo}"},
-                {"role": "assistant", "content": intro}
-            ]
-            st.session_state.modulo_ativo = "OTIMIZADOR"
-            st.session_state.etapa_modulo = "AGUARDANDO_OK"
+            st.session_state.fase = 'FASE_ANALISE_LOADING'
             st.rerun()
 
         if st.button("🏢 Empresas Discovery", disabled=not habilitado, key="b2", use_container_width=True):
