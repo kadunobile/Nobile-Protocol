@@ -8,6 +8,7 @@ from ui.screens.fase1_diagnostico import fase_1_diagnostico
 from ui.screens.fase1_briefing import fase_1_briefing
 from ui.screens.fase15_reality import fase_15_reality_check
 from ui.screens.fase_analise_loading import fase_analise_loading
+from ui.screens.fase_gaps_interativos import fase_gaps_interativos
 from ui.screens.fase_ats_score import fase_ats_score
 from ui.screens.fase_carta import fase_carta_apresentacao
 from ui.screens.fase_interview import fase_prep_entrevista
@@ -147,6 +148,7 @@ def main():
         'FASE_1_BRIEFING': fase_1_briefing,
         'FASE_15_REALITY': fase_15_reality_check,
         'FASE_ANALISE_LOADING': fase_analise_loading,
+        'FASE_GAPS_INTERATIVOS': fase_gaps_interativos,
         'FASE_ATS_SCORE': fase_ats_score,
         'FASE_CARTA': fase_carta_apresentacao,
         'FASE_INTERVIEW': fase_prep_entrevista,
