@@ -41,6 +41,7 @@ def inject_custom_css():
     /* Mobile-specific styles */
     @media screen and (max-width: 768px) {
         .block-container {
+            padding-top: 3rem !important; /* Adicionar espaço para header */
             padding: 1rem !important;
             max-width: 100% !important;
         }

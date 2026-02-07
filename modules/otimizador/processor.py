@@ -1,4 +1,5 @@
 from modules.otimizador.etapa1_seo import prompt_etapa1
+from modules.otimizador.etapa1_5_analise_cv import prompt_etapa1_5
 from modules.otimizador.etapa2_interrogatorio import prompt_etapa2
 from modules.otimizador.etapa3_curadoria import prompt_etapa3
 from modules.otimizador.etapa4_engenharia import prompt_etapa4
@@ -18,10 +19,32 @@ def processar_modulo_otimizador(prompt):
         return None
 
     if etapa == 'ETAPA_1':
-        if len(prompt) > 10:
+        # Check if keywords were collected (from gaps interactive or other source)
+        keywords_preenchidas = st.session_state.get('keywords_preenchidas', {})
+        keywords_selecionadas = st.session_state.get('keywords_selecionadas', [])
+        
+        # If we have keywords, move to ETAPA_1.5 for CV analysis
+        if keywords_preenchidas or keywords_selecionadas:
+            # Prepare list of keywords from either source
+            if keywords_preenchidas:
+                keywords_list = list(keywords_preenchidas.keys())
+            else:
+                keywords_list = keywords_selecionadas
+            
+            st.session_state.etapa_modulo = 'ETAPA_1_5'
+            return prompt_etapa1_5(cargo, keywords_list)
+        elif len(prompt) > 10:
+            # Original behavior: move to ETAPA_2 if no keywords flow
             st.session_state.etapa_modulo = 'ETAPA_2'
             return prompt_etapa2()
         return None
+
+    if etapa == 'ETAPA_1_5':
+        # User reviewed CV analysis, move to ETAPA_2 if they say continue
+        if "continuar" in prompt.lower():
+            st.session_state.etapa_modulo = 'ETAPA_2'
+            return prompt_etapa2()
+        return None  # Wait for user to say continue
 
     if etapa == 'ETAPA_2':
         if len(prompt) > 30:
