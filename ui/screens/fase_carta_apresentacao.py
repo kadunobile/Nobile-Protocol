@@ -96,7 +96,7 @@ Você é um especialista em redação de cartas de apresentação para processos
 
 {empresa}
 {"À atenção de " + recrutador if recrutador else ""}
-{datetime.now().strftime("%d de %B de %Y")}
+{datetime.now().strftime("%d/%m/%Y")}
 
 Prezado(a) {"Sr(a). " + recrutador if recrutador else "equipe de recrutamento"},
 

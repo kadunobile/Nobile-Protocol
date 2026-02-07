@@ -99,24 +99,26 @@ def fase_comparador_cv():
                 st.markdown("**📕 CV Original**")
                 st.metric("Palavras", len(st.session_state.cv_texto.split()))
                 st.metric("Caracteres", len(st.session_state.cv_texto))
-                st.metric("Números encontrados", len([c for c in st.session_state.cv_texto if c.isdigit()]))
+                st.metric("Dígitos", len([c for c in st.session_state.cv_texto if c.isdigit()]))
             
             with col2:
                 st.markdown("**📗 CV Otimizado**")
                 st.metric("Palavras", len(cv_otimizado_texto.split()))
                 st.metric("Caracteres", len(cv_otimizado_texto))
-                st.metric("Números encontrados", len([c for c in cv_otimizado_texto if c.isdigit()]))
+                st.metric("Dígitos", len([c for c in cv_otimizado_texto if c.isdigit()]))
         
         with tab2:
             col1, col2 = st.columns(2)
             
             with col1:
                 st.markdown("**📕 CV Original**")
-                st.text_area("", st.session_state.cv_texto[:1000] + "...", height=400, key="orig_preview")
+                preview_orig = st.session_state.cv_texto[:1000] + ('...' if len(st.session_state.cv_texto) > 1000 else '')
+                st.text_area("", preview_orig, height=400, key="orig_preview")
             
             with col2:
                 st.markdown("**📗 CV Otimizado**")
-                st.text_area("", cv_otimizado_texto[:1000] + "...", height=400, key="otim_preview")
+                preview_otim = cv_otimizado_texto[:1000] + ('...' if len(cv_otimizado_texto) > 1000 else '')
+                st.text_area("", preview_otim, height=400, key="otim_preview")
         
         with tab3:
             # Diff usando difflib
