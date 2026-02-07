@@ -8,7 +8,7 @@ def fase_1_briefing():
     st.markdown("**Para traçar a estratégia correta, responda apenas:**")
 
     with st.form("briefing"):
-        # Use responsive columns: 2 columns on desktop, 1 on mobile
+        # Columns will stack on mobile via CSS media queries in app.py
         col1, col2 = st.columns([1, 1])
 
         with col1:
@@ -24,10 +24,10 @@ def fase_1_briefing():
             p4 = st.text_input("**P4. Localização (Cidade/Remoto):**",
                 placeholder="Digite a cidade")
 
-        if p4:
-            sugestoes = filtrar_cidades(p4)
-            if sugestoes:
-                st.info(f"💡 {', '.join(sugestoes[:5])}")
+            if p4:
+                sugestoes = filtrar_cidades(p4)
+                if sugestoes:
+                    st.info(f"💡 {', '.join(sugestoes[:5])}")
 
         remoto = st.checkbox("📍 Aceito trabalho 100% remoto")
 
