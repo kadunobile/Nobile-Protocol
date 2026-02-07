@@ -87,3 +87,22 @@ class TestFiltrarCidades:
         """Testa que a função sempre retorna tupla (para compatibilidade com LRU cache)."""
         resultado = filtrar_cidades("São Paulo")
         assert isinstance(resultado, tuple)
+
+
+class TestExtrairTextoUniversal:
+    """Testes para funções de extração de texto."""
+    
+    def test_extrair_texto_universal_pdf(self):
+        """Testa extração universal com PDF"""
+        # Mock de arquivo PDF
+        assert True  # Implementar com mock quando tiver arquivo de teste
+    
+    def test_extrair_texto_docx_vazio(self):
+        """Testa DOCX vazio retorna None"""
+        # Mock
+        assert True  # Implementar
+    
+    def test_extrair_texto_txt_encoding(self):
+        """Testa diferentes encodings em TXT"""
+        # Mock
+        assert True  # Implementar

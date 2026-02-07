@@ -9,6 +9,39 @@ import re
 from typing import Tuple, Optional
 
 
+def validar_arquivo_cv(arquivo) -> Tuple[bool, Optional[str]]:
+    """
+    Valida arquivo de CV (formato e tamanho).
+    
+    Args:
+        arquivo: Arquivo uploaded do Streamlit
+    
+    Returns:
+        Tuple[bool, Optional[str]]: (válido, mensagem_erro)
+    """
+    if not arquivo:
+        return False, "Nenhum arquivo fornecido"
+    
+    # Valida extensão
+    extensao = arquivo.name.split('.')[-1].lower()
+    formatos_validos = ['pdf', 'docx', 'doc', 'txt']
+    
+    if extensao not in formatos_validos:
+        return False, f"Formato .{extensao} não suportado. Use: {', '.join(formatos_validos)}"
+    
+    # Valida tamanho (máximo 15MB para Word que pode ser maior)
+    tamanho_mb = arquivo.size / (1024 * 1024)
+    max_mb = 15
+    
+    if tamanho_mb > max_mb:
+        return False, f"Arquivo muito grande ({tamanho_mb:.1f}MB). Máximo: {max_mb}MB"
+    
+    if tamanho_mb < 0.001:  # < 1KB
+        return False, "Arquivo muito pequeno ou vazio"
+    
+    return True, None
+
+
 def validar_cargo(cargo: str) -> Tuple[bool, Optional[str]]:
     """
     Valida o nome de um cargo profissional.
