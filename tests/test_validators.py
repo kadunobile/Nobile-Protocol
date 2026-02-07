@@ -3,7 +3,87 @@ Testes unitários para os validadores do Protocolo Nóbile.
 """
 
 import pytest
-from core.validators import validar_cargo, validar_salario, validar_pdf
+from core.validators import validar_cargo, validar_salario, validar_pdf, validar_arquivo_cv
+
+
+class TestValidarArquivoCv:
+    """Testes para a função validar_arquivo_cv."""
+    
+    def test_validar_arquivo_cv_formato_invalido(self):
+        """Testa rejeição de formato inválido."""
+        class FakeFile:
+            name = "cv.exe"
+            size = 1024
+        
+        valid, error = validar_arquivo_cv(FakeFile())
+        assert not valid
+        assert "não suportado" in error
+    
+    def test_validar_arquivo_cv_muito_grande(self):
+        """Testa rejeição de arquivo grande."""
+        class FakeFile:
+            name = "cv.pdf"
+            size = 20 * 1024 * 1024  # 20MB
+        
+        valid, error = validar_arquivo_cv(FakeFile())
+        assert not valid
+        assert "muito grande" in error
+    
+    def test_validar_arquivo_cv_valido(self):
+        """Testa arquivo válido."""
+        class FakeFile:
+            name = "cv.docx"
+            size = 500 * 1024  # 500KB
+        
+        valid, error = validar_arquivo_cv(FakeFile())
+        assert valid
+        assert error is None
+    
+    def test_validar_arquivo_cv_pdf(self):
+        """Testa arquivo PDF válido."""
+        class FakeFile:
+            name = "curriculo.pdf"
+            size = 2 * 1024 * 1024  # 2MB
+        
+        valid, error = validar_arquivo_cv(FakeFile())
+        assert valid
+        assert error is None
+    
+    def test_validar_arquivo_cv_txt(self):
+        """Testa arquivo TXT válido."""
+        class FakeFile:
+            name = "resume.txt"
+            size = 10 * 1024  # 10KB
+        
+        valid, error = validar_arquivo_cv(FakeFile())
+        assert valid
+        assert error is None
+    
+    def test_validar_arquivo_cv_doc(self):
+        """Testa arquivo DOC válido."""
+        class FakeFile:
+            name = "cv.doc"
+            size = 1 * 1024 * 1024  # 1MB
+        
+        valid, error = validar_arquivo_cv(FakeFile())
+        assert valid
+        assert error is None
+    
+    def test_validar_arquivo_cv_vazio(self):
+        """Testa arquivo vazio."""
+        class FakeFile:
+            name = "cv.pdf"
+            size = 100  # < 1KB
+        
+        valid, error = validar_arquivo_cv(FakeFile())
+        assert not valid
+        assert "muito pequeno ou vazio" in error
+    
+    def test_validar_arquivo_cv_none(self):
+        """Testa arquivo None."""
+        valid, error = validar_arquivo_cv(None)
+        assert not valid
+        assert "Nenhum arquivo fornecido" in error
 
 
 class TestValidarCargo:

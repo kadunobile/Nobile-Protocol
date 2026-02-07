@@ -88,6 +88,127 @@ def extrair_texto_pdf(arquivo) -> Optional[str]:
         st.error(f"Erro ao ler PDF: {e}")
         return None
 
+def extrair_texto_docx(arquivo):
+    """
+    Extrai texto de arquivo Word (.docx).
+    
+    Nota: Apenas arquivos .docx (Office Open XML) são suportados.
+    Arquivos .doc legados (formato binário antigo) não são suportados pela biblioteca python-docx.
+    
+    Args:
+        arquivo: Arquivo uploaded do Streamlit
+    
+    Returns:
+        str: Texto extraído ou None em caso de erro
+    """
+    logger = logging.getLogger(__name__)
+    logger.info("Iniciando extração de texto de DOCX")
+    
+    try:
+        import docx
+        doc = docx.Document(arquivo)
+        
+        # Extrai todos os parágrafos
+        texto_completo = []
+        for paragrafo in doc.paragraphs:
+            if paragrafo.text.strip():
+                texto_completo.append(paragrafo.text)
+        
+        # Extrai tabelas (comum em CVs)
+        for tabela in doc.tables:
+            for linha in tabela.rows:
+                for celula in linha.cells:
+                    if celula.text.strip():
+                        texto_completo.append(celula.text)
+        
+        texto = "\n".join(texto_completo)
+        
+        if not texto.strip():
+            st.error("⚠️ Arquivo Word vazio ou sem texto extraível")
+            logger.warning("DOCX extraído está vazio")
+            return None
+        
+        logger.info(f"DOCX extraído com sucesso: {len(texto)} caracteres")
+        return texto
+        
+    except Exception as e:
+        error_msg = str(e)
+        if "is not a zip file" in error_msg or "BadZipFile" in error_msg:
+            st.error("❌ Arquivo .doc antigo detectado. Por favor, converta para .docx ou use formato PDF/TXT")
+            logger.error("Tentativa de processar arquivo .doc antigo (formato binário não suportado)")
+        else:
+            st.error(f"❌ Erro ao ler arquivo Word: {e}")
+            logger.error(f"Erro ao extrair DOCX: {e}", exc_info=True)
+        return None
+
+
+def extrair_texto_txt(arquivo):
+    """
+    Extrai texto de arquivo TXT.
+    
+    Args:
+        arquivo: Arquivo uploaded do Streamlit
+    
+    Returns:
+        str: Texto extraído ou None em caso de erro
+    """
+    logger = logging.getLogger(__name__)
+    logger.info("Iniciando extração de texto de TXT")
+    
+    try:
+        # Tenta diferentes encodings
+        encodings = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
+        
+        for encoding in encodings:
+            try:
+                arquivo.seek(0)  # Reset file pointer
+                texto = arquivo.read().decode(encoding)
+                
+                if not texto.strip():
+                    st.error("⚠️ Arquivo TXT vazio")
+                    logger.warning("TXT extraído está vazio")
+                    return None
+                
+                logger.info(f"TXT extraído com sucesso ({encoding}): {len(texto)} caracteres")
+                return texto
+                
+            except (UnicodeDecodeError, AttributeError):
+                continue
+        
+        # Se nenhum encoding funcionou
+        st.error("❌ Não foi possível decodificar o arquivo TXT")
+        logger.error("Falha em todos os encodings para TXT")
+        return None
+        
+    except Exception as e:
+        st.error(f"❌ Erro ao ler arquivo TXT: {e}")
+        logger.error(f"Erro ao extrair TXT: {e}", exc_info=True)
+        return None
+
+
+def extrair_texto_universal(arquivo, tipo_arquivo):
+    """
+    Função universal que detecta o tipo e extrai o texto.
+    
+    Args:
+        arquivo: Arquivo uploaded do Streamlit
+        tipo_arquivo: Extensão do arquivo (ex: 'pdf', 'docx', 'txt')
+    
+    Returns:
+        str: Texto extraído ou None em caso de erro
+    """
+    tipo_arquivo = tipo_arquivo.lower()
+    
+    if tipo_arquivo == 'pdf':
+        return extrair_texto_pdf(arquivo)
+    elif tipo_arquivo in ['docx', 'doc']:
+        return extrair_texto_docx(arquivo)
+    elif tipo_arquivo == 'txt':
+        return extrair_texto_txt(arquivo)
+    else:
+        st.error(f"❌ Formato não suportado: {tipo_arquivo}")
+        return None
+
 def inicializar_cliente_openai(key: str) -> Optional[OpenAI]:
     """
     Inicializa o cliente OpenAI com validação de API key.
