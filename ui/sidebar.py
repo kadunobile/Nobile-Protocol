@@ -21,6 +21,10 @@ def renderizar_sidebar():
         habilitado = st.session_state.fase == 'CHAT'
 
         if st.button("🔧 Otimizar CV + LinkedIn", disabled=not habilitado, key="b1", use_container_width=True):
+            # Reset state before transitioning to loading phase
+            st.session_state.mensagens = []
+            st.session_state.modulo_ativo = None
+            st.session_state.etapa_modulo = None
             st.session_state.fase = 'FASE_ANALISE_LOADING'
             st.rerun()
 

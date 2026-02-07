@@ -91,8 +91,17 @@ def executar_analise_cv():
     Returns:
         str com resultados da análise ou None se falhar
     """
+    # Validar que os dados necessários existem no session state
+    if not hasattr(st.session_state, 'cv_texto') or not st.session_state.cv_texto:
+        st.error("❌ Erro: CV não encontrado. Por favor, faça upload do CV novamente.")
+        return None
+    
+    if not hasattr(st.session_state, 'perfil') or not st.session_state.perfil:
+        st.error("❌ Erro: Perfil não encontrado. Por favor, complete o briefing novamente.")
+        return None
+    
     cv_texto = st.session_state.cv_texto
-    cargo_alvo = st.session_state.perfil['cargo_alvo']
+    cargo_alvo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
     
     msgs = [
         {
