@@ -14,9 +14,13 @@ def processar_modulo_otimizador(prompt):
 
     if etapa == 'AGUARDANDO_OK':
         if prompt.lower().strip() in ['ok', 'começar', 'comecar', 'iniciar', 'sim', 'vamos', 'start']:
-            st.session_state.etapa_modulo = 'ETAPA_1'
+            st.session_state.etapa_modulo = 'ETAPA_1_SEO'
             return prompt_etapa1(cargo)
         return None
+
+    if etapa == 'ETAPA_1_SEO':
+        # Automatically generate ETAPA 1 prompt on first entry
+        return prompt_etapa1(cargo)
 
     if etapa == 'ETAPA_1':
         # Check if keywords were collected (from gaps interactive or other source)

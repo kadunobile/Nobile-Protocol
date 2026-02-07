@@ -31,12 +31,16 @@ def fase_15_reality_check():
 INSTRUÇÕES INTERNAS (NÃO MOSTRAR AO USUÁRIO):
 
 ⚠️ REGRA CRÍTICA ao mencionar gaps:
+- ANTES de marcar algo como gap, busque sinônimos e variações no CV do candidato
+  * Ex: "liderança" pode aparecer como "gestão de equipe", "coordenação"
+  * Ex: "Python" pode estar em "automação", "scripts", "análise de dados"
+- Só mencione como gap se NÃO encontrado em NENHUMA forma (literal ou contextual)
 - APENAS mencione gaps diretamente relacionados ao cargo {cargo}
 - Gaps devem ser corrigíveis (não invente barreiras inexistentes)
 - Relevância para o mercado de {local}
 
 ❌ NÃO MENCIONE:
-- "Falta experiência internacional" (a menos que o cargo EXIJA explicitamente)
+- "Falta experiência internacional" (removido - não é relevante para a maioria dos cargos)
 - "Falta conhecimento em [tecnologia X]" (a menos que seja padrão obrigatório no cargo)
 - Gaps genéricos de livros de carreira
 
@@ -110,13 +114,7 @@ FORMATO EXATO OBRIGATÓRIO:
 
 ### ✅ PRÓXIMOS PASSOS
 
-Use os **botões na barra lateral** para continuar:
-
-• 🔧 **Otimizar CV + LinkedIn**
-• 🏢 **Empresas Discovery**
-• 🎯 **Analisar Vaga**
-• 🎤 **Prep. Entrevista**
-• 📊 **Análise de Mercado**"""}
+Use os **botões na barra lateral** ou abaixo para continuar."""}
         ]
 
         reality = chamar_gpt(
@@ -149,40 +147,50 @@ Use os **botões na barra lateral** para continuar:
                     st.session_state.etapa_modulo = None
                     
                     cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
-                    intro = f"""🔧 **OTIMIZAÇÃO COMPLETA DE CV - PROTOCOLO NÓBILE**
-        
+                    intro = f"""# 🔧 OTIMIZAÇÃO COMPLETA DE CV
+## PROTOCOLO NÓBILE
+
 Vou reescrever seu CV **experiência por experiência** seguindo metodologia de Alta Performance.
 
-**O QUE FAREMOS:**
+---
 
-**ETAPA 1:** Mapeamento de SEO  
+## 📋 O QUE FAREMOS:
+
+### **ETAPA 1: Mapeamento de SEO**
 → 10 keywords essenciais para **{cargo}**  
 → Comparação com seu CV atual
 
-**ETAPA 2:** Interrogatório Tático  
+### **ETAPA 2: Interrogatório Tático**
 → Análise de CADA experiência profissional  
 → Cobrança de dados quantitativos
 
-**ETAPA 3:** Análise de Expertise  
+### **ETAPA 3: Análise de Expertise**
 → Hard skills × Soft skills × Certificações  
 → Gaps técnicos para {cargo}
 
-**ETAPA 4:** Engenharia de Narrativa  
+### **ETAPA 4: Engenharia de Narrativa**
 → Reescrita com framework STAR  
 → Headlines de Alta Performance para LinkedIn
 
-**ETAPA 5:** Validação & Refinamento  
+### **ETAPA 5: Validação & Refinamento**
 → Aprovação seção por seção  
 → Ajustes finais
 
-**ETAPA 6:** Geração do Arquivo Final  
+### **ETAPA 6: Geração do Arquivo Final**
 → Pronto para FlowCV e LinkedIn
 
-🚀 Vamos começar pela ETAPA 1."""
+---
+
+⏱️ **TEMPO ESTIMADO:** 15-20 minutos  
+📋 **VOCÊ PRECISARÁ:** Dados de impacto financeiro, tamanho de equipe, resultados
+
+---
+
+🚀 **Vamos começar pela ETAPA 1.**"""
                     
                     st.session_state.mensagens.append({"role": "assistant", "content": intro})
                     st.session_state.modulo_ativo = 'OTIMIZADOR'
-                    st.session_state.etapa_modulo = 'AGUARDANDO_OK'
+                    st.session_state.etapa_modulo = 'ETAPA_1_SEO'  # Start ETAPA 1 directly
                     st.session_state.fase = 'CHAT'
                     forcar_topo()
                     st.rerun()

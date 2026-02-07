@@ -25,6 +25,7 @@ def renderizar_sidebar():
             st.session_state.mensagens = []
             st.session_state.modulo_ativo = None
             st.session_state.etapa_modulo = None
+            st.session_state.force_scroll_top = True  # Force scroll to top
             st.session_state.fase = 'FASE_ANALISE_LOADING'
             st.rerun()
 
@@ -74,7 +75,7 @@ Etapa 2: Simulação STAR com 5 perguntas difíceis + respostas modelo"""}
                     st.session_state.modulo_ativo = "ENTREVISTA"
                     st.rerun()
 
-        if st.button("📊 Análise Mercado", disabled=not habilitado, key="b5", use_container_width=True):
+        if st.button("📊 Análise de Mercado", disabled=not habilitado, key="b5", use_container_width=True):
             with st.spinner("📈 Analisando..."):
                 cargo = st.session_state.perfil.get('cargo_alvo', 'seu cargo')
                 local = st.session_state.perfil.get('localizacao', 'Brasil')
@@ -92,22 +93,18 @@ Etapa 2: Simulação STAR com 5 perguntas difíceis + respostas modelo"""}
                     st.session_state.modulo_ativo = "MERCADO"
                     st.rerun()
 
+        if st.button("🔄 Comparar CVs", disabled=not habilitado, key="b_comparador", use_container_width=True):
+            st.session_state.fase = 'FASE_COMPARADOR'
+            st.rerun()
+
+        st.markdown("### 📝 Ferramentas Extras")
+
         if st.button("🤖 Score ATS", disabled=not habilitado, key="b_ats", use_container_width=True):
             st.session_state.fase = 'FASE_ATS_SCORE'
             st.rerun()
 
-        st.markdown("### 📝 Ferramentas Avançadas")
-
         if st.button("✉️ Carta de Apresentação", disabled=not habilitado, key="b_carta", use_container_width=True):
             st.session_state.fase = 'FASE_CARTA'
-            st.rerun()
-
-        if st.button("🎤 Prep. Entrevista", disabled=not habilitado, key="b_interview", use_container_width=True):
-            st.session_state.fase = 'FASE_INTERVIEW'
-            st.rerun()
-
-        if st.button("🔄 Comparar CVs", disabled=not habilitado, key="b_comparador", use_container_width=True):
-            st.session_state.fase = 'FASE_COMPARADOR'
             st.rerun()
 
         st.markdown("---")
