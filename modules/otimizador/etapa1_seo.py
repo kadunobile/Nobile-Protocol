@@ -38,21 +38,21 @@ Formato EXATO:
 
 ---
 
-### ✅ **PRESENTES NO SEU CV** ({{}})
+### ✅ **PRESENTES NO SEU CV**
 
 [Para cada keyword PRESENTE, liste de forma concisa:]
 **[Número]. [Keyword]** - Encontrada no contexto: [breve menção]
 
 ---
 
-### ⚠️ **PODEM SER REFORÇADAS** ({{}})
+### ⚠️ **PODEM SER REFORÇADAS**
 
 [Para keywords que aparecem implicitamente:]
 **[Número]. [Keyword]** - Como reforçar: [sugestão breve]
 
 ---
 
-### ❌ **AUSENTES NO SEU CV** ({{}})
+### ❌ **AUSENTES NO SEU CV**
 
 [IMPORTANTE: Só liste aqui se REALMENTE ausente após busca por sinônimos]
 
