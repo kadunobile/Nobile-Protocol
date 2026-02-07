@@ -11,6 +11,11 @@ def fase_chat():
     """Interface de chat do Protocolo Nóbile com logging integrado."""
     logger.info("Iniciando fase de chat")
     
+    # ===== SCROLL FORÇADO (se flag ativa) =====
+    if st.session_state.get('force_scroll_top', False):
+        forcar_topo()
+        st.session_state.force_scroll_top = False  # Reset da flag
+    
     st.markdown('<div id="top-anchor"></div>', unsafe_allow_html=True)
     st.markdown("# 💬 Sessão Ativa - Protocolo Nóbile")
     st.markdown("---")
@@ -24,10 +29,6 @@ def fase_chat():
                 st.markdown(msg["content"])
 
     prompt = st.chat_input("Digite sua pergunta ou resposta...")
-
-    if st.session_state.get("force_scroll_top"):
-        forcar_topo()
-        st.session_state.force_scroll_top = False
 
     if prompt:
         logger.debug(f"Prompt recebido: {prompt[:100]}...")  # Log apenas primeiros 100 chars

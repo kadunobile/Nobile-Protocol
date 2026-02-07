@@ -252,7 +252,14 @@ def inicializar_cliente_openai(key: str) -> Optional[OpenAI]:
         st.error(f"Erro ao conectar com OpenAI: Verifique sua API key")
         return None
 
-def chamar_gpt(client: OpenAI, msgs: list, max_retries: int = 3, timeout: int = 30) -> Optional[str]:
+def chamar_gpt(
+    client: OpenAI, 
+    msgs: list, 
+    max_retries: int = 3, 
+    timeout: int = 30,
+    temperature: float = 0.7,
+    seed: Optional[int] = None
+) -> Optional[str]:
     """
     Chama a API do GPT com retry automático e tratamento robusto de erros.
     
@@ -264,6 +271,8 @@ def chamar_gpt(client: OpenAI, msgs: list, max_retries: int = 3, timeout: int = 
         msgs: Lista de mensagens no formato esperado pela API
         max_retries: Número máximo de tentativas (padrão: 3)
         timeout: Timeout em segundos por requisição (padrão: 30)
+        temperature: Controle de criatividade (0=determinístico, 1=criativo, padrão: 0.7)
+        seed: Seed para reprodutibilidade (opcional)
         
     Returns:
         Resposta do GPT formatada ou None em caso de erro
@@ -275,20 +284,30 @@ def chamar_gpt(client: OpenAI, msgs: list, max_retries: int = 3, timeout: int = 
         >>> client = OpenAI(api_key="sk-...")
         >>> msgs = [{"role": "user", "content": "Hello"}]
         >>> resposta = chamar_gpt(client, msgs)
+        >>> # Para respostas consistentes:
+        >>> resposta = chamar_gpt(client, msgs, temperature=0.3, seed=42)
     """
     logger.info(f"Chamando GPT com {len(msgs)} mensagens")
     
     for tentativa in range(1, max_retries + 1):
         try:
             logger.debug(f"Tentativa {tentativa}/{max_retries}")
+            logger.debug(f"Temperature: {temperature}, Seed: {seed}")
             
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=msgs,
-                temperature=0.7,
-                max_tokens=4000,
-                timeout=timeout
-            )
+            # Construir parâmetros da chamada
+            params = {
+                "model": "gpt-4o",
+                "messages": msgs,
+                "temperature": temperature,
+                "max_tokens": 4000,
+                "timeout": timeout
+            }
+            
+            # Adicionar seed apenas se fornecido
+            if seed is not None:
+                params["seed"] = seed
+            
+            response = client.chat.completions.create(**params)
             
             texto_raw = response.choices[0].message.content
             logger.info(f"Resposta recebida com sucesso ({len(texto_raw)} caracteres)")

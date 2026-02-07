@@ -14,7 +14,22 @@ def fase_15_reality_check():
         local = perfil['localizacao']
 
         msgs = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": SYSTEM_PROMPT + f"""
+
+INSTRUÇÕES INTERNAS (NÃO MOSTRAR AO USUÁRIO):
+
+⚠️ REGRA CRÍTICA ao mencionar gaps:
+- APENAS mencione gaps diretamente relacionados ao cargo {cargo}
+- Gaps devem ser corrigíveis (não invente barreiras inexistentes)
+- Relevância para o mercado de {local}
+
+❌ NÃO MENCIONE:
+- "Falta experiência internacional" (a menos que o cargo EXIJA explicitamente)
+- "Falta conhecimento em [tecnologia X]" (a menos que seja padrão obrigatório no cargo)
+- Gaps genéricos de livros de carreira
+
+IMPORTANTE: Seja ESPECÍFICO e REALISTA. Base-se APENAS no CV fornecido e nas expectativas reais do mercado para {cargo} em {local}.
+"""},
             {"role": "user", "content": f"""REALITY CHECK:
 
 P1 Objetivo: {perfil['objetivo']}
@@ -71,16 +86,6 @@ FORMATO EXATO OBRIGATÓRIO:
 2. **[Gap Real 2]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
 3. **[Gap Real 3]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
 
-⚠️ **REGRA CRÍTICA:** APENAS mencione gaps que sejam:
-- Diretamente relacionados ao cargo {cargo}
-- Corrigíveis (não invente barreiras inexistentes)
-- Relevantes para o mercado de {local}
-
-❌ **NÃO MENCIONE:**
-- "Falta experiência internacional" (a menos que o cargo EXIJA isso explicitamente)
-- "Falta conhecimento em [tecnologia aleatória]" (a menos que seja padrão no cargo)
-- Gaps genéricos de livros de carreira
-
 ---
 
 ### 🎯 VEREDITO DO HEADHUNTER
@@ -102,7 +107,12 @@ Use os **botões na barra lateral** para continuar:
 • 📊 **Análise de Mercado**"""}
         ]
 
-        reality = chamar_gpt(st.session_state.openai_client, msgs)
+        reality = chamar_gpt(
+            st.session_state.openai_client, 
+            msgs,
+            temperature=0.3,  # Reduzir criatividade para maior consistência
+            seed=42  # Seed fixo para reprodutibilidade
+        )
 
         if reality:
             st.session_state.mensagens = [

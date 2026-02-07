@@ -3,7 +3,77 @@ Testes unitários para funções utilitárias do Protocolo Nóbile.
 """
 
 import pytest
-from core.utils import corrigir_formatacao, filtrar_cidades
+from unittest.mock import Mock, MagicMock, patch
+from core.utils import corrigir_formatacao, filtrar_cidades, chamar_gpt
+
+
+class TestChamarGpt:
+    """Testes para a função chamar_gpt com novos parâmetros."""
+    
+    def test_chamar_gpt_with_temperature(self):
+        """Testa chamada do GPT com temperature customizada."""
+        mock_client = Mock()
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_client.chat.completions.create.return_value = mock_response
+        
+        msgs = [{"role": "user", "content": "Test"}]
+        result = chamar_gpt(mock_client, msgs, temperature=0.3)
+        
+        assert result == "Test response"
+        mock_client.chat.completions.create.assert_called_once()
+        call_kwargs = mock_client.chat.completions.create.call_args[1]
+        assert call_kwargs["temperature"] == 0.3
+        assert "seed" not in call_kwargs  # seed não deve estar presente se não fornecido
+    
+    def test_chamar_gpt_with_seed(self):
+        """Testa chamada do GPT com seed para reprodutibilidade."""
+        mock_client = Mock()
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_client.chat.completions.create.return_value = mock_response
+        
+        msgs = [{"role": "user", "content": "Test"}]
+        result = chamar_gpt(mock_client, msgs, seed=42)
+        
+        assert result == "Test response"
+        mock_client.chat.completions.create.assert_called_once()
+        call_kwargs = mock_client.chat.completions.create.call_args[1]
+        assert call_kwargs["seed"] == 42
+    
+    def test_chamar_gpt_with_temperature_and_seed(self):
+        """Testa chamada do GPT com temperature e seed."""
+        mock_client = Mock()
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Consistent response"
+        mock_client.chat.completions.create.return_value = mock_response
+        
+        msgs = [{"role": "user", "content": "Test"}]
+        result = chamar_gpt(mock_client, msgs, temperature=0.3, seed=42)
+        
+        assert result == "Consistent response"
+        mock_client.chat.completions.create.assert_called_once()
+        call_kwargs = mock_client.chat.completions.create.call_args[1]
+        assert call_kwargs["temperature"] == 0.3
+        assert call_kwargs["seed"] == 42
+    
+    def test_chamar_gpt_default_temperature(self):
+        """Testa que temperature padrão é 0.7."""
+        mock_client = Mock()
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = "Default response"
+        mock_client.chat.completions.create.return_value = mock_response
+        
+        msgs = [{"role": "user", "content": "Test"}]
+        result = chamar_gpt(mock_client, msgs)
+        
+        assert result == "Default response"
+        call_kwargs = mock_client.chat.completions.create.call_args[1]
+        assert call_kwargs["temperature"] == 0.7
 
 
 class TestCorrigirFormatacao:
