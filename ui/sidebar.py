@@ -141,6 +141,20 @@ Etapa 2: Simulação STAR com 5 perguntas difíceis + respostas modelo"""}
             st.session_state.fase = 'FASE_ATS_SCORE'
             st.rerun()
 
+        st.markdown("### 📝 Ferramentas Avançadas")
+
+        if st.button("✉️ Carta de Apresentação", disabled=not habilitado, key="b_carta", use_container_width=True):
+            st.session_state.fase = 'FASE_CARTA'
+            st.rerun()
+
+        if st.button("🎤 Prep. Entrevista", disabled=not habilitado, key="b_interview", use_container_width=True):
+            st.session_state.fase = 'FASE_INTERVIEW'
+            st.rerun()
+
+        if st.button("🔄 Comparar CVs", disabled=not habilitado, key="b_comparador", use_container_width=True):
+            st.session_state.fase = 'FASE_COMPARADOR'
+            st.rerun()
+
         st.markdown("---")
         if not habilitado:
             st.warning("⚠️ Complete o briefing para desbloquear")
