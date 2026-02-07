@@ -43,8 +43,8 @@ def gerar_analytics_data(score_inicial: Dict, score_final: Dict, gaps_alvo: List
         'metricas_adicionadas': (score_final['detalhes']['metricas']['quantidade'] - 
                                  score_inicial['detalhes']['metricas']['quantidade']),
         'gaps_resolvidos': len(gaps_alvo),
-        'nivel_inicial': score_inicial['nivel'],
-        'nivel_final': score_final['nivel'],
+        'nivel_inicial': score_inicial.get('nivel', 'N/A'),
+        'nivel_final': score_final.get('nivel', 'N/A'),
         'atingiu_meta': score_final['score_total'] >= 80
     }
     
