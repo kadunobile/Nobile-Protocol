@@ -50,6 +50,7 @@ Agora vou reescrever seu CV seguindo o **FORMATO ORIGINAL** que você usou, mas 
 ---
 
 **CV ORIGINAL PARA REFERÊNCIA:**
+(Primeiros caracteres mostrados como exemplo do formato a manter)
 {cv_texto[:1000]}...
 
 ---

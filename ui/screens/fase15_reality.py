@@ -22,7 +22,7 @@ def fase_15_reality_check():
         📋 **VOCÊ PRECISARÁ:** Dados de impacto, tamanho de equipe, resultados quantitativos
         """)
         
-        st.markdown("### 📋 PROCESSO EM 5 ETAPAS:")
+        st.markdown("### 📋 PROCESSO EM 4 ETAPAS:")
         st.markdown("""
         **ETAPA 1: Análise de Keywords**
         → Identificar palavras-chave essenciais  
@@ -36,13 +36,10 @@ def fase_15_reality_check():
         → Identificar experiências a destacar  
         → Coletar informações complementares
         
-        **ETAPA 4: Reescrita Estratégica**
+        **ETAPA 4: Reescrita e Revisão Final**
         → Seguir formato do CV original  
-        → Integrar keywords e métricas
-        
-        **ETAPA 5: CV Revisado Final**
-        → Visualizar CV completo otimizado  
-        → Exportar para uso
+        → Integrar keywords e métricas  
+        → Visualizar CV completo otimizado
         """)
         
         st.markdown("---")
