@@ -7,6 +7,7 @@ from ui.screens.fase0_upload import fase_0_upload
 from ui.screens.fase1_diagnostico import fase_1_diagnostico
 from ui.screens.fase1_briefing import fase_1_briefing
 from ui.screens.fase15_reality import fase_15_reality_check
+from ui.screens.fase_ats_score import fase_ats_score
 from ui.chat import fase_chat
 
 setup_environment()
@@ -141,6 +142,7 @@ def main():
         'FASE_1_DIAGNOSTICO': fase_1_diagnostico,
         'FASE_1_BRIEFING': fase_1_briefing,
         'FASE_15_REALITY': fase_15_reality_check,
+        'FASE_ATS_SCORE': fase_ats_score,
         'CHAT': fase_chat
     }
 

@@ -137,6 +137,10 @@ Etapa 2: Simulação STAR com 5 perguntas difíceis + respostas modelo"""}
                     st.session_state.modulo_ativo = "MERCADO"
                     st.rerun()
 
+        if st.button("🤖 Score ATS", disabled=not habilitado, key="b_ats", use_container_width=True):
+            st.session_state.fase = 'FASE_ATS_SCORE'
+            st.rerun()
+
         st.markdown("---")
         if not habilitado:
             st.warning("⚠️ Complete o briefing para desbloquear")
