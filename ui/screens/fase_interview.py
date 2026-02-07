@@ -1,5 +1,6 @@
 import streamlit as st
 import json
+import re
 from core.prompts import SYSTEM_PROMPT
 from core.utils import chamar_gpt
 
@@ -88,15 +89,15 @@ Gere exatamente 10 perguntas personalizadas para uma **{tipo_entrevista}** para 
             
             if resposta:
                 try:
-                    # Parse do JSON
-                    json_start = resposta.find('{')
-                    json_end = resposta.rfind('}') + 1
+                    # Parse do JSON - usa regex para encontrar JSON completo
+                    json_pattern = r'\{[\s\S]*"perguntas"[\s\S]*\[[\s\S]*\][\s\S]*\}'
+                    json_match = re.search(json_pattern, resposta)
                     
-                    if json_start == -1 or json_end == 0:
+                    if not json_match:
                         st.error("❌ Erro ao gerar perguntas. Tente novamente.")
                         return
                     
-                    json_str = resposta[json_start:json_end]
+                    json_str = json_match.group(0)
                     perguntas_data = json.loads(json_str)
                     
                     # Armazena no session_state

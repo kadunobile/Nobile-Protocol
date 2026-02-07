@@ -2,6 +2,9 @@ import streamlit as st
 import difflib
 from core.ats_scorer import calcular_score_ats
 
+# Constants
+PREVIEW_MAX_LENGTH = 1000
+
 def fase_comparador_cv():
     st.markdown("# 🔄 Comparador de CVs")
     st.markdown("---")
@@ -143,12 +146,12 @@ def fase_comparador_cv():
             
             with col1:
                 st.markdown("#### 📄 CV Original (preview)")
-                preview_orig = st.session_state.cv_texto[:1000] + ('...' if len(st.session_state.cv_texto) > 1000 else '')
+                preview_orig = st.session_state.cv_texto[:PREVIEW_MAX_LENGTH] + ('...' if len(st.session_state.cv_texto) > PREVIEW_MAX_LENGTH else '')
                 st.text_area("", value=preview_orig, height=400, key="preview_orig", disabled=True)
             
             with col2:
                 st.markdown("#### ✨ CV Otimizado (preview)")
-                preview_otim = cv_otimizado[:1000] + ('...' if len(cv_otimizado) > 1000 else '')
+                preview_otim = cv_otimizado[:PREVIEW_MAX_LENGTH] + ('...' if len(cv_otimizado) > PREVIEW_MAX_LENGTH else '')
                 st.text_area("", value=preview_otim, height=400, key="preview_otim", disabled=True)
         
         with tab3:
