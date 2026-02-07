@@ -44,7 +44,12 @@ def fase_chat():
                 st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
                 with st.chat_message("assistant"):
                     with st.spinner("🤔 Processando etapa..."):
-                        resp = chamar_gpt(st.session_state.openai_client, st.session_state.mensagens)
+                        resp = chamar_gpt(
+                            st.session_state.openai_client, 
+                            st.session_state.mensagens,
+                            temperature=0.3,  # Consistência para otimização
+                            seed=42           # Determinístico
+                        )
                         if resp:
                             st.markdown(resp)
                             st.session_state.mensagens.append({"role": "assistant", "content": resp})

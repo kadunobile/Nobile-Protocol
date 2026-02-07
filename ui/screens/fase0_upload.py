@@ -57,7 +57,12 @@ Forneça relatório executivo completo. NÃO mostre o CV de volta."""}
                 ]
                 
                 with st.spinner("🧠 Analisando perfil com IA..."):
-                    analise = chamar_gpt(st.session_state.openai_client, msgs)
+                    analise = chamar_gpt(
+                        st.session_state.openai_client, 
+                        msgs,
+                        temperature=0.3,  # Consistência na análise inicial
+                        seed=42           # Determinístico
+                    )
                     
                 if analise:
                     st.success(f"✅ CV {tipo_arquivo.upper()} processado com sucesso!")
