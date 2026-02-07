@@ -133,8 +133,8 @@ def fase_gaps_interativos():
                 
                 # Ir para chat com módulo otimizador ativo
                 st.session_state.fase = 'CHAT'
-                st.session_state.modulo_ativo = 'otimizador'
-                st.session_state.etapa_modulo = 'aplicar_gaps'
+                st.session_state.modulo_ativo = 'OTIMIZADOR'  # MAIÚSCULA para match no chat
+                st.session_state.etapa_modulo = 'AGUARDANDO_OK'  # Começar do OK
                 st.rerun()
 
 

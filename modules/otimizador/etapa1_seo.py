@@ -23,11 +23,28 @@ Formato EXATO:
 
 ---
 
-🔴 **AÇÃO NECESSÁRIA:**
+### 🔴 ANÁLISE DETALHADA DAS KEYWORDS AUSENTES:
 
-Para cada keyword ❌ AUSENTE, pergunte:
-- Você tem experiência com [keyword]? Em qual contexto/empresa? Como e onde?
+**Para cada keyword AUSENTE, forneça:**
 
-⏸️ **AGUARDO SUA RESPOSTA ANTES DE CONTINUAR PARA A ETAPA 2.**
+#### [Nome da Keyword] ❌
+**Por que é importante:** [Explicação de 1-2 linhas sobre por que essa keyword é essencial para o cargo]
 
-NÃO mostre o CV completo."""
+**Como incluir:** [Exemplos práticos de frases/contextos onde essa keyword poderia aparecer no CV]
+
+**Exemplo:** "Gerenciei equipe de 10 pessoas utilizando metodologia [keyword]"
+
+---
+
+### ✅ KEYWORDS JÁ PRESENTES:
+
+[Liste as keywords que já estão no CV e explique brevemente onde aparecem]
+
+---
+
+### 📝 PRÓXIMO PASSO:
+
+Agora vou fazer perguntas específicas sobre cada experiência profissional para coletar dados que incluam essas keywords ausentes.
+
+Digite **"OK"** ou **"CONTINUAR"** para prosseguir para a ETAPA 2 (Interrogatório Tático).
+"""
