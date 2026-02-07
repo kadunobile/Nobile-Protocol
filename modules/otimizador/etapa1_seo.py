@@ -11,7 +11,7 @@ Por favor, retorne ao início e faça upload do seu CV novamente.
 
 **Clique em "🔄 Recomeçar" na barra lateral.**"""
     
-    # HIDDEN INSTRUCTIONS FOR AI (not visible to user in output)
+    # Instructions for AI analysis (to guide AI, not for display in AI's response)
     hidden_instructions = f"""
 Analise o CV acima e identifique as 10 KEYWORDS mais importantes para o cargo de **{cargo}**.
 

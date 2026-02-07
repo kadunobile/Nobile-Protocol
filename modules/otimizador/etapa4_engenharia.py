@@ -22,7 +22,10 @@ Depois, reescreva seguindo o formato do CV original:
 
 **FORMATO DE EXPERIÊNCIA:**
 
-Siga o mesmo formato que o candidato usa atualmente no CV. Se ele usa bullets, use bullets. Se usa parágrafos, use parágrafos. Se usa verbos em português, mantenha em português.
+Siga o mesmo formato que o candidato usa atualmente no CV:
+- Se ele usa bullets, use bullets
+- Se usa parágrafos, use parágrafos  
+- Se usa verbos em português, mantenha em português
 
 **Estrutura base (adaptável):**
 
