@@ -84,26 +84,6 @@ FORMATO EXATO OBRIGATÓRIO:
 
 ---
 
-### ⚠️ ANÁLISE DE GAP - CIRÚRGICA
-
-**Contexto:** Você busca **{cargo}** com pretensão de **{pretensao}** mensal em **{local}**.
-
-**O que o mercado espera VS o que seu CV demonstra:**
-
-| EXPECTATIVA DO MERCADO | SEU CV HOJE | STATUS |
-|------------------------|-------------|--------|
-| [Skill/experiência 1] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
-| [Skill/experiência 2] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
-| [Skill/experiência 3] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
-
-**Gaps Prioritários para Corrigir no CV:**
-
-1. **[Gap Real 1]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
-2. **[Gap Real 2]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
-3. **[Gap Real 3]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
-
----
-
 ### 🎯 VEREDITO DO HEADHUNTER
 
 **Nível de Desafio:** [Baixo/Médio/Alto]
@@ -169,15 +149,12 @@ FORMATO EXATO OBRIGATÓRIO:
 → Identificar gaps técnicos
 
 ### **ETAPA 4: Reescrita Estratégica**
-→ Aplicar framework STAR (Situação-Tarefa-Ação-Resultado)  
+→ Seguir o formato do seu CV original
 → Headlines de impacto para LinkedIn
 
-### **ETAPA 5: Validação**
-→ Revisão seção por seção  
-→ Ajustes finais
-
-### **ETAPA 6: Exportação**
-→ Gerar arquivo final formatado
+### **ETAPA 5: Apresentação do CV Revisado**
+→ Apresentar CV com todas as melhorias
+→ Arquivo final formatado
 
 ---
 
@@ -186,12 +163,11 @@ FORMATO EXATO OBRIGATÓRIO:
 
 ---
 
-🚀 **Iniciando ETAPA 1 automaticamente...**"""
+⏸️ **Clique em "Iniciar" quando estiver pronto para começar.**"""
                     
                     st.session_state.mensagens.append({"role": "assistant", "content": intro})
                     st.session_state.modulo_ativo = 'OTIMIZADOR'
-                    st.session_state.etapa_modulo = 'ETAPA_1_SEO'
-                    st.session_state.etapa_1_triggered = False  # Reset to allow auto-trigger
+                    st.session_state.etapa_modulo = 'AGUARDANDO_INICIAR'
                     st.session_state.fase = 'CHAT'
                     forcar_topo()
                     st.rerun()

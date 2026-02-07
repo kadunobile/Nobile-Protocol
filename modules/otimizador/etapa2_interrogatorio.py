@@ -1,5 +1,5 @@
 def prompt_etapa2():
-    return """Ótimo! Recebi suas respostas sobre as keywords. Avançando para ETAPA 2.
+    return """Ótimo! Recebi sua confirmação sobre as keywords. Avançando para ETAPA 2.
 
 ### 📊 ETAPA 2: INTERROGATÓRIO TÁTICO
 
@@ -15,10 +15,28 @@ Para CADA cargo no CV, apresente o "Relatório de Gaps":
 ⚠️ **A Cobrança:** "Isso não vende. Qual foi o impacto exato?"
 
 🔍 **DADOS NECESSÁRIOS:**
-1. **Impacto Financeiro:** Quanto gerou/economizou? (R$, %)
-2. **Tamanho da Equipe:** Quantas pessoas gerenciava?
-3. **Orçamento/Budget:** Qual valor sob sua responsabilidade?
-4. **Resultados Mensuráveis:** Que métricas melhorou? (tempo, qualidade, NPS)
+
+**Preencha os campos abaixo:**
+
+1. **Impacto Financeiro:**  
+   _[Campo de resposta]_  
+   Quanto gerou/economizou? (R$, %)
+
+2. **Tamanho da Equipe:**  
+   _[Campo de resposta]_  
+   Quantas pessoas gerenciava?
+
+3. **Orçamento/Budget:**  
+   _[Campo de resposta]_  
+   Qual valor sob sua responsabilidade?
+
+4. **Resultados Mensuráveis:**  
+   _[Campo de resposta]_  
+   Que métricas melhorou? (tempo, qualidade, NPS)
+
+5. **Descrição Complementar:**  
+   _[Campo de resposta - texto livre]_  
+   Descreva outras conquistas, contexto adicional ou informações relevantes
 
 ---
 
@@ -28,7 +46,7 @@ Para CADA cargo no CV, apresente o "Relatório de Gaps":
 
 🔴 **COMANDO FINAL:**
 
-"Responda abaixo com os números brutos para cada ponto acima.
+"Responda abaixo com os dados para cada experiência profissional.
 Se não tiver o número exato, me dê sua melhor estimativa conservadora."
 
 **Formato esperado:**
@@ -38,10 +56,15 @@ Experiência 1 ([Empresa]):
 - Equipe: [resposta]
 - Orçamento: [resposta]
 - Resultados: [resposta]
+- Descrição: [resposta detalhada]
 
 Experiência 2 ([Empresa]):
 (mesmo formato)
 
-⏸️ **PAUSE - AGUARDO OS DADOS COMPLETOS.**
+---
+
+📌 **Quando terminar de preencher todos os dados, clique em "Continuar" para avançar.**
+
+⏸️ **AGUARDO OS DADOS COMPLETOS.**
 
 NÃO mostre o CV completo."""

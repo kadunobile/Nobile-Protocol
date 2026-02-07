@@ -11,13 +11,8 @@ Por favor, retorne ao início e faça upload do seu CV novamente.
 
 **Clique em "🔄 Recomeçar" na barra lateral.**"""
     
-    return f"""Inicie a ETAPA 1 do otimizador de CV.
-
-**CV DO CANDIDATO:**
-{cv_texto}
-
----
-
+    # Instructions for AI analysis (to guide AI, not for display in AI's response)
+    hidden_instructions = f"""
 Analise o CV acima e identifique as 10 KEYWORDS mais importantes para o cargo de **{cargo}**.
 
 **IMPORTANTE - REGRAS DE ANÁLISE:**
@@ -29,6 +24,16 @@ Analise o CV acima e identifique as 10 KEYWORDS mais importantes para o cargo de
 3. Se encontrado mas fraco/implícito, marque como "presente mas pode ser reforçado"
 
 Compare cada keyword com o CV atual.
+"""
+    
+    return f"""Inicie a ETAPA 1 do otimizador de CV.
+
+**CV DO CANDIDATO:**
+{cv_texto}
+
+---
+
+{hidden_instructions}
 
 Formato EXATO:
 
@@ -87,5 +92,5 @@ Formato EXATO:
 
 ---
 
-⏸️ **Revise as keywords acima. Se concordar com a análise, responda "CONTINUAR" para avançar para a próxima etapa.**
+⏸️ **Revise as keywords acima. Se concordar com a análise, responda "OK" para avançar para a próxima etapa.**
 """
