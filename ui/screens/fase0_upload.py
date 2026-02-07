@@ -10,8 +10,10 @@ def fase_0_upload():
     st.markdown("""
     **Formatos aceitos:**
     - 📕 PDF (.pdf)
-    - 📘 Word (.docx, .doc)
+    - 📘 Word (.docx) - recomendado
     - 📝 Texto (.txt)
+    
+    *Nota: Arquivos .doc antigos devem ser convertidos para .docx*
     """)
 
     arquivo = st.file_uploader(

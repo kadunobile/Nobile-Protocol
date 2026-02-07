@@ -92,6 +92,9 @@ def extrair_texto_docx(arquivo):
     """
     Extrai texto de arquivo Word (.docx).
     
+    Nota: Apenas arquivos .docx (Office Open XML) são suportados.
+    Arquivos .doc legados (formato binário antigo) não são suportados pela biblioteca python-docx.
+    
     Args:
         arquivo: Arquivo uploaded do Streamlit
     
@@ -129,8 +132,13 @@ def extrair_texto_docx(arquivo):
         return texto
         
     except Exception as e:
-        st.error(f"❌ Erro ao ler arquivo Word: {e}")
-        logger.error(f"Erro ao extrair DOCX: {e}", exc_info=True)
+        error_msg = str(e)
+        if "is not a zip file" in error_msg or "BadZipFile" in error_msg:
+            st.error("❌ Arquivo .doc antigo detectado. Por favor, converta para .docx ou use formato PDF/TXT")
+            logger.error("Tentativa de processar arquivo .doc antigo (formato binário não suportado)")
+        else:
+            st.error(f"❌ Erro ao ler arquivo Word: {e}")
+            logger.error(f"Erro ao extrair DOCX: {e}", exc_info=True)
         return None
 
 

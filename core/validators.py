@@ -32,11 +32,12 @@ def validar_arquivo_cv(arquivo) -> Tuple[bool, Optional[str]]:
     # Valida tamanho (máximo 15MB para Word que pode ser maior)
     tamanho_mb = arquivo.size / (1024 * 1024)
     max_mb = 15
+    min_size_bytes = 1024  # 1KB mínimo
     
     if tamanho_mb > max_mb:
         return False, f"Arquivo muito grande ({tamanho_mb:.1f}MB). Máximo: {max_mb}MB"
     
-    if tamanho_mb < 0.001:  # < 1KB
+    if arquivo.size < min_size_bytes:
         return False, "Arquivo muito pequeno ou vazio"
     
     return True, None
