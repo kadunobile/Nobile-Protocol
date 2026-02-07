@@ -14,6 +14,10 @@ from modules.otimizador.etapa2_reescrita_progressiva import prompt_etapa2_reescr
 from modules.otimizador.etapa6_otimizacao_linkedin import prompt_etapa6_otimizacao_linkedin
 import streamlit as st
 
+# Configuration constants
+DEFAULT_MAX_EXPERIENCES = 3  # Default number of experiences to optimize
+
+
 def processar_modulo_otimizador(prompt):
     cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
     etapa = st.session_state.get('etapa_modulo')
@@ -62,8 +66,8 @@ def processar_modulo_otimizador(prompt):
     if etapa and etapa.startswith('AGUARDANDO_APROVACAO_EXP_'):
         exp_num = int(etapa.split('_')[-1])
         if any(word in prompt.lower() for word in ['próxima', 'proxima', 'próximo', 'proximo', 'continuar', 'aprovar', 'ok']):
-            # Verificar se há mais experiências (máximo 3-4 por padrão)
-            max_exp = st.session_state.get('total_experiencias', 3)
+            # Verificar se há mais experiências
+            max_exp = st.session_state.get('total_experiencias', DEFAULT_MAX_EXPERIENCES)
             if exp_num < max_exp:
                 st.session_state.etapa_modulo = f'ETAPA_2_REESCRITA_EXP_{exp_num + 1}'
                 return prompt_etapa2_reescrita_progressiva(exp_num + 1)
@@ -78,9 +82,11 @@ def processar_modulo_otimizador(prompt):
     
     if etapa == 'AGUARDANDO_CONTINUAR_CHECKPOINT2':
         if any(word in prompt.lower() for word in ['continuar', 'ok', 'aprovar', 'sim']):
-            # Salvar CV otimizado e ir para validação de score
-            # Assumindo que o CV otimizado foi gerado durante as reescritas
-            st.session_state.cv_otimizado = st.session_state.get('cv_texto', '')  # Placeholder
+            # TODO: Salvar CV otimizado das mensagens reescritas
+            # Por enquanto, marcar para gerar na fase de validação
+            if not st.session_state.get('cv_otimizado'):
+                # Placeholder - o CV otimizado deveria ser construído das reescritas
+                st.session_state.cv_otimizado = st.session_state.get('cv_texto', '')
             st.session_state.fase = 'FASE_VALIDACAO_SCORE_ATS'
             return None  # Vai para tela de validação
         return None

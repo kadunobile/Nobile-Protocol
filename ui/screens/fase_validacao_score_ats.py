@@ -63,9 +63,13 @@ def fase_validacao_score_ats():
             'tamanho': {'palavras': 0}
         }}
     
-    # Calcular melhoria
+    # Calcular melhoria - handle case when initial score is 0
     melhoria = score_final['score_total'] - score_inicial['score_total']
-    melhoria_percentual = ((melhoria / score_inicial['score_total']) * 100) if score_inicial['score_total'] > 0 else 0
+    if score_inicial['score_total'] > 0:
+        melhoria_percentual = ((melhoria / score_inicial['score_total']) * 100)
+    else:
+        # Se score inicial era 0, mostrar progresso em relação à meta de 80
+        melhoria_percentual = (score_final['score_total'] / 80) * 100
     
     # Exibir comparação principal
     st.markdown("## 🎯 Score Total - Comparação")

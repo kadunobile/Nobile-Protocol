@@ -34,10 +34,17 @@ def gerar_analytics_data(score_inicial: Dict, score_final: Dict, gaps_alvo: List
     Returns:
         Dict com dados de analytics
     """
+    # Calcular melhoria percentual considerando caso especial quando score inicial é 0
+    if score_inicial['score_total'] > 0:
+        melhoria_percentual = ((score_final['score_total'] - score_inicial['score_total']) / 
+                               score_inicial['score_total'] * 100)
+    else:
+        # Se score inicial era 0, mostrar progresso em relação à meta de 80
+        melhoria_percentual = (score_final['score_total'] / 80) * 100
+    
     analytics = {
         'score_melhoria': score_final['score_total'] - score_inicial['score_total'],
-        'score_melhoria_percentual': ((score_final['score_total'] - score_inicial['score_total']) / 
-                                       score_inicial['score_total'] * 100) if score_inicial['score_total'] > 0 else 0,
+        'score_melhoria_percentual': melhoria_percentual,
         'keywords_adicionadas': (score_final['detalhes']['keywords']['encontradas'] - 
                                  score_inicial['detalhes']['keywords']['encontradas']),
         'metricas_adicionadas': (score_final['detalhes']['metricas']['quantidade'] - 

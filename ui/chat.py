@@ -58,9 +58,9 @@ def fase_chat():
     # Auto-trigger ETAPA_0_DIAGNOSTICO (novo fluxo)
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
         st.session_state.get('etapa_modulo') == 'ETAPA_0_DIAGNOSTICO' and
-        not st.session_state.get('etapa_0_triggered')):
+        not st.session_state.get('etapa_0_diagnostico_triggered')):
         
-        st.session_state.etapa_0_triggered = True
+        st.session_state.etapa_0_diagnostico_triggered = True
         prompt_otimizador = processar_modulo_otimizador("")
         
         if prompt_otimizador:
@@ -83,9 +83,9 @@ def fase_chat():
     # Auto-trigger ETAPA_1_COLETA_FOCADA
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
         st.session_state.get('etapa_modulo') == 'ETAPA_1_COLETA_FOCADA' and
-        not st.session_state.get('etapa_1_coleta_triggered')):
+        not st.session_state.get('etapa_1_coleta_focada_triggered')):
         
-        st.session_state.etapa_1_coleta_triggered = True
+        st.session_state.etapa_1_coleta_focada_triggered = True
         prompt_otimizador = processar_modulo_otimizador("")
         
         if prompt_otimizador:

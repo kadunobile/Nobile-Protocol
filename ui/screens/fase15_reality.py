@@ -125,6 +125,11 @@ FORMATO EXATO OBRIGATÓRIO:
                     # Salvar resultado do Reality Check para uso posterior
                     st.session_state.reality_check_resultado = reality
                     
+                    # Limpar estado anterior para garantir transição limpa
+                    st.session_state.mensagens = []
+                    st.session_state.modulo_ativo = None
+                    st.session_state.etapa_modulo = None
+                    
                     # Redirecionar para PONTE ESTRATÉGICA (não mais direto para CHAT)
                     st.session_state.fase = 'FASE_BRIDGE_OTIMIZACAO'
                     forcar_topo()

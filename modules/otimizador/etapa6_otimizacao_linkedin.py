@@ -169,5 +169,5 @@ Você agora tem pronto:
 
 ---
 
-⏸️ **Responda "CONTINUAR" para ir para a etapa de Validação de Score ATS.**
+⏸️ **Responda "CONTINUAR" para ir para a etapa de Exports Multi-Formato.**
 """
