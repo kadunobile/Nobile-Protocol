@@ -32,60 +32,44 @@ Compare cada keyword com o CV atual.
 
 Formato EXATO:
 
-🎯 **ETAPA 1: MAPEAMENTO DE SEO - {cargo.upper()}**
+🎯 **ETAPA 1: ANÁLISE DE KEYWORDS - {cargo.upper()}**
 
-**TOP 10 KEYWORDS DO MERCADO:**
-
----
-
-### ✅ **PRESENTE NO SEU CV:**
-
-[Para cada keyword PRESENTE, liste:]
-**[Número]. [Keyword]**
-
-📍 **Evidência:** [Onde/como aparece no CV - cite frase específica ou contexto]  
-💡 **Contexto:** [Breve explicação de como é demonstrado]
-
-[Continue para todas as keywords presentes]
+**TOP 10 KEYWORDS ESSENCIAIS:**
 
 ---
 
-### ⚠️ **PRESENTE MAS PODE SER REFORÇADO:**
+### ✅ **PRESENTES NO SEU CV** ({{}})
 
-[Para keywords que aparecem implicitamente ou de forma fraca:]
-
-**[Número]. [Keyword]**
-
-📍 **Evidência atual:** [O que foi encontrado - seja específico]  
-💡 **Como reforçar:** [Sugestão concreta de como destacar melhor]
+[Para cada keyword PRESENTE, liste de forma concisa:]
+**[Número]. [Keyword]** - Encontrada no contexto: [breve menção]
 
 ---
 
-### ❌ **FALTANDO NO SEU CV:**
+### ⚠️ **PODEM SER REFORÇADAS** ({{}})
+
+[Para keywords que aparecem implicitamente:]
+**[Número]. [Keyword]** - Como reforçar: [sugestão breve]
+
+---
+
+### ❌ **AUSENTES NO SEU CV** ({{}})
 
 [IMPORTANTE: Só liste aqui se REALMENTE ausente após busca por sinônimos]
 
-[Para cada keyword AUSENTE, forneça:]
-
-**[Número]. [Nome da Keyword]**
-
-📚 **O que é:** [Definição clara e objetiva em 1-2 linhas]
-
-💡 **Por que importa:** [Explicação da relevância para o cargo - ex: "90% das vagas de {cargo} exigem", "Habilidade core para crescimento"]
-
-✍️ **Como adicionar:** [Orientação prática sobre como incluir no CV - ex: "Descreva como você organizava o funil de vendas", "Mencione indicadores que você monitorava"]
-
-[Repita para cada keyword ausente]
+[Para cada keyword AUSENTE:]
+**[Número]. [Keyword]** - Relevância: [explicação breve]
 
 ---
 
-### 🎯 **RESUMO:**
+### 📊 **RESUMO:**
 
-✅ **Presentes:** [X] keywords  
-⚠️ **Para reforçar:** [Y] keywords  
-❌ **Ausentes:** [Z] keywords
+✅ Presentes: [X] keywords  
+⚠️ Para reforçar: [Y] keywords  
+❌ Ausentes: [Z] keywords
+
+**Próxima etapa:** Vou fazer perguntas específicas sobre suas experiências para complementar seu CV com dados quantitativos.
 
 ---
 
-⏸️ **Revise as keywords acima. Se concordar com a análise, responda "CONTINUAR" para avançar para a próxima etapa.**
+⏸️ **Revise as keywords acima. Responda "CONTINUAR" quando estiver pronto para a próxima etapa.**
 """

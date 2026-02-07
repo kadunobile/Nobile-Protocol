@@ -23,32 +23,11 @@ def processar_modulo_otimizador(prompt):
         return prompt_etapa1(cargo)
 
     if etapa == 'ETAPA_1':
-        # Check if keywords were collected (from gaps interactive or other source)
-        keywords_preenchidas = st.session_state.get('keywords_preenchidas', {})
-        keywords_selecionadas = st.session_state.get('keywords_selecionadas', [])
-        
-        # If we have keywords, move to ETAPA_1.5 for CV analysis
-        if keywords_preenchidas or keywords_selecionadas:
-            # Prepare list of keywords from either source
-            if keywords_preenchidas:
-                keywords_list = list(keywords_preenchidas.keys())
-            else:
-                keywords_list = keywords_selecionadas
-            
-            st.session_state.etapa_modulo = 'ETAPA_1_5'
-            return prompt_etapa1_5(cargo, keywords_list)
-        elif len(prompt) > 10:
-            # Original behavior: move to ETAPA_2 if no keywords flow
-            st.session_state.etapa_modulo = 'ETAPA_2'
-            return prompt_etapa2()
-        return None
-
-    if etapa == 'ETAPA_1_5':
-        # User reviewed CV analysis, move to ETAPA_2 if they say continue
+        # Check if user says continue
         if "continuar" in prompt.lower():
             st.session_state.etapa_modulo = 'ETAPA_2'
             return prompt_etapa2()
-        return None  # Wait for user to say continue
+        return None
 
     if etapa == 'ETAPA_2':
         if len(prompt) > 30:
@@ -63,18 +42,14 @@ def processar_modulo_otimizador(prompt):
         return None
 
     if etapa == 'ETAPA_4':
-        st.session_state.etapa_modulo = 'ETAPA_5'
-        return prompt_etapa5()
-
-    if etapa == 'ETAPA_5':
-        if any(word in prompt.lower() for word in ['ok', 'aprovado', 'aprovei', 'sim', 'perfeito', 'ótimo', 'otimo']):
-            st.session_state.etapa_modulo = 'ETAPA_6'
-            return prompt_etapa6(cargo)
-        return None
+        # After rewrite, skip validation and go directly to ETAPA_6 (final CV)
+        st.session_state.etapa_modulo = 'ETAPA_6'
+        return prompt_etapa6(cargo)
 
     if etapa == 'ETAPA_6':
-        st.session_state.etapa_modulo = 'ETAPA_7'
+        # Final step - optimization complete
         st.session_state.modulo_ativo = None
-        return prompt_etapa7()
+        st.session_state.etapa_modulo = None
+        return None
 
     return None

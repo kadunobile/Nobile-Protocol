@@ -1,76 +1,60 @@
+import streamlit as st
+
 def prompt_etapa4():
-    return """Perfeito! Com TODOS os dados das Etapas 1, 2 e 3, vou agora reescrever.
+    # Get CV from session to check original format
+    cv_texto = st.session_state.get('cv_texto', '')
+    
+    return f"""✅ **Perfeito! Dados coletados.**
 
-### ✍️ ETAPA 4: ENGENHARIA DE TEXTO
+### ✍️ ETAPA 4: REESCRITA ESTRATÉGICA
 
-**MODELO DE REFERÊNCIA:**
-Use como inspiração de estrutura e formatting o CV do Carlos Eduardo Nóbile (Gerente) - o arquivo PDF anexado ao projeto.
-
-**Princípios visuais:**
-- Seções bem separadas com espaçamento
-- Bullets com conquistas quantificadas
-- Linguagem direta e impactante
-- Foco em resultados mensuráveis
-
----
-
-Primeiro, avalie cada item da Etapa 3:
-- Se relevante → ✅ "INCLUIREMOS isso"
-- Se ruído → ⚠️ "Sugiro descartar"
-
-Depois, reescreva seguindo RIGOROSAMENTE estas estruturas:
-
-**A) ESTRUTURA DO RESUMO (LINKEDIN "SOBRE"):**
-
-> **Parágrafo 1 (Hook):** [Identidade Profissional] + [Anos XP] + [Proposta Única de Valor]
-> **Parágrafo 2 (Autoridade):** [Core Skills] aplicadas a [Mercado/Nicho]
-> **Destaques de Impacto:**
-> 🚀 **[CONQUISTA MACRO]:** Contexto + Ação + Resultado Numérico
-> 📈 **[LIDERANÇA]:** Tamanho do time + Escopo + Resultado de Gestão
-> **Tech Stack & Idiomas:** [Lista Otimizada para ATS]
+Agora vou reescrever seu CV seguindo o **FORMATO ORIGINAL** que você usou, mas com as melhorias:
+- Integrar keywords identificadas
+- Adicionar métricas e dados quantitativos
+- Destacar resultados de impacto
+- Manter a estrutura que você já usa
 
 ---
 
-**B) ESTRUTURA DE EXPERIÊNCIA (RIGOROSA):**
+**INSTRUÇÕES CRÍTICAS:**
 
-Cada experiência DEVE seguir este formato EXATO:
+1. **MANTER O FORMATO DO CV ORIGINAL**
+   - Analise a estrutura atual do CV do candidato
+   - Se usa seções como "Foco do Cargo:", "Liderança:", etc., MANTENHA
+   - Se usa bullets simples, MANTENHA
+   - Não force modelo STAR ou outros padrões
 
-**[Job Title] | [Company Name] | [Start Date] - [End Date/Present]**
-• [Achievement 1]: [Action Verb] + [What] + [Impact with number/metric]
-• [Achievement 2]: [Action Verb] + [What] + [Impact with number/metric]
-• [Achievement 3]: [Action Verb] + [What] + [Impact with number/metric]
-• [Achievement 4]: [Action Verb] + [What] + [Impact with number/metric]
+2. **EXEMPLO DE FORMATO (se o CV usar):**
+   ```
+   Gerente de Inteligência de Negócios & Sales Ops
+   Foco do Cargo: [descrição com métricas]
+   Liderança de Data Analytics: [descrição com resultados]
+   Salesforce/CRM Management: [descrição com impacto]
+   Dashboards & KPIs: [descrição com dados]
+   Eficiência Operacional: [descrição com números]
+   Palavras-chave: [keywords integradas]
+   ```
 
-**REGRAS OBRIGATÓRIAS:**
-1. **Usar verbos de ação em inglês** no início de cada bullet (Led, Managed, Implemented, Achieved, Increased, Reduced, Trained, Developed, Coordinated, etc.)
-2. **SEMPRE incluir métrica/número em cada bullet** (%, R$, tempo, quantidade, tamanho de equipe)
-3. **Ordem de impacto:** do maior para o menor resultado
-4. **Máximo 5 bullets** por experiência
-5. **Mínimo 3 bullets** por experiência
+3. **PRINCÍPIOS DE REESCRITA:**
+   - Adicionar números e métricas (R$, %, tempo, tamanho equipe)
+   - Usar verbos de ação fortes
+   - Quantificar resultados sempre que possível
+   - Integrar keywords naturalmente
+   - Ser específico, não genérico
 
-**EXEMPLO REAL:**
-
-**Senior Sales Manager | TechCorp Brasil | Jan 2020 - Present**
-• Led cross-functional team of 15 generating R$ 8M annual revenue
-• Implemented Salesforce CRM reducing sales cycle by 30% (90 to 63 days)
-• Achieved 125% of quota for 3 consecutive years (2021-2023)
-• Managed pipeline of 200+ accounts with 45% conversion rate
-• Trained and mentored 8 junior sales reps, 6 promoted within 18 months
-
-**Sales Coordinator | Tech Solutions | Mar 2017 - Dec 2019**
-• Coordinated B2B prospecting campaigns reaching 500+ leads/month
-• Increased customer retention from 60% to 85% through loyalty program
-• Trained team of 5 SDRs on consultative selling techniques
-
----
-
-**IMPORTANTE:** 
-- Use DADOS REAIS fornecidos nas Etapas 2 e 3
-- NÃO invente métricas - extraia dos dados fornecidos ou peça ao candidato
-- Se faltar métrica, PERGUNTE ao candidato antes de continuar
+4. **O QUE USAR:**
+   - Dados da ETAPA 2 (impacto, equipe, orçamento, resultados)
+   - Informações da ETAPA 3 (contexto, projetos, skills)
+   - Keywords da ETAPA 1
 
 ---
 
-Reescreva TODAS as experiências com dados reais da Etapa 2.
+**CV ORIGINAL PARA REFERÊNCIA:**
+{cv_texto[:1000]}...
 
-Após reescrever tudo, apresente e pergunte: "O texto está robusto e alinhado? Quer ajustar algo?" (ETAPA 5)"""
+---
+
+Agora reescreva CADA experiência profissional do CV seguindo o formato original mas com as melhorias aplicadas.
+
+Após reescrever, mostre o resultado e adicione o botão: "Ver CV Revisado Completo"
+"""

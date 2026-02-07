@@ -1,47 +1,42 @@
 def prompt_etapa2():
-    return """Ótimo! Recebi suas respostas sobre as keywords. Avançando para ETAPA 2.
+    return """✅ **Avançando para ETAPA 2...**
 
 ### 📊 ETAPA 2: INTERROGATÓRIO TÁTICO
 
-Instrução Crítica: Você NÃO pode aceitar generalismos. Analise TODAS as experiências do CV, da atual até a mais antiga, sem exceção.
+Agora vou analisar TODAS as experiências do seu CV para coletar dados específicos que tornarão seu CV mais impactante.
 
-Para CADA cargo no CV, apresente o "Relatório de Gaps":
+Para CADA cargo listado no CV, vou apresentar perguntas sobre:
 
-**EXPERIÊNCIA [N]: [Nome da Empresa] - [Cargo] | [Período]**
-
-*Frase Genérica encontrada no CV:*  
-> "[Cite a frase EXATA do CV original]"
-
-⚠️ **A Cobrança:** "Isso não vende. Qual foi o impacto exato?"
-
-🔍 **DADOS NECESSÁRIOS:**
+**DADOS NECESSÁRIOS:**
 1. **Impacto Financeiro:** Quanto gerou/economizou? (R$, %)
-2. **Tamanho da Equipe:** Quantas pessoas gerenciava?
+2. **Tamanho da Equipe:** Quantas pessoas gerenciava/coordenava?
 3. **Orçamento/Budget:** Qual valor sob sua responsabilidade?
-4. **Resultados Mensuráveis:** Que métricas melhorou? (tempo, qualidade, NPS)
+4. **Resultados Mensuráveis:** Que métricas melhorou? (tempo, qualidade, volume)
 
 ---
 
-(Repita este bloco para TODAS as empresas do CV, uma por uma, sem exceção)
+**IMPORTANTE:** 
+- Seja específico com números reais
+- Se não tiver o número exato, forneça sua melhor estimativa conservadora
+- Responda para TODAS as experiências listadas no seu CV
 
 ---
 
-🔴 **COMANDO FINAL:**
+Por favor, liste abaixo as suas experiências profissionais (do CV) no formato:
 
-"Responda abaixo com os números brutos para cada ponto acima.
-Se não tiver o número exato, me dê sua melhor estimativa conservadora."
+**Experiência 1: [Empresa] - [Cargo] - [Período]**
+- Impacto Financeiro: [sua resposta]
+- Tamanho da Equipe: [sua resposta]
+- Orçamento: [sua resposta]
+- Resultados Mensuráveis: [sua resposta]
 
-**Formato esperado:**
+**Experiência 2: [Empresa] - [Cargo] - [Período]**
+- Impacto Financeiro: [sua resposta]
+- Tamanho da Equipe: [sua resposta]
+- Orçamento: [sua resposta]
+- Resultados Mensuráveis: [sua resposta]
 
-Experiência 1 ([Empresa]):
-- Impacto: [resposta]
-- Equipe: [resposta]
-- Orçamento: [resposta]
-- Resultados: [resposta]
+*(Continue para todas as experiências relevantes)*
 
-Experiência 2 ([Empresa]):
-(mesmo formato)
-
-⏸️ **PAUSE - AGUARDO OS DADOS COMPLETOS.**
-
-NÃO mostre o CV completo."""
+⏸️ **AGUARDO SUAS RESPOSTAS COMPLETAS.**
+"""

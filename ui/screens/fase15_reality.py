@@ -6,15 +6,76 @@ def fase_15_reality_check():
     # Add top anchor for scroll positioning
     st.markdown('<div id="top-anchor"></div>', unsafe_allow_html=True)
     scroll_topo()
-    st.markdown("# 🧠 Reality Check - Análise Crítica")
+    
+    # Check if preview optimization screen should be shown
+    if st.session_state.get('mostrar_preview_otimizacao', False):
+        cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+        
+        st.markdown("# 🔧 OTIMIZAÇÃO COMPLETA DE CV")
+        st.markdown("## PROTOCOLO NÓBILE")
+        st.markdown("---")
+        
+        st.info(f"""
+        **Vou otimizar seu CV experiência por experiência para o cargo de {cargo}.**
+        
+        ⏱️ **TEMPO ESTIMADO:** 15-20 minutos  
+        📋 **VOCÊ PRECISARÁ:** Dados de impacto, tamanho de equipe, resultados quantitativos
+        """)
+        
+        st.markdown("### 📋 PROCESSO EM 5 ETAPAS:")
+        st.markdown("""
+        **ETAPA 1: Análise de Keywords**
+        → Identificar palavras-chave essenciais  
+        → Verificar presença no seu CV
+        
+        **ETAPA 2: Interrogatório Tático**
+        → Análise de CADA experiência profissional  
+        → Cobrança de dados quantitativos (KPIs, resultados)
+        
+        **ETAPA 3: Relatório de Gaps**
+        → Identificar experiências a destacar  
+        → Coletar informações complementares
+        
+        **ETAPA 4: Reescrita Estratégica**
+        → Seguir formato do CV original  
+        → Integrar keywords e métricas
+        
+        **ETAPA 5: CV Revisado Final**
+        → Visualizar CV completo otimizado  
+        → Exportar para uso
+        """)
+        
+        st.markdown("---")
+        
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            if st.button("⬅️ Voltar", use_container_width=True):
+                st.session_state.mostrar_preview_otimizacao = False
+                st.rerun()
+        
+        with col2:
+            if st.button("🚀 INICIAR OTIMIZAÇÃO", use_container_width=True, type="primary"):
+                st.session_state.mostrar_preview_otimizacao = False
+                st.session_state.mensagens = []
+                st.session_state.modulo_ativo = 'OTIMIZADOR'
+                st.session_state.etapa_modulo = 'ETAPA_1_SEO'
+                st.session_state.etapa_1_triggered = False
+                st.session_state.fase = 'CHAT'
+                forcar_topo()
+                st.rerun()
+        
+        return
+    
+    st.markdown("# 🧠 Análise Estratégica de Mercado")
     st.markdown("---")
     
     st.info("""
-    **O que é Reality Check?**  
-    Uma análise honesta e detalhada do seu CV, identificando:
-    - ✅ Pontos fortes que você deve enfatizar
-    - ❌ Gaps (lacunas) que precisam ser corrigidos
-    - 💡 Oportunidades de melhoria
+    **Análise Estratégica de Mercado**  
+    Uma análise do seu perfil em relação ao mercado:
+    - 📊 Análise salarial e posicionamento
+    - 🎯 Veredito de competitividade
+    - 💡 Estratégias de destaque
     
     Esta análise funciona para **qualquer cargo**: júnior, pleno, sênior, gerente, diretor, etc.
     """)
@@ -46,7 +107,7 @@ INSTRUÇÕES INTERNAS (NÃO MOSTRAR AO USUÁRIO):
 
 IMPORTANTE: Seja ESPECÍFICO e REALISTA. Base-se APENAS no CV fornecido e nas expectativas reais do mercado para {cargo} em {local}.
 """},
-            {"role": "user", "content": f"""REALITY CHECK:
+            {"role": "user", "content": f"""ANÁLISE ESTRATÉGICA:
 
 P1 Objetivo: {perfil['objetivo']}
 P2 Cargo: {cargo}
@@ -59,7 +120,7 @@ DEEP SCAN:
 
 FORMATO EXATO OBRIGATÓRIO:
 
-🎯 **REALITY CHECK - ANÁLISE ESTRATÉGICA**
+🎯 **ANÁLISE ESTRATÉGICA DE MERCADO**
 
 **CARGO DESEJADO:** {cargo}
 
@@ -81,26 +142,6 @@ FORMATO EXATO OBRIGATÓRIO:
 **Veredito:** [Abaixo/Na Média/Acima]
 
 [Contexto]
-
----
-
-### ⚠️ ANÁLISE DE GAP - CIRÚRGICA
-
-**Contexto:** Você busca **{cargo}** com pretensão de **{pretensao}** mensal em **{local}**.
-
-**O que o mercado espera VS o que seu CV demonstra:**
-
-| EXPECTATIVA DO MERCADO | SEU CV HOJE | STATUS |
-|------------------------|-------------|--------|
-| [Skill/experiência 1] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
-| [Skill/experiência 2] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
-| [Skill/experiência 3] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
-
-**Gaps Prioritários para Corrigir no CV:**
-
-1. **[Gap Real 1]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
-2. **[Gap Real 2]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
-3. **[Gap Real 3]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
 
 ---
 
@@ -142,58 +183,8 @@ FORMATO EXATO OBRIGATÓRIO:
                         st.session_state.fase = 'FASE_0_UPLOAD'
                         st.rerun()
                     
-                    st.session_state.mensagens = []
-                    st.session_state.modulo_ativo = None
-                    st.session_state.etapa_modulo = None
-                    
-                    cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
-                    intro = f"""# 🔧 OTIMIZAÇÃO COMPLETA DE CV
-## PROTOCOLO NÓBILE
-
-**Vou otimizar seu CV experiência por experiência seguindo metodologia de Alta Performance.**
-
----
-
-## 📋 PROCESSO EM 6 ETAPAS:
-
-### **ETAPA 1: Análise de Keywords (SEO)**
-→ Identificar as 10 palavras-chave essenciais para **{cargo}**  
-→ Verificar presença no seu CV atual
-
-### **ETAPA 2: Interrogatório Tático**
-→ Análise detalhada de CADA experiência profissional  
-→ Cobrança de dados quantitativos (KPIs, resultados)
-
-### **ETAPA 3: Análise de Expertise**
-→ Hard skills × Soft skills × Certificações  
-→ Identificar gaps técnicos
-
-### **ETAPA 4: Reescrita Estratégica**
-→ Aplicar framework STAR (Situação-Tarefa-Ação-Resultado)  
-→ Headlines de impacto para LinkedIn
-
-### **ETAPA 5: Validação**
-→ Revisão seção por seção  
-→ Ajustes finais
-
-### **ETAPA 6: Exportação**
-→ Gerar arquivo final formatado
-
----
-
-⏱️ **TEMPO ESTIMADO:** 15-20 minutos  
-📋 **VOCÊ PRECISARÁ:** Dados de impacto, tamanho de equipe, resultados quantitativos
-
----
-
-🚀 **Iniciando ETAPA 1 automaticamente...**"""
-                    
-                    st.session_state.mensagens.append({"role": "assistant", "content": intro})
-                    st.session_state.modulo_ativo = 'OTIMIZADOR'
-                    st.session_state.etapa_modulo = 'ETAPA_1_SEO'
-                    st.session_state.etapa_1_triggered = False  # Reset to allow auto-trigger
-                    st.session_state.fase = 'CHAT'
-                    forcar_topo()
+                    # Store flag to show preview before starting optimization
+                    st.session_state.mostrar_preview_otimizacao = True
                     st.rerun()
 
                 if st.button("🎯 Analisar Vaga", use_container_width=True):

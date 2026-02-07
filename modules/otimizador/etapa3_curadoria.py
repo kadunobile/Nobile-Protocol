@@ -1,24 +1,35 @@
 def prompt_etapa3():
-    return """Excelente! Recebi os dados brutos. Avançando para ETAPA 3.
+    return """✅ **Excelente! Dados recebidos.**
 
-### 💡 ETAPA 3: CURADORIA ESTRATÉGICA
+### 💡 ETAPA 3: RELATÓRIO DE GAPS E COMPLEMENTAÇÃO
 
-"Além dos números que você acabou de passar, preciso de mais 3 informações:"
+Com base nos dados fornecidos e analisando seu CV, identifiquei alguns pontos que precisam ser complementados.
 
-**1. PROJETO DIVISOR DE ÁGUAS:**
-Existe algum projeto ou iniciativa que você liderou que foi um "game changer" na empresa mas NÃO está explícito no CV? Qual foi o impacto real?
+**Para cada experiência, responda:**
 
-**2. DIFERENCIAL COMPETITIVO:**
-O que te diferencia de OUTROS candidatos ao mesmo cargo? Qual sua "arma secreta"?
+**1. CONTEXTO DO NEGÓCIO:**
+Qual era o cenário/desafio da empresa quando você entrou? O que precisava ser resolvido?
 
-**3. SOFT SKILL CRÍTICA:**
-Qual habilidade de liderança é ESSENCIAL para o cargo e você domina mas não evidenciou no CV?
+**2. PRINCIPAIS PROJETOS:**
+Existe algum projeto importante que você liderou mas NÃO está explícito no CV? Descreva brevemente o projeto e seu resultado.
+
+**3. SKILLS TÉCNICAS:**
+Quais ferramentas/tecnologias você usava no dia a dia que não estão mencionadas no CV?
+
+---
+
+**Formato de resposta:**
+
+**Experiência: [Empresa - Cargo]**
+- Contexto/Desafio: [sua resposta]
+- Projeto-chave: [sua resposta]
+- Ferramentas/Skills: [sua resposta]
+
+*(Repita para cada experiência relevante)*
 
 ---
 
 ⏸️ **AGUARDO SUAS RESPOSTAS.**
 
-Após receber, farei a Avaliação do Headhunter:
-- ✅ Se relevante para o cargo → "INCLUIREMOS estrategicamente"
-- ⚠️ Se for ruído → "Sugiro descartar, desvia o foco"
+Após receber, vou avaliar o que é relevante incluir no CV otimizado.
 """
