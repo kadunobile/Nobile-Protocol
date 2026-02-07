@@ -1,6 +1,6 @@
+import streamlit as st
+
 def prompt_etapa1(cargo):
-    import streamlit as st
-    
     # Get CV from session state
     cv_texto = st.session_state.get('cv_texto', '')
     

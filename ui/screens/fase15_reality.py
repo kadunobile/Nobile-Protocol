@@ -137,7 +137,7 @@ FORMATO EXATO OBRIGATÓRIO:
             with col1:
                 if st.button("🔧 Otimizar CV + LinkedIn", use_container_width=True, type="primary"):
                     # Check if CV is available
-                    if not st.session_state.cv_texto:
+                    if not st.session_state.get('cv_texto'):
                         st.error("⚠️ CV não encontrado. Por favor, faça upload do CV novamente.")
                         st.session_state.fase = 'FASE_0_UPLOAD'
                         st.rerun()
@@ -182,7 +182,7 @@ FORMATO EXATO OBRIGATÓRIO:
 ---
 
 ⏱️ **TEMPO ESTIMADO:** 15-20 minutos  
-📋 **VOCÊ PRECISARÁ:** Dados de impacto, tamanhos de equipe, resultados quantitativos
+📋 **VOCÊ PRECISARÁ:** Dados de impacto, tamanho de equipe, resultados quantitativos
 
 ---
 
