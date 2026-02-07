@@ -1,17 +1,26 @@
 def prompt_etapa5():
-    return """### ✅ ETAPA 5: VALIDAÇÃO FINAL
+    return """### ✅ ETAPA 5: APRESENTAÇÃO DO CV REVISADO
 
-"O texto acima está robusto e alinhado? Quer ajustar algo?"
+📋 **CV REVISADO COM TODAS AS MELHORIAS**
 
-Revise:
-- Os números estão corretos?
-- As conquistas refletem a realidade?
-- As keywords do cargo estão presentes?
+O CV acima foi otimizado com:
+- ✅ Keywords estratégicas integradas
+- ✅ Dados quantitativos e métricas
+- ✅ Conquistas destacadas
+- ✅ Formato profissional mantido
+
+---
+
+**Próximos passos:**
+
+1. **Revise o conteúdo** - Verifique se todos os dados estão corretos
+2. **Copie o texto** - Use o CV revisado para atualizar seu documento
+3. **LinkedIn** - Adapte as seções para seu perfil
 
 ---
 
 **Digite:**
-- **"OK"** ou **"APROVADO"** para gerar o Arquivo Mestre (ETAPA 6)
-- Ou descreva os ajustes necessários
+- **"ARQUIVO"** para gerar o arquivo mestre final (ETAPA 6)
+- Ou descreva ajustes que deseja fazer
 
-⏸️ **AGUARDO SEU FEEDBACK.**"""
+⏸️ **Seu CV está pronto para uso!**"""

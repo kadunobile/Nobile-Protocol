@@ -12,10 +12,23 @@ def processar_modulo_otimizador(prompt):
     cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
     etapa = st.session_state.get('etapa_modulo')
 
+    if etapa == 'AGUARDANDO_INICIAR':
+        if prompt.lower().strip() in ['iniciar', 'começar', 'comecar', 'ok', 'sim', 'vamos', 'start']:
+            st.session_state.etapa_modulo = 'ETAPA_1_SEO'
+            return prompt_etapa1(cargo)
+        return None
+
     if etapa == 'AGUARDANDO_OK':
         if prompt.lower().strip() in ['ok', 'começar', 'comecar', 'iniciar', 'sim', 'vamos', 'start']:
             st.session_state.etapa_modulo = 'ETAPA_1_SEO'
             return prompt_etapa1(cargo)
+        return None
+
+    if etapa == 'AGUARDANDO_OK_KEYWORDS':
+        # After showing keywords, user says OK to continue
+        if any(word in prompt.lower() for word in ['ok', 'continuar', 'sim', 'perfeito', 'ótimo', 'otimo', 'vamos']):
+            st.session_state.etapa_modulo = 'ETAPA_2'
+            return prompt_etapa2()
         return None
 
     if etapa == 'ETAPA_1_SEO':
@@ -67,7 +80,7 @@ def processar_modulo_otimizador(prompt):
         return prompt_etapa5()
 
     if etapa == 'ETAPA_5':
-        if any(word in prompt.lower() for word in ['ok', 'aprovado', 'aprovei', 'sim', 'perfeito', 'ótimo', 'otimo']):
+        if any(word in prompt.lower() for word in ['arquivo', 'ok', 'aprovado', 'aprovei', 'sim', 'perfeito', 'ótimo', 'otimo', 'exportar']):
             st.session_state.etapa_modulo = 'ETAPA_6'
             return prompt_etapa6(cargo)
         return None

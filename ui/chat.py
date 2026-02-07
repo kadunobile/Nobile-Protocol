@@ -30,7 +30,7 @@ def fase_chat():
             with st.chat_message("user"):
                 st.markdown(msg["content"])
 
-    # Auto-trigger ETAPA_1_SEO if just entering that state
+    # Auto-trigger ETAPA_1_SEO if just entering that state (but not if still waiting for Iniciar button)
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
         st.session_state.get('etapa_modulo') == 'ETAPA_1_SEO' and
         not st.session_state.get('etapa_1_triggered')):
@@ -51,8 +51,8 @@ def fase_chat():
                     if resp:
                         st.markdown(resp)
                         st.session_state.mensagens.append({"role": "assistant", "content": resp})
-                        # Move to next state
-                        st.session_state.etapa_modulo = 'ETAPA_1'
+                        # Move to next state - wait for OK to continue
+                        st.session_state.etapa_modulo = 'AGUARDANDO_OK_KEYWORDS'
             st.rerun()
 
     prompt = st.chat_input("Digite sua pergunta ou resposta...")
