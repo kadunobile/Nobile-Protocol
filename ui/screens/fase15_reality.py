@@ -122,53 +122,11 @@ FORMATO EXATO OBRIGATÓRIO:
                         st.session_state.fase = 'FASE_0_UPLOAD'
                         st.rerun()
                     
-                    st.session_state.mensagens = []
-                    st.session_state.modulo_ativo = None
-                    st.session_state.etapa_modulo = None
+                    # Salvar resultado do Reality Check para uso posterior
+                    st.session_state.reality_check_resultado = reality
                     
-                    cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
-                    intro = f"""# 🔧 OTIMIZAÇÃO COMPLETA DE CV
-## PROTOCOLO NÓBILE
-
-**Vou otimizar seu CV experiência por experiência seguindo metodologia de Alta Performance.**
-
----
-
-## 📋 PROCESSO EM 6 ETAPAS:
-
-### **ETAPA 1: Análise de Keywords (SEO)**
-→ Identificar as 10 palavras-chave essenciais para **{cargo}**  
-→ Verificar presença no seu CV atual
-
-### **ETAPA 2: Interrogatório Tático**
-→ Análise detalhada de CADA experiência profissional  
-→ Cobrança de dados quantitativos (KPIs, resultados)
-
-### **ETAPA 3: Análise de Expertise**
-→ Hard skills × Soft skills × Certificações  
-→ Identificar gaps técnicos
-
-### **ETAPA 4: Reescrita Estratégica**
-→ Seguir o formato do seu CV original
-→ Headlines de impacto para LinkedIn
-
-### **ETAPA 5: Apresentação do CV Revisado**
-→ Apresentar CV com todas as melhorias
-→ Arquivo final formatado
-
----
-
-⏱️ **TEMPO ESTIMADO:** 15-20 minutos  
-📋 **VOCÊ PRECISARÁ:** Dados de impacto, tamanho de equipe, resultados quantitativos
-
----
-
-⏸️ **Clique em "Iniciar" quando estiver pronto para começar.**"""
-                    
-                    st.session_state.mensagens.append({"role": "assistant", "content": intro})
-                    st.session_state.modulo_ativo = 'OTIMIZADOR'
-                    st.session_state.etapa_modulo = 'AGUARDANDO_INICIAR'
-                    st.session_state.fase = 'CHAT'
+                    # Redirecionar para PONTE ESTRATÉGICA (não mais direto para CHAT)
+                    st.session_state.fase = 'FASE_BRIDGE_OTIMIZACAO'
                     forcar_topo()
                     st.rerun()
 

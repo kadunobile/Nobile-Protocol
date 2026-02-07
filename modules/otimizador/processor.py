@@ -6,11 +6,112 @@ from modules.otimizador.etapa4_engenharia import prompt_etapa4
 from modules.otimizador.etapa5_validacao import prompt_etapa5
 from modules.otimizador.etapa6_arquivo import prompt_etapa6
 from modules.otimizador.etapa7_exportacao import prompt_etapa7
+# Novas etapas do fluxo otimizado
+from modules.otimizador.etapa0_diagnostico import prompt_etapa0_diagnostico
+from modules.otimizador.etapa1_coleta_focada import prompt_etapa1_coleta_focada
+from modules.otimizador.checkpoint_validacao import prompt_checkpoint_validacao
+from modules.otimizador.etapa2_reescrita_progressiva import prompt_etapa2_reescrita_progressiva, prompt_etapa2_reescrita_final
+from modules.otimizador.etapa6_otimizacao_linkedin import prompt_etapa6_otimizacao_linkedin
 import streamlit as st
 
 def processar_modulo_otimizador(prompt):
     cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
     etapa = st.session_state.get('etapa_modulo')
+    
+    # ========== NOVO FLUXO OTIMIZADO ==========
+    
+    # ETAPA 0: DIAGNÓSTICO
+    if etapa == 'ETAPA_0_DIAGNOSTICO':
+        return prompt_etapa0_diagnostico()
+    
+    if etapa == 'AGUARDANDO_OK_DIAGNOSTICO':
+        if any(word in prompt.lower() for word in ['ok', 'continuar', 'sim', 'perfeito', 'aprovar', 'vamos']):
+            st.session_state.etapa_modulo = 'ETAPA_1_COLETA_FOCADA'
+            return prompt_etapa1_coleta_focada()
+        return None
+    
+    # ETAPA 1: COLETA FOCADA
+    if etapa == 'ETAPA_1_COLETA_FOCADA':
+        return prompt_etapa1_coleta_focada()
+    
+    if etapa == 'AGUARDANDO_DADOS_COLETA':
+        if any(word in prompt.lower() for word in ['continuar', 'pronto', 'concluído', 'concluido', 'finalizado']):
+            # Salvar dados coletados
+            st.session_state.dados_coletados = {'raw_response': prompt}
+            st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'
+            return prompt_checkpoint_validacao()
+        return None
+    
+    # CHECKPOINT 1: VALIDAÇÃO
+    if etapa == 'CHECKPOINT_1_VALIDACAO':
+        return prompt_checkpoint_validacao()
+    
+    if etapa == 'AGUARDANDO_APROVACAO_VALIDACAO':
+        if any(word in prompt.lower() for word in ['aprovar', 'aprovado', 'ok', 'correto', 'sim', 'perfeito']):
+            # Iniciar reescrita progressiva
+            st.session_state.etapa_modulo = 'ETAPA_2_REESCRITA_EXP_1'
+            st.session_state.experiencia_atual = 1
+            return prompt_etapa2_reescrita_progressiva(1)
+        return None
+    
+    # ETAPA 2: REESCRITA PROGRESSIVA (múltiplas experiências)
+    if etapa and etapa.startswith('ETAPA_2_REESCRITA_EXP_'):
+        exp_num = int(etapa.split('_')[-1])
+        return prompt_etapa2_reescrita_progressiva(exp_num)
+    
+    if etapa and etapa.startswith('AGUARDANDO_APROVACAO_EXP_'):
+        exp_num = int(etapa.split('_')[-1])
+        if any(word in prompt.lower() for word in ['próxima', 'proxima', 'próximo', 'proximo', 'continuar', 'aprovar', 'ok']):
+            # Verificar se há mais experiências (máximo 3-4 por padrão)
+            max_exp = st.session_state.get('total_experiencias', 3)
+            if exp_num < max_exp:
+                st.session_state.etapa_modulo = f'ETAPA_2_REESCRITA_EXP_{exp_num + 1}'
+                return prompt_etapa2_reescrita_progressiva(exp_num + 1)
+            else:
+                # Finalizar reescritas
+                st.session_state.etapa_modulo = 'ETAPA_2_REESCRITA_FINAL'
+                return prompt_etapa2_reescrita_final()
+        return None
+    
+    if etapa == 'ETAPA_2_REESCRITA_FINAL':
+        return prompt_etapa2_reescrita_final()
+    
+    if etapa == 'AGUARDANDO_CONTINUAR_CHECKPOINT2':
+        if any(word in prompt.lower() for word in ['continuar', 'ok', 'aprovar', 'sim']):
+            # Salvar CV otimizado e ir para validação de score
+            # Assumindo que o CV otimizado foi gerado durante as reescritas
+            st.session_state.cv_otimizado = st.session_state.get('cv_texto', '')  # Placeholder
+            st.session_state.fase = 'FASE_VALIDACAO_SCORE_ATS'
+            return None  # Vai para tela de validação
+        return None
+    
+    # ETAPA 6: OTIMIZAÇÃO LINKEDIN (novo fluxo)
+    if etapa == 'ETAPA_6_LINKEDIN':
+        return prompt_etapa6_otimizacao_linkedin()
+    
+    if etapa == 'AGUARDANDO_ESCOLHA_HEADLINE':
+        # Usuário escolhe headline A, B ou C
+        if any(letra in prompt.upper() for letra in ['A', 'B', 'C']):
+            # Salvar escolha (simplificado)
+            st.session_state.linkedin_headline_escolhida = prompt.upper().strip()[0]
+            st.session_state.etapa_modulo = 'AGUARDANDO_OK_SKILLS'
+            return None  # Continua no mesmo prompt
+        return None
+    
+    if etapa == 'AGUARDANDO_OK_SKILLS':
+        if any(word in prompt.lower() for word in ['ok', 'sim', 'continuar', 'correto']):
+            st.session_state.etapa_modulo = 'AGUARDANDO_APROVACAO_ABOUT'
+            return None
+        return None
+    
+    if etapa == 'AGUARDANDO_APROVACAO_ABOUT':
+        if any(word in prompt.lower() for word in ['aprovar', 'aprovado', 'ok', 'sim', 'perfeito']):
+            # Salvar dados de LinkedIn e ir para exports
+            st.session_state.fase = 'FASE_EXPORTS_COMPLETO'
+            return None
+        return None
+
+    # ========== FLUXO ORIGINAL (LEGACY) ==========
 
     if etapa == 'AGUARDANDO_INICIAR':
         if prompt.lower().strip() in ['iniciar', 'começar', 'comecar', 'ok', 'sim', 'vamos', 'start']:
