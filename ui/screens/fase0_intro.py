@@ -4,45 +4,60 @@ from core.utils import inicializar_cliente_openai
 
 def fase_0_intro():
     st.markdown("# 🎯 Protocolo Nóbile")
-    st.markdown("## Inteligência Artificial para Otimização de Currículos")
+    st.markdown("### Engenharia de Carreira & Inteligência de Mercado via IA")
     st.markdown("---")
 
     st.markdown("""
-### Bem-vindo ao **Protocolo Nóbile**.
+**Bem-vindo à sua nova vantagem competitiva.**
 
-Uma plataforma completa que utiliza IA para ajudar profissionais de **todos os níveis e áreas** a aprimorarem seus currículos e se prepararem para processos seletivos.
+O Protocolo Nóbile não é apenas um "corretor de currículos". É uma plataforma de **Engenharia de Carreira** que utiliza Inteligência Artificial avançada para transformar seu histórico profissional em uma ferramenta de venda de alto valor.
 
-### O que você pode fazer aqui:
-
-✅ **Análise de CV e Score ATS**  
-✅ **Reality Check com Identificação de Gaps**  
-✅ **Otimização Interativa com IA**  
-✅ **Geração de Carta de Apresentação**  
-✅ **Preparação para Entrevistas**  
-✅ **Comparador de CVs (Antes/Depois)**
-
-### Como Funciona:
-
-**1️⃣ Upload:** Cole seu CV em texto  
-**2️⃣ Briefing:** Defina cargo-alvo e objetivos  
-**3️⃣ Análise:** Receba Score ATS e Reality Check  
-**4️⃣ Otimização:** Chat com IA para melhorar  
-**5️⃣ Ferramentas:** Carta, prep. entrevista, comparador  
+Aqui, não reescrevemos somente, iremos analisar e te entregar o melhor pacote de melhorias possíveis, somados a suas experiências.
 
 ---
 
-### 🎯 Para Quem é?
+### 🚀 O Que Você Vai Conquistar Aqui:
 
-**Todos os níveis:** Júnior, Pleno, Sênior, Gerente, Diretor, C-Level  
-**Todas as áreas:** Tech, Vendas, Marketing, RH, Financeiro, Operações, Design, etc.
+* **🛡️ Blindagem contra Robôs (ATS Score):**
+    * *O que é:* 75% dos currículos são descartados por "robôs recrutadores" antes de um humano ler.
+    * *O que fazemos:* Otimizamos suas palavras-chave para garantir que você passe pelo filtro digital.
+
+* **⚖️ Reality Check (Raio-X de Mercado):**
+    * *O que é:* Uma análise fria e direta. Seu perfil realmente bate com a vaga?
+    * *O que fazemos:* Identificamos seus "Gaps" (o que falta) e seus pontos fortes para a negociação salarial.
+
+* **✍️ Reescrita Estratégica (Storytelling):**
+    * Transformamos listas de tarefas ("Fazia relatórios") em conquistas de impacto ("Aumentei a eficiência em 20%").
+
+* **🗣️ Treinador de Entrevista:**
+    * Simulações reais baseadas na cultura da empresa alvo, com feedbacks táticos sobre sua performance.
 
 ---
 
-### 🚀 Requisitos:
+### ⚙️ Como Funciona o Protocolo:
 
-- ✅ CV em formato texto (copie de PDF/Word)
-- ✅ 20-30 minutos disponíveis
-- ✅ Informações sobre suas experiências
+1. **📥 O Upload (Input):** Você cola seu CV atual (texto) e a descrição da vaga que deseja.
+2. **🧠 O Diagnóstico:** Nossa IA assume o papel de um Headhunter Sênior e analisa sua compatibilidade.
+3. **🛠️ A Engenharia:** Através de um chat interativo, refinamos cada linha do seu perfil até atingir a Alta Performance.
+4. **💎 A Entrega:** Você sai com um CV pronto, carta de apresentação e roteiro de entrevista.
+
+---
+
+### 🎯 Para Quem é o Protocolo Nóbile?
+
+Do **Estagiário ao C-Level**. A lógica de mercado é a mesma: **Quem comunica melhor seu valor, ganha mais.**
+
+* Serve para: Transição de Carreira, Busca de Promoção, Recolocação e Aumento Salarial.
+
+---
+
+### ⚠️ Requisitos para o Sucesso:
+
+* Tenha seu CV em texto (PDFs podem ser copiados).
+* Reserve 20 minutos de foco total (Carreira se constrói com atenção).
+* Esteja aberto a feedbacks duros e realistas.
+
+**👉 Comece agora clicando no botão abaixo.**
     """)
 
     st.markdown("---")
