@@ -54,6 +54,82 @@ def fase_chat():
                         # Move to next state - wait for OK to continue
                         st.session_state.etapa_modulo = 'AGUARDANDO_OK_KEYWORDS'
             st.rerun()
+    
+    # Auto-trigger ETAPA_0_DIAGNOSTICO (novo fluxo)
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_0_DIAGNOSTICO' and
+        not st.session_state.get('etapa_0_diagnostico_triggered')):
+        
+        st.session_state.etapa_0_diagnostico_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+            with st.chat_message("assistant"):
+                with st.spinner("🔍 Diagnosticando gaps no seu CV..."):
+                    resp = chamar_gpt(
+                        st.session_state.openai_client, 
+                        st.session_state.mensagens,
+                        temperature=0.3,
+                        seed=42
+                    )
+                    if resp:
+                        st.markdown(resp)
+                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
+                        # Move to next state - wait for OK
+                        st.session_state.etapa_modulo = 'AGUARDANDO_OK_DIAGNOSTICO'
+            st.rerun()
+    
+    # Auto-trigger ETAPA_1_COLETA_FOCADA
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_1_COLETA_FOCADA' and
+        not st.session_state.get('etapa_1_coleta_focada_triggered')):
+        
+        st.session_state.etapa_1_coleta_focada_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+            with st.chat_message("assistant"):
+                with st.spinner("📝 Preparando coleta de dados..."):
+                    resp = chamar_gpt(
+                        st.session_state.openai_client, 
+                        st.session_state.mensagens,
+                        temperature=0.3,
+                        seed=42
+                    )
+                    if resp:
+                        st.markdown(resp)
+                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
+                        # Move to next state - wait for data
+                        st.session_state.etapa_modulo = 'AGUARDANDO_DADOS_COLETA'
+            st.rerun()
+    
+    # Auto-trigger ETAPA_6_LINKEDIN
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_6_LINKEDIN' and
+        not st.session_state.get('etapa_6_linkedin_triggered')):
+        
+        st.session_state.etapa_6_linkedin_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+            with st.chat_message("assistant"):
+                with st.spinner("🔵 Otimizando seu perfil LinkedIn..."):
+                    resp = chamar_gpt(
+                        st.session_state.openai_client, 
+                        st.session_state.mensagens,
+                        temperature=0.5,  # Mais criatividade para headlines
+                        seed=42
+                    )
+                    if resp:
+                        st.markdown(resp)
+                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
+                        # Move to next state - wait for headline choice
+                        st.session_state.etapa_modulo = 'AGUARDANDO_ESCOLHA_HEADLINE'
+            st.rerun()
+
 
     prompt = st.chat_input("Digite sua pergunta ou resposta...")
 
