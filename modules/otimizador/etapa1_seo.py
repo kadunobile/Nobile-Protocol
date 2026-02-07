@@ -1,7 +1,24 @@
+import streamlit as st
+
 def prompt_etapa1(cargo):
+    # Get CV from session state
+    cv_texto = st.session_state.get('cv_texto', '')
+    
+    if not cv_texto:
+        return """⚠️ **ERRO:** CV não encontrado na sessão.
+
+Por favor, retorne ao início e faça upload do seu CV novamente.
+
+**Clique em "🔄 Recomeçar" na barra lateral.**"""
+    
     return f"""Inicie a ETAPA 1 do otimizador de CV.
 
-Analise o CV do candidato (no contexto) e identifique as 10 KEYWORDS mais importantes para o cargo de {cargo}.
+**CV DO CANDIDATO:**
+{cv_texto}
+
+---
+
+Analise o CV acima e identifique as 10 KEYWORDS mais importantes para o cargo de **{cargo}**.
 
 **IMPORTANTE - REGRAS DE ANÁLISE:**
 1. ANTES de marcar algo como ausente, busque SINÔNIMOS e VARIAÇÕES no CV

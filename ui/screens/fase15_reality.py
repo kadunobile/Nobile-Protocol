@@ -108,13 +108,7 @@ FORMATO EXATO OBRIGATÓRIO:
 
 **Nível de Desafio:** [Baixo/Médio/Alto]
 
-**Estratégia:** Focar em [ponto forte] para justificar {pretensao}
-
----
-
-### ✅ PRÓXIMOS PASSOS
-
-Use os **botões na barra lateral** ou abaixo para continuar."""}
+**Estratégia:** Focar em [ponto forte] para justificar {pretensao}"""}
         ]
 
         reality = chamar_gpt(
@@ -142,6 +136,12 @@ Use os **botões na barra lateral** ou abaixo para continuar."""}
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("🔧 Otimizar CV + LinkedIn", use_container_width=True, type="primary"):
+                    # Check if CV is available
+                    if not st.session_state.get('cv_texto'):
+                        st.error("⚠️ CV não encontrado. Por favor, faça upload do CV novamente.")
+                        st.session_state.fase = 'FASE_0_UPLOAD'
+                        st.rerun()
+                    
                     st.session_state.mensagens = []
                     st.session_state.modulo_ativo = None
                     st.session_state.etapa_modulo = None
@@ -150,47 +150,48 @@ Use os **botões na barra lateral** ou abaixo para continuar."""}
                     intro = f"""# 🔧 OTIMIZAÇÃO COMPLETA DE CV
 ## PROTOCOLO NÓBILE
 
-Vou reescrever seu CV **experiência por experiência** seguindo metodologia de Alta Performance.
+**Vou otimizar seu CV experiência por experiência seguindo metodologia de Alta Performance.**
 
 ---
 
-## 📋 O QUE FAREMOS:
+## 📋 PROCESSO EM 6 ETAPAS:
 
-### **ETAPA 1: Mapeamento de SEO**
-→ 10 keywords essenciais para **{cargo}**  
-→ Comparação com seu CV atual
+### **ETAPA 1: Análise de Keywords (SEO)**
+→ Identificar as 10 palavras-chave essenciais para **{cargo}**  
+→ Verificar presença no seu CV atual
 
 ### **ETAPA 2: Interrogatório Tático**
-→ Análise de CADA experiência profissional  
-→ Cobrança de dados quantitativos
+→ Análise detalhada de CADA experiência profissional  
+→ Cobrança de dados quantitativos (KPIs, resultados)
 
 ### **ETAPA 3: Análise de Expertise**
 → Hard skills × Soft skills × Certificações  
-→ Gaps técnicos para {cargo}
+→ Identificar gaps técnicos
 
-### **ETAPA 4: Engenharia de Narrativa**
-→ Reescrita com framework STAR  
-→ Headlines de Alta Performance para LinkedIn
+### **ETAPA 4: Reescrita Estratégica**
+→ Aplicar framework STAR (Situação-Tarefa-Ação-Resultado)  
+→ Headlines de impacto para LinkedIn
 
-### **ETAPA 5: Validação & Refinamento**
-→ Aprovação seção por seção  
+### **ETAPA 5: Validação**
+→ Revisão seção por seção  
 → Ajustes finais
 
-### **ETAPA 6: Geração do Arquivo Final**
-→ Pronto para FlowCV e LinkedIn
+### **ETAPA 6: Exportação**
+→ Gerar arquivo final formatado
 
 ---
 
 ⏱️ **TEMPO ESTIMADO:** 15-20 minutos  
-📋 **VOCÊ PRECISARÁ:** Dados de impacto financeiro, tamanho de equipe, resultados
+📋 **VOCÊ PRECISARÁ:** Dados de impacto, tamanho de equipe, resultados quantitativos
 
 ---
 
-🚀 **Vamos começar pela ETAPA 1.**"""
+🚀 **Iniciando ETAPA 1 automaticamente...**"""
                     
                     st.session_state.mensagens.append({"role": "assistant", "content": intro})
                     st.session_state.modulo_ativo = 'OTIMIZADOR'
-                    st.session_state.etapa_modulo = 'ETAPA_1_SEO'  # Start ETAPA 1 directly
+                    st.session_state.etapa_modulo = 'ETAPA_1_SEO'
+                    st.session_state.etapa_1_triggered = False  # Reset to allow auto-trigger
                     st.session_state.fase = 'CHAT'
                     forcar_topo()
                     st.rerun()
