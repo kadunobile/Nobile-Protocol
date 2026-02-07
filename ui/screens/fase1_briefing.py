@@ -8,7 +8,8 @@ def fase_1_briefing():
     st.markdown("**Para traçar a estratégia correta, responda apenas:**")
 
     with st.form("briefing"):
-        col1, col2 = st.columns(2)
+        # Columns will stack on mobile via CSS media queries in app.py
+        col1, col2 = st.columns([1, 1])
 
         with col1:
             p1 = st.selectbox("**P1. Objetivo Principal:**",
