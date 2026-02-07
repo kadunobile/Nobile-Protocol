@@ -10,41 +10,56 @@ Formato EXATO:
 🎯 **ETAPA 1: MAPEAMENTO DE SEO - {cargo.upper()}**
 
 **TOP 10 KEYWORDS DO MERCADO:**
-1. [Keyword 1] - ✅ PRESENTE no CV / ❌ AUSENTE no CV
-2. [Keyword 2] - Status
-3. [Keyword 3] - Status
-4. [Keyword 4] - Status
-5. [Keyword 5] - Status
-6. [Keyword 6] - Status
-7. [Keyword 7] - Status
-8. [Keyword 8] - Status
-9. [Keyword 9] - Status
-10. [Keyword 10] - Status
 
 ---
 
-### 🔴 ANÁLISE DETALHADA DAS KEYWORDS AUSENTES:
+### ✅ **PRESENTE NO SEU CV:**
 
-**Para cada keyword AUSENTE, forneça:**
+[Para cada keyword PRESENTE, liste:]
+1. **[Keyword 1]** - [Breve explicação de onde/como aparece no CV - ex: "Mencionado 3 vezes nas experiências", "Você já demonstra liderança"]
 
-#### [Nome da Keyword] ❌
-**Por que é importante:** [Explicação de 1-2 linhas sobre por que essa keyword é essencial para o cargo]
-
-**Como incluir:** [Exemplos práticos de frases/contextos onde essa keyword poderia aparecer no CV]
-
-**Exemplo:** "Gerenciei equipe de 10 pessoas utilizando metodologia [keyword]"
+[Continue para todas as keywords presentes]
 
 ---
 
-### ✅ KEYWORDS JÁ PRESENTES:
+### ❌ **FALTANDO NO SEU CV:**
 
-[Liste as keywords que já estão no CV e explique brevemente onde aparecem]
+[Para cada keyword AUSENTE, forneça:]
+
+**[Número]. [Nome da Keyword]**
+
+📚 **O que é:** [Definição clara e objetiva em 1-2 linhas]
+
+💡 **Por que importa:** [Explicação da relevância para o cargo - ex: "90% das vagas de {cargo} exigem", "Habilidade core para crescimento"]
+
+✍️ **Como adicionar:** [Orientação prática sobre como incluir no CV - ex: "Descreva como você organizava o funil de vendas", "Mencione indicadores que você monitorava"]
+
+[Repita para cada keyword ausente]
 
 ---
 
-### 📝 PRÓXIMO PASSO:
+### 🔴 **AÇÃO NECESSÁRIA:**
 
-Agora vou fazer perguntas específicas sobre cada experiência profissional para coletar dados que incluam essas keywords ausentes.
+Preencha as lacunas abaixo com informações REAIS da sua experiência para cada keyword faltante:
 
-Digite **"OK"** ou **"CONTINUAR"** para prosseguir para a ETAPA 2 (Interrogatório Tático).
+[Para cada keyword ausente, adicione:]
+
+**Box [Número] - [Nome da Keyword]:**
+[Espaço para o usuário preencher - será solicitado via interface interativa]
+
+---
+
+⏸️ **Após analisar as keywords acima, você será solicitado a preencher informações sobre as keywords faltantes em boxes interativas.**
+
+**Aguardando seu preenchimento para continuar a otimização...**
+
+---
+
+### 📝 IMPORTANTE:
+
+- Você DEVE preencher pelo menos 1 keyword faltante antes de continuar
+- Use informações REAIS da sua experiência profissional
+- Seja específico e inclua números/métricas quando possível
+
+Após preencher, clique em **"🚀 CONTINUAR OTIMIZAÇÃO"** para avançar para a ETAPA 2 (Interrogatório Tático).
 """

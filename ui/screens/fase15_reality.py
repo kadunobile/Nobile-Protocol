@@ -3,6 +3,8 @@ from core.prompts import SYSTEM_PROMPT
 from core.utils import chamar_gpt, scroll_topo
 
 def fase_15_reality_check():
+    # Add top anchor for scroll positioning
+    st.markdown('<div id="top-anchor"></div>', unsafe_allow_html=True)
     scroll_topo()
     st.markdown("# 🧠 Reality Check - Análise Crítica")
     st.markdown("---")
