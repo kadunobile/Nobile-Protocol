@@ -26,17 +26,50 @@ Gere um bloco de texto único contendo TUDO para facilitar importação:
 **SEÇÃO 2: CV COMPLETO (COPIAR PARA FLOWCV)**
 ═══════════════════════════════════════════
 
+**FORMATAÇÃO VISUAL (baseada no modelo Carlos Eduardo Nóbile):**
+- Use bullets (•) para lista de conquistas
+- Máximo 4-5 bullets por experiência
+- Cada bullet inicia com verbo de ação forte (Gerenciei, Implementei, Aumentei)
+- Sempre inclua métricas (%, R$, tempo, tamanho equipe)
+- Separe seções com linha em branco
+
+---
+
 Nota: Use cabeçalhos em Inglês para ATS (SUMMARY, EXPERIENCE, EDUCATION)
 
 [Nome Completo]
 [Telefone] | [Email] | [LinkedIn] | [Cidade/Estado]
 
+═══════════════════════════════════════════
+
 **SUMMARY**
-[Resumo otimizado da Etapa 4A - texto completo]
+
+[Resumo otimizado da Etapa 4A - texto completo, 3-4 linhas máximo]
+
+═══════════════════════════════════════════
 
 **EXPERIENCE**
 
-[Todas as experiências reescritas na Etapa 4B - ordem cronológica inversa]
+**[Cargo Atual/Mais Recente]**  
+*[Empresa]* | *[Período]*
+
+• [Conquista 1 com métrica]
+• [Conquista 2 com métrica]
+• [Conquista 3 com métrica]
+• [Conquista 4 com métrica]
+
+---
+
+**[Cargo Anterior]**  
+*[Empresa]* | *[Período]*
+
+• [Conquista 1 com métrica]
+• [Conquista 2 com métrica]
+• [Conquista 3 com métrica]
+
+[Repetir para todas as experiências da Etapa 4B]
+
+═══════════════════════════════════════════
 
 **EDUCATION**
 [Formação acadêmica original do CV]

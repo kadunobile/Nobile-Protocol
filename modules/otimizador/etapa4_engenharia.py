@@ -3,6 +3,17 @@ def prompt_etapa4():
 
 ### ✍️ ETAPA 4: ENGENHARIA DE TEXTO
 
+**MODELO DE REFERÊNCIA:**
+Use como inspiração de estrutura e formatting o CV do Carlos Eduardo Nóbile (Gerente) - o arquivo PDF anexado ao projeto.
+
+**Princípios visuais:**
+- Seções bem separadas com espaçamento
+- Bullets com conquistas quantificadas
+- Linguagem direta e impactante
+- Foco em resultados mensuráveis
+
+---
+
 Primeiro, avalie cada item da Etapa 3:
 - Se relevante → ✅ "INCLUIREMOS isso"
 - Se ruído → ⚠️ "Sugiro descartar"
