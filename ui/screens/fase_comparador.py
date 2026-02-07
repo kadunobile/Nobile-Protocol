@@ -1,123 +1,220 @@
 import streamlit as st
-from core.cv_comparator import comparar_cvs
+import difflib
+from core.ats_scorer import calcular_score_ats
 
 def fase_comparador_cv():
     st.markdown("# 🔄 Comparador de CVs")
     st.markdown("---")
     
-    st.info("📊 Compare seu CV original com a versão otimizada")
+    st.info("📊 Compare seu CV original com a versão otimizada e veja as melhorias no Score ATS")
     
-    col1, col2 = st.columns(2)
+    if not st.session_state.cv_texto:
+        st.error("⚠️ CV original não encontrado. Faça upload primeiro.")
+        return
     
-    with col1:
-        st.markdown("### 📄 CV Original")
-        cv_original = st.text_area(
-            "Cole seu CV original",
-            height=300,
-            placeholder="Cole aqui o texto do seu CV antes das otimizações..."
-        )
+    # Upload do CV otimizado
+    st.markdown("### 📄 Upload do CV Otimizado")
+    uploaded_file = st.file_uploader(
+        "Faça upload do seu CV otimizado (.txt)",
+        type=['txt'],
+        help="Selecione o arquivo .txt com seu CV otimizado"
+    )
     
-    with col2:
-        st.markdown("### ✨ CV Otimizado")
-        cv_otimizado = st.text_area(
-            "Cole seu CV otimizado",
-            height=300,
-            placeholder="Cole aqui o texto do CV após otimizações..."
-        )
-    
-    if st.button("🔍 Comparar CVs", type="primary", use_container_width=True):
-        if not cv_original or not cv_otimizado:
-            st.error("⚠️ Preencha ambos os campos")
-            return
+    if uploaded_file is not None:
+        # Lê o conteúdo do arquivo
+        cv_otimizado = uploaded_file.read().decode('utf-8')
         
-        with st.spinner("📊 Analisando diferenças..."):
-            metricas = comparar_cvs(cv_original, cv_otimizado)
+        cargo_alvo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+        
+        with st.spinner("📊 Calculando scores ATS e analisando diferenças..."):
+            # Calcula scores ATS
+            score_original = calcular_score_ats(st.session_state.cv_texto, cargo_alvo)
+            score_otimizado = calcular_score_ats(cv_otimizado, cargo_alvo)
+            
+            # Calcula delta
+            delta_score = score_otimizado['score_total'] - score_original['score_total']
         
         st.markdown("---")
-        st.markdown("### 📊 Relatório de Melhorias")
+        st.markdown("## 📊 Comparação de Score ATS")
         
-        # Métricas em cards
-        col1, col2, col3, col4 = st.columns(4)
+        # Métricas principais com delta
+        col1, col2, col3 = st.columns(3)
         
         with col1:
-            delta_palavras = metricas["palavras"]["depois"] - metricas["palavras"]["antes"]
             st.metric(
-                "Palavras",
-                metricas["palavras"]["depois"],
-                delta=f"{delta_palavras:+d}",
-                delta_color="normal"
+                "Score ATS Original",
+                f"{score_original['score_total']:.0f}/100",
+                help="Pontuação do CV original"
             )
+            st.progress(score_original['score_total'] / 100)
         
         with col2:
-            delta_numeros = metricas["numeros"]["depois"] - metricas["numeros"]["antes"]
             st.metric(
-                "Números/Métricas",
-                metricas["numeros"]["depois"],
-                delta=f"{delta_numeros:+d}",
-                delta_color="normal" if delta_numeros >= 0 else "inverse"
+                "Score ATS Otimizado",
+                f"{score_otimizado['score_total']:.0f}/100",
+                delta=f"{delta_score:+.0f}",
+                delta_color="normal" if delta_score >= 0 else "inverse",
+                help="Pontuação do CV otimizado"
             )
+            st.progress(score_otimizado['score_total'] / 100)
         
         with col3:
-            delta_verbos = metricas["verbos_acao"]["depois"] - metricas["verbos_acao"]["antes"]
             st.metric(
-                "Verbos de Ação",
-                metricas["verbos_acao"]["depois"],
-                delta=f"{delta_verbos:+d}",
-                delta_color="normal" if delta_verbos >= 0 else "inverse"
+                "Melhoria",
+                f"{abs(delta_score):.0f} pontos",
+                help="Diferença absoluta entre os scores"
             )
+            if delta_score > 0:
+                st.success("🟢 Melhorou!")
+            elif delta_score < 0:
+                st.error("🔴 Piorou")
+            else:
+                st.info("⚪ Manteve igual")
         
-        with col4:
-            delta_secoes = metricas["secoes"]["depois"] - metricas["secoes"]["antes"]
-            st.metric(
-                "Seções",
-                metricas["secoes"]["depois"],
-                delta=f"{delta_secoes:+d}",
-                delta_color="normal" if delta_secoes >= 0 else "inverse"
+        # Análise detalhada por categoria
+        st.markdown("---")
+        st.markdown("### 📋 Análise Detalhada por Categoria")
+        
+        categorias = [
+            ('Seções Essenciais', 'secoes', 20),
+            ('Palavras-Chave', 'keywords', 30),
+            ('Métricas Quantificáveis', 'metricas', 20),
+            ('Formatação', 'formatacao', 15),
+            ('Tamanho Adequado', 'tamanho', 15)
+        ]
+        
+        for nome, chave, max_pts in categorias:
+            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+            
+            orig_val = score_original['breakdown'][chave]
+            otim_val = score_otimizado['breakdown'][chave]
+            delta_val = otim_val - orig_val
+            
+            with col1:
+                st.markdown(f"**{nome}** (máx: {max_pts} pts)")
+            
+            with col2:
+                st.text(f"{orig_val:.1f}")
+            
+            with col3:
+                st.text(f"{otim_val:.1f}")
+            
+            with col4:
+                if delta_val > 0:
+                    st.markdown("🟢")
+                elif delta_val < 0:
+                    st.markdown("🔴")
+                else:
+                    st.markdown("⚪")
+        
+        # Tabs de visualização
+        st.markdown("---")
+        tab1, tab2, tab3 = st.tabs(["📊 Resumo", "📝 Lado a Lado", "🔀 Diff Detalhado"])
+        
+        with tab1:
+            st.markdown("### 📊 Estatísticas Resumidas")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### CV Original")
+                palavras_orig = len(st.session_state.cv_texto.split())
+                chars_orig = len(st.session_state.cv_texto)
+                digitos_orig = len([c for c in st.session_state.cv_texto if c.isdigit()])
+                
+                st.metric("Palavras", palavras_orig)
+                st.metric("Caracteres", chars_orig)
+                st.metric("Dígitos", digitos_orig)
+            
+            with col2:
+                st.markdown("#### CV Otimizado")
+                palavras_otim = len(cv_otimizado.split())
+                chars_otim = len(cv_otimizado)
+                digitos_otim = len([c for c in cv_otimizado if c.isdigit()])
+                
+                st.metric("Palavras", palavras_otim, delta=palavras_otim - palavras_orig)
+                st.metric("Caracteres", chars_otim, delta=chars_otim - chars_orig)
+                st.metric("Dígitos", digitos_otim, delta=digitos_otim - digitos_orig)
+        
+        with tab2:
+            st.markdown("### 📝 Visualização Lado a Lado")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.markdown("#### 📄 CV Original (preview)")
+                preview_orig = st.session_state.cv_texto[:1000] + ('...' if len(st.session_state.cv_texto) > 1000 else '')
+                st.text_area("", value=preview_orig, height=400, key="preview_orig", disabled=True)
+            
+            with col2:
+                st.markdown("#### ✨ CV Otimizado (preview)")
+                preview_otim = cv_otimizado[:1000] + ('...' if len(cv_otimizado) > 1000 else '')
+                st.text_area("", value=preview_otim, height=400, key="preview_otim", disabled=True)
+        
+        with tab3:
+            st.markdown("### 🔀 Diff Detalhado (Unified Diff)")
+            st.caption("Linhas removidas em vermelho (-), linhas adicionadas em verde (+)")
+            
+            # Gera unified diff
+            diff = difflib.unified_diff(
+                st.session_state.cv_texto.splitlines(keepends=True),
+                cv_otimizado.splitlines(keepends=True),
+                fromfile='CV Original',
+                tofile='CV Otimizado',
+                lineterm=''
             )
+            
+            diff_text = ''.join(diff)
+            
+            if diff_text:
+                st.code(diff_text, language='diff')
+            else:
+                st.info("Os CVs são idênticos - nenhuma diferença encontrada.")
         
-        # Gráficos de melhoria
+        # Recomendações finais
         st.markdown("---")
-        st.markdown("### 📈 Percentual de Melhoria")
+        st.markdown("### 💡 Recomendações")
         
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("**Métricas Quantificáveis**")
-            st.progress(min(metricas["numeros"]["melhoria"] / 100, 1.0))
-            st.caption(f"+{metricas['numeros']['melhoria']}% em números e percentuais")
-        
-        with col2:
-            st.markdown("**Linguagem Ativa**")
-            st.progress(min(metricas["verbos_acao"]["melhoria"] / 100, 1.0))
-            st.caption(f"+{metricas['verbos_acao']['melhoria']}% em verbos de ação")
-        
-        # Análise qualitativa
-        st.markdown("---")
-        st.markdown("### 💡 Análise Qualitativa")
-        
-        if metricas["numeros"]["melhoria"] > 50:
-            st.success("✅ Excelente aumento de dados quantificáveis! Seu CV está muito mais impactante.")
-        elif metricas["numeros"]["melhoria"] > 20:
-            st.info("🟡 Boa melhoria em métricas. Considere adicionar mais números se possível.")
+        if delta_score >= 10:
+            st.balloons()
+            st.success(f"""
+            ✅ **Excelente melhoria!** Seu CV otimizado subiu **{delta_score:.0f} pontos** no Score ATS.
+            
+            Principais avanços:
+            - Score passou de {score_original['score_total']:.0f} para {score_otimizado['score_total']:.0f}
+            - Maior chance de passar por sistemas automatizados
+            - CV mais competitivo no mercado
+            """)
+        elif delta_score >= 5:
+            st.success(f"""
+            ✅ **Boa melhoria!** Seu CV otimizado subiu **{delta_score:.0f} pontos**.
+            
+            Continue refinando para alcançar scores ainda mais altos.
+            """)
+        elif delta_score > -5 and delta_score < 5:
+            st.info(f"""
+            ℹ️ **Pontuação similar** (diferença de {abs(delta_score):.0f} pontos).
+            
+            As mudanças foram pequenas. Considere:
+            - Adicionar mais métricas quantificáveis
+            - Incluir palavras-chave relevantes
+            - Verificar formatação e estrutura
+            """)
         else:
-            st.warning("⚠️ Pouca melhoria quantitativa. Tente adicionar mais resultados com números.")
-        
-        if metricas["verbos_acao"]["melhoria"] > 30:
-            st.success("✅ Linguagem muito mais ativa e impactante!")
-        
-        if metricas["secoes"]["depois"] >= 5:
-            st.success("✅ CV bem estruturado com seções claras.")
-        
-        # Similaridade
-        st.markdown("---")
-        st.metric(
-            "Similaridade com Original",
-            f"{metricas['similaridade']}%",
-            help="Quanto menor, mais mudanças foram feitas"
-        )
+            st.warning(f"""
+            ⚠️ **Atenção!** O CV otimizado teve uma queda de **{abs(delta_score):.0f} pontos**.
+            
+            Revise as mudanças feitas:
+            - Verifique se não removeu seções importantes
+            - Confirme que palavras-chave estão presentes
+            - Valide a formatação do documento
+            """)
+    
+    else:
+        st.warning("👆 Faça upload do CV otimizado para começar a comparação")
     
     st.markdown("---")
     
-    if st.button("⬅️ Voltar", use_container_width=True):
+    if st.button("⬅️ Voltar ao Chat", use_container_width=True):
         st.session_state.fase = 'CHAT'
         st.rerun()
