@@ -1,6 +1,6 @@
 import streamlit as st
 from core.prompts import SYSTEM_PROMPT
-from core.utils import chamar_gpt, scroll_topo
+from core.utils import chamar_gpt, scroll_topo, forcar_topo
 
 def fase_15_reality_check():
     # Add top anchor for scroll positioning
@@ -132,5 +132,88 @@ Use os **botões na barra lateral** para continuar:
                 {"role": "assistant", "content": reality}
             ]
             st.session_state.force_scroll_top = True
-            st.session_state.fase = 'CHAT'
-            st.rerun()
+            
+            # Display reality check result
+            st.markdown(reality)
+            
+            # Add interactive buttons for next steps
+            st.markdown("---")
+            st.markdown("### ✅ PRÓXIMOS PASSOS")
+            st.markdown("Escolha uma das opções para continuar:")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🔧 Otimizar CV + LinkedIn", use_container_width=True, type="primary"):
+                    st.session_state.mensagens = []
+                    st.session_state.modulo_ativo = None
+                    st.session_state.etapa_modulo = None
+                    
+                    cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+                    intro = f"""🔧 **OTIMIZAÇÃO COMPLETA DE CV - PROTOCOLO NÓBILE**
+        
+Vou reescrever seu CV **experiência por experiência** seguindo metodologia de Alta Performance.
+
+**O QUE FAREMOS:**
+
+**ETAPA 1:** Mapeamento de SEO  
+→ 10 keywords essenciais para **{cargo}**  
+→ Comparação com seu CV atual
+
+**ETAPA 2:** Interrogatório Tático  
+→ Análise de CADA experiência profissional  
+→ Cobrança de dados quantitativos
+
+**ETAPA 3:** Análise de Expertise  
+→ Hard skills × Soft skills × Certificações  
+→ Gaps técnicos para {cargo}
+
+**ETAPA 4:** Engenharia de Narrativa  
+→ Reescrita com framework STAR  
+→ Headlines de Alta Performance para LinkedIn
+
+**ETAPA 5:** Validação & Refinamento  
+→ Aprovação seção por seção  
+→ Ajustes finais
+
+**ETAPA 6:** Geração do Arquivo Final  
+→ Pronto para FlowCV e LinkedIn
+
+🚀 Vamos começar pela ETAPA 1."""
+                    
+                    st.session_state.mensagens.append({"role": "assistant", "content": intro})
+                    st.session_state.modulo_ativo = 'OTIMIZADOR'
+                    st.session_state.etapa_modulo = 'AGUARDANDO_OK'
+                    st.session_state.fase = 'CHAT'
+                    forcar_topo()
+                    st.rerun()
+
+                if st.button("🎯 Analisar Vaga", use_container_width=True):
+                    st.session_state.aguardando_vaga = True
+                    cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+                    msg = f"""🎯 **ANÁLISE DE FIT - VAGA × SEU PERFIL**
+
+Cole abaixo a **descrição completa da vaga** que você quer aplicar.
+
+Vou analisar:
+- 📊 Estimativa salarial da vaga vs sua pretensão ({st.session_state.perfil.get('pretensao_salarial', 'N/A')})
+- 🎯 Score de Match (0-100%)
+- ⚠️ Pontos de atenção
+- ✏️ Edições necessárias no CV
+- ✅ Veredito: APLICAR ou NÃO APLICAR
+
+**Cole a descrição da vaga:**"""
+                    st.session_state.mensagens.append({"role": "assistant", "content": msg})
+                    st.session_state.fase = 'CHAT'
+                    forcar_topo()
+                    st.rerun()
+
+            with col2:
+                if st.button("🎤 Prep. Entrevista", use_container_width=True):
+                    st.session_state.fase = 'FASE_PREP_ENTREVISTA'
+                    forcar_topo()
+                    st.rerun()
+
+                if st.button("🔄 Comparar CVs", use_container_width=True):
+                    st.session_state.fase = 'FASE_COMPARADOR'
+                    forcar_topo()
+                    st.rerun()
