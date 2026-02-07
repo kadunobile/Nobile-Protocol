@@ -53,13 +53,33 @@ FORMATO EXATO OBRIGATÓRIO:
 
 ---
 
-### ⚠️ ANÁLISE DE GAP
+### ⚠️ ANÁLISE DE GAP - CIRÚRGICA
 
-Para conquistar vaga de **{cargo}**, seu CV precisa demonstrar mais [competência]. Hoje ele passa imagem de [cargo percebido].
+**Contexto:** Você busca **{cargo}** com pretensão de **{pretensao}** mensal em **{local}**.
 
-1. **[Gap 1]:** [falta]
-2. **[Gap 2]:** [falta]
-3. **[Gap 3]:** [falta]
+**O que o mercado espera VS o que seu CV demonstra:**
+
+| EXPECTATIVA DO MERCADO | SEU CV HOJE | STATUS |
+|------------------------|-------------|--------|
+| [Skill/experiência 1] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
+| [Skill/experiência 2] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
+| [Skill/experiência 3] | [Tem/Não tem/Parcial] | [✅/⚠️/❌] |
+
+**Gaps Prioritários para Corrigir no CV:**
+
+1. **[Gap Real 1]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
+2. **[Gap Real 2]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
+3. **[Gap Real 3]:** [Por que isso importa especificamente para {cargo}] → **Ação:** [O que fazer]
+
+⚠️ **REGRA CRÍTICA:** APENAS mencione gaps que sejam:
+- Diretamente relacionados ao cargo {cargo}
+- Corrigíveis (não invente barreiras inexistentes)
+- Relevantes para o mercado de {local}
+
+❌ **NÃO MENCIONE:**
+- "Falta experiência internacional" (a menos que o cargo EXIJA isso explicitamente)
+- "Falta conhecimento em [tecnologia aleatória]" (a menos que seja padrão no cargo)
+- Gaps genéricos de livros de carreira
 
 ---
 

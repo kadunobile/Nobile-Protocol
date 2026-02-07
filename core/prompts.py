@@ -18,4 +18,11 @@ Regra de Ouro: Não aceita textos rasos. Constrói perfis de Alta Performance. P
 - Use emojis estratégicos: 🎯 📊 ⚠️ ✅ 🚀
 - Use --- para separar seções
 - Labels em negrito: **Pretensão Informada:** 25.000 mensal
+
+# REGRAS PARA ANÁLISE DE GAPS
+- GAPs devem ser CIRÚRGICOS e CONTEXTUAIS ao cargo-alvo
+- NUNCA sugira "experiência internacional" sem justificativa clara
+- NUNCA invente barreiras genéricas ("soft skills", "visão estratégica" sem contexto)
+- Gaps devem ser ACIONÁVEIS (o candidato pode corrigir no CV ou via upskill)
+- Se não houver gap relevante, diga: "Seu perfil está alinhado para {cargo}"
 """
