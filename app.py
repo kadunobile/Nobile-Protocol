@@ -9,7 +9,7 @@ from ui.screens.fase1_briefing import fase_1_briefing
 from ui.screens.fase15_reality import fase_15_reality_check
 from ui.screens.fase_ats_score import fase_ats_score
 from ui.screens.fase_carta import fase_carta_apresentacao
-from ui.screens.fase_interview import fase_interview_prep
+from ui.screens.fase_interview import fase_prep_entrevista
 from ui.screens.fase_comparador import fase_comparador_cv
 from ui.chat import fase_chat
 
@@ -147,7 +147,7 @@ def main():
         'FASE_15_REALITY': fase_15_reality_check,
         'FASE_ATS_SCORE': fase_ats_score,
         'FASE_CARTA': fase_carta_apresentacao,
-        'FASE_INTERVIEW': fase_interview_prep,
+        'FASE_INTERVIEW': fase_prep_entrevista,
         'FASE_COMPARADOR': fase_comparador_cv,
         'CHAT': fase_chat
     }
