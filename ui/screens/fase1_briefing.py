@@ -8,7 +8,8 @@ def fase_1_briefing():
     st.markdown("**Para traçar a estratégia correta, responda apenas:**")
 
     with st.form("briefing"):
-        col1, col2 = st.columns(2)
+        # Use responsive columns: 2 columns on desktop, 1 on mobile
+        col1, col2 = st.columns([1, 1])
 
         with col1:
             p1 = st.selectbox("**P1. Objetivo Principal:**",
@@ -23,10 +24,10 @@ def fase_1_briefing():
             p4 = st.text_input("**P4. Localização (Cidade/Remoto):**",
                 placeholder="Digite a cidade")
 
-            if p4:
-                sugestoes = filtrar_cidades(p4)
-                if sugestoes:
-                    st.info(f"💡 {', '.join(sugestoes[:5])}")
+        if p4:
+            sugestoes = filtrar_cidades(p4)
+            if sugestoes:
+                st.info(f"💡 {', '.join(sugestoes[:5])}")
 
         remoto = st.checkbox("📍 Aceito trabalho 100% remoto")
 
