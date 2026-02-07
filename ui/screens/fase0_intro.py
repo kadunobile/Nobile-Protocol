@@ -4,36 +4,45 @@ from core.utils import inicializar_cliente_openai
 
 def fase_0_intro():
     st.markdown("# 🎯 Protocolo Nóbile")
-    st.markdown("## Sistema de Inteligência de Carreira Executiva")
+    st.markdown("## Inteligência Artificial para Otimização de Currículos")
     st.markdown("---")
 
     st.markdown("""
-### Bem-vindo. Eu sou a Inteligência Artificial do **Protocolo Nóbile**.
+### Bem-vindo ao **Protocolo Nóbile**.
 
-Minha função é realizar uma **auditoria completa da sua carreira** e reposicionar seu perfil para o mercado Executivo de Alta Performance, eliminando ruídos e focando em **ROI**.
+Uma plataforma completa que utiliza IA para ajudar profissionais de **todos os níveis e áreas** a aprimorarem seus currículos e se prepararem para processos seletivos.
 
-### O que eu faço por você:
+### O que você pode fazer aqui:
 
-✅ **Otimização de CV e LinkedIn para ATS**  
-✅ **SEO de Perfis Profissionais**  
-✅ **Análise Estratégica de Carreira**  
-✅ **Preparação Tática para Entrevistas**  
+✅ **Análise de CV e Score ATS**  
+✅ **Reality Check com Identificação de Gaps**  
+✅ **Otimização Interativa com IA**  
+✅ **Geração de Carta de Apresentação**  
+✅ **Preparação para Entrevistas**  
+✅ **Comparador de CVs (Antes/Depois)**
 
 ### Como Funciona:
 
-**1️⃣ Deep Scan:** Análise completa do CV  
-**2️⃣ Briefing:** Seus objetivos (cargo, salário, local)  
-**3️⃣ Reality Check:** Cruzamento com mercado  
-**4️⃣ Otimização:** Reescrita com dados quantitativos  
-**5️⃣ Estratégia:** Empresas, vagas e entrevistas  
+**1️⃣ Upload:** Cole seu CV em texto  
+**2️⃣ Briefing:** Defina cargo-alvo e objetivos  
+**3️⃣ Análise:** Receba Score ATS e Reality Check  
+**4️⃣ Otimização:** Chat com IA para melhorar  
+**5️⃣ Ferramentas:** Carta, prep. entrevista, comparador  
+
+---
+
+### 🎯 Para Quem é?
+
+**Todos os níveis:** Júnior, Pleno, Sênior, Gerente, Diretor, C-Level  
+**Todas as áreas:** Tech, Vendas, Marketing, RH, Financeiro, Operações, Design, etc.
 
 ---
 
 ### 🚀 Requisitos:
 
-- ✅ CV em formato PDF
+- ✅ CV em formato texto (copie de PDF/Word)
 - ✅ 20-30 minutos disponíveis
-- ✅ Dados sobre suas experiências
+- ✅ Informações sobre suas experiências
     """)
 
     st.markdown("---")
