@@ -12,14 +12,14 @@ def fase_0_intro():
 
 O Protocolo Nóbile não é apenas um "corretor de currículos". É uma plataforma de **Engenharia de Carreira** que utiliza Inteligência Artificial avançada para transformar seu histórico profissional em uma ferramenta de venda de alto valor.
 
-Aqui, não reescrevemos somente, iremos analisar e te entregar o melhor pacote de melhorias possíveis, somados a suas experiências.
+Aqui, não apenas reescrevemos, mas analisamos e entregamos o melhor pacote de melhorias possíveis, somado a suas experiências.
 
 ---
 
 ### 🚀 O Que Você Vai Conquistar Aqui:
 
 * **🛡️ Blindagem contra Robôs (ATS Score):**
-    * *O que é:* 75% dos currículos são descartados por "robôs recrutadores" antes de um humano ler.
+    * *O que é:* A maioria dos currículos são descartados por "robôs recrutadores" antes de um humano ler.
     * *O que fazemos:* Otimizamos suas palavras-chave para garantir que você passe pelo filtro digital.
 
 * **⚖️ Reality Check (Raio-X de Mercado):**
@@ -27,10 +27,12 @@ Aqui, não reescrevemos somente, iremos analisar e te entregar o melhor pacote d
     * *O que fazemos:* Identificamos seus "Gaps" (o que falta) e seus pontos fortes para a negociação salarial.
 
 * **✍️ Reescrita Estratégica (Storytelling):**
-    * Transformamos listas de tarefas ("Fazia relatórios") em conquistas de impacto ("Aumentei a eficiência em 20%").
+    * *O que é:* Suas experiências contadas como uma história de valor, não apenas uma lista de tarefas.
+    * *O que fazemos:* Transformamos listas de tarefas ("Fazia relatórios") em conquistas de impacto ("Aumentei a eficiência em 20%").
 
 * **🗣️ Treinador de Entrevista:**
-    * Simulações reais baseadas na cultura da empresa alvo, com feedbacks táticos sobre sua performance.
+    * *O que é:* Preparação personalizada para entrevistas baseada no perfil da vaga e cultura da empresa.
+    * *O que fazemos:* Simulações reais com feedbacks táticos sobre sua performance e como se posicionar melhor.
 
 ---
 
