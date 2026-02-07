@@ -15,13 +15,8 @@ def fase_chat():
     st.markdown('<div id="top-anchor"></div>', unsafe_allow_html=True)
     
     if st.session_state.get('force_scroll_top', False):
-        st.markdown("""
-        <script>
-        window.scrollTo(0, 0);
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-        </script>
-        """, unsafe_allow_html=True)
+        # Use forcar_topo() which is more reliable with Streamlit's rendering
+        forcar_topo()
         st.session_state.force_scroll_top = False
     
     st.markdown("# 💬 Sessão Ativa - Protocolo Nóbile")
