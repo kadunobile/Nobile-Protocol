@@ -26,7 +26,18 @@ def fase_ats_score():
     st.markdown("# 🤖 Análise ATS - Applicant Tracking System")
     st.markdown("---")
     
-    st.info("📊 Simula como sistemas automatizados de recrutamento avaliam seu CV")
+    st.info("""
+    **O que é ATS?**  
+    ATS (Applicant Tracking System) é um sistema automático usado por empresas para filtrar currículos. 
+    Seu CV precisa ter palavras-chave corretas, formatação adequada e informações relevantes para passar por esses sistemas.
+    
+    **Como funciona o Score?**
+    - 0-40: ❌ Baixa chance (precisa melhorias urgentes)
+    - 41-70: ⚠️ Média chance (pode ser melhorado)
+    - 71-100: ✅ Alta chance (bem otimizado para ATS)
+    """)
+    
+    st.markdown("📊 Simula como sistemas automatizados de recrutamento avaliam seu CV")
     
     # Validar se CV existe
     if not st.session_state.get('cv_texto'):

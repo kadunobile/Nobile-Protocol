@@ -4,8 +4,18 @@ from core.utils import chamar_gpt, scroll_topo
 
 def fase_15_reality_check():
     scroll_topo()
-    st.markdown("# 🧠 Reality Check - Processando...")
+    st.markdown("# 🧠 Reality Check - Análise Crítica")
     st.markdown("---")
+    
+    st.info("""
+    **O que é Reality Check?**  
+    Uma análise honesta e detalhada do seu CV, identificando:
+    - ✅ Pontos fortes que você deve enfatizar
+    - ❌ Gaps (lacunas) que precisam ser corrigidos
+    - 💡 Oportunidades de melhoria
+    
+    Esta análise funciona para **qualquer cargo**: júnior, pleno, sênior, gerente, diretor, etc.
+    """)
 
     with st.spinner("🧠 Cruzando CV × Cargo × Salário × Região..."):
         perfil = st.session_state.perfil

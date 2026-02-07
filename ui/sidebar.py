@@ -156,6 +156,46 @@ Etapa 2: Simulação STAR com 5 perguntas difíceis + respostas modelo"""}
             st.rerun()
 
         st.markdown("---")
+        
+        with st.expander("❓ Glossário de Termos"):
+            st.markdown("""
+            **ATS (Applicant Tracking System)**  
+            Sistema automático que filtra CVs antes de chegarem ao recrutador.
+            
+            **Score ATS**  
+            Nota 0-100 da compatibilidade do seu CV com sistemas automáticos:
+            - 0-40: Precisa melhorias urgentes
+            - 41-70: Pode ser melhorado
+            - 71-100: Bem otimizado
+            
+            **Keywords (Palavras-Chave)**  
+            Termos técnicos que sistemas ATS procuram (ex: "Python", "Liderança").
+            
+            **Método STAR**  
+            Técnica para entrevistas:
+            - **S**ituação
+            - **T**arefa
+            - **A**ção
+            - **R**esultado
+            
+            **Reality Check**  
+            Análise crítica identificando pontos fortes e fracos do CV.
+            """)
+        
+        with st.expander("🎯 Para Quem é?"):
+            st.markdown("""
+            ✅ **Todos os níveis**:
+            - Júnior / Trainee
+            - Pleno / Sênior
+            - Especialista / Líder
+            - Gerente / Diretor
+            - C-Level (CEO, CTO, etc.)
+            
+            ✅ **Todas as áreas**:
+            Tech, Vendas, Marketing, RH, Financeiro, Operações, Design, etc.
+            """)
+        
+        st.markdown("---")
         if not habilitado:
             st.warning("⚠️ Complete o briefing para desbloquear")
 
