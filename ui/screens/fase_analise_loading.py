@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+import re
 from core.prompts import SYSTEM_PROMPT
 from core.utils import chamar_gpt, scroll_topo
 
@@ -65,20 +66,27 @@ def fase_analise_loading():
     
     # Salvar resultados e ir para próxima fase
     if resultado_analise:
-        cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
-        
-        # Preparar mensagens para o chat com a análise e módulo otimizador
-        st.session_state.mensagens = [
-            {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {st.session_state.cv_texto}\n\nCARGO-ALVO: {cargo}"},
-            {"role": "assistant", "content": resultado_analise}
-        ]
-        
-        # Ativar módulo otimizador e aguardar OK para começar
-        st.session_state.modulo_ativo = "OTIMIZADOR"
-        st.session_state.etapa_modulo = "AGUARDANDO_OK"
         st.session_state.analise_cv_completa = resultado_analise
         st.session_state.force_scroll_top = True
-        st.session_state.fase = 'CHAT'
+        
+        # Se há gaps, ir para tela interativa
+        if st.session_state.get('gaps_identificados') and len(st.session_state.gaps_identificados) > 0:
+            st.session_state.fase = 'FASE_GAPS_INTERATIVOS'
+        else:
+            # Se não há gaps, ir direto para chat
+            cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+            
+            # Preparar mensagens para o chat com a análise e módulo otimizador
+            st.session_state.mensagens = [
+                {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {st.session_state.cv_texto}\n\nCARGO-ALVO: {cargo}"},
+                {"role": "assistant", "content": resultado_analise}
+            ]
+            
+            # Ativar módulo otimizador e aguardar OK para começar
+            st.session_state.modulo_ativo = "OTIMIZADOR"
+            st.session_state.etapa_modulo = "AGUARDANDO_OK"
+            st.session_state.fase = 'CHAT'
+        
         st.rerun()
     else:
         st.error("❌ Erro ao analisar CV. Por favor, tente novamente.")
@@ -180,4 +188,55 @@ Siga o formato EXATO especificado nas instruções."""
         seed=42           # Determinístico
     )
     
+    if analise:
+        # Extrair gaps da análise
+        gaps = extrair_gaps_da_analise(analise)
+        st.session_state.gaps_identificados = gaps
+    
     return analise
+
+
+def extrair_gaps_da_analise(analise_texto):
+    """
+    Extrai lista estruturada de gaps da análise da IA.
+    
+    Procura por padrões como:
+    1. **[Skill]:** [Descrição] - **Impacto:** [Alto/Médio/Baixo]
+    
+    Args:
+        analise_texto: Texto completo da análise
+        
+    Returns:
+        list: Lista de dicts com {nome, descricao, impacto}
+    """
+    gaps = []
+    
+    # Regex para encontrar gaps no formato especificado
+    # Exemplo: 1. **Python:** Essencial para análise de dados - **Impacto:** Alto
+    pattern = r'\d+\.\s*\*\*\[?([^\]:\*]+)\]?:\*\*\s*([^-]+)\s*-\s*\*\*Impacto:\*\*\s*(Alto|Médio|Baixo)'
+    
+    matches = re.findall(pattern, analise_texto, re.IGNORECASE | re.DOTALL)
+    
+    for match in matches:
+        gap = {
+            'nome': match[0].strip(),
+            'descricao': match[1].strip(),
+            'impacto': match[2].strip().capitalize()
+        }
+        gaps.append(gap)
+    
+    # Tentar padrão alternativo se não encontrou nada
+    if not gaps:
+        # Padrão sem numeração
+        pattern_alt = r'\*\*\[?([^\]:\*]+)\]?:\*\*\s*([^-]+)\s*-\s*\*\*Impacto:\*\*\s*(Alto|Médio|Baixo)'
+        matches = re.findall(pattern_alt, analise_texto, re.IGNORECASE | re.DOTALL)
+        
+        for match in matches:
+            gap = {
+                'nome': match[0].strip(),
+                'descricao': match[1].strip(),
+                'impacto': match[2].strip().capitalize()
+            }
+            gaps.append(gap)
+    
+    return gaps
