@@ -292,7 +292,10 @@ def chamar_gpt(
     for tentativa in range(1, max_retries + 1):
         try:
             logger.debug(f"Tentativa {tentativa}/{max_retries}")
-            logger.debug(f"Temperature: {temperature}, Seed: {seed}")
+            if seed is not None:
+                logger.debug(f"Temperature: {temperature}, Seed: {seed}")
+            else:
+                logger.debug(f"Temperature: {temperature}")
             
             # Construir parâmetros da chamada
             params = {
