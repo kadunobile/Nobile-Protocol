@@ -41,9 +41,17 @@ def inject_custom_css():
     /* Mobile-specific styles */
     @media screen and (max-width: 768px) {
         .block-container {
-            padding-top: 3rem !important; /* Adicionar espaço para header */
-            padding: 1rem !important;
+            padding-top: 5rem !important; /* Adicionar espaço para header do browser */
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-bottom: 1rem !important;
             max-width: 100% !important;
+            margin-top: 0 !important;
+        }
+        
+        /* Ensure first element has extra spacing */
+        .block-container > div:first-child {
+            margin-top: 1rem !important;
         }
         
         h1 {
