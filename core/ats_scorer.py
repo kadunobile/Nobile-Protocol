@@ -91,7 +91,7 @@ _custom_stops = {
     'including', 'related', 'across', 'within', 'using',
     'new', 'key', 'high', 'level', 'well',
     # ─── TERMOS DE CV (endereço, meses, etc.) ───
-    'responsável', 'cargo', 'janeiro', 'fevereiro', 'março', 'abril',
+    'cargo', 'janeiro', 'fevereiro', 'março', 'abril',
     'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro',
     'novembro', 'dezembro', 'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
     'jul', 'ago', 'set', 'out', 'nov', 'dez',
