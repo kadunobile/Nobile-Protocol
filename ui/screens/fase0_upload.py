@@ -16,17 +16,19 @@ def calculate_quality(cv_data):
 st.title("CV Upload and LinkedIn Extraction")
 
 # Create tabs for tutorials
-with st.tab("LinkedIn Official"):
+tab1, tab2, tab3 = st.tabs(["LinkedIn Official", "Copiar & Colar", "Fallback"])
+
+with tab1:
     st.header("LinkedIn Extraction Instructions")
     st.write("Step 1: Log in to LinkedIn.")
     st.write("Step 2: Navigate to your profile.")
     st.write("Step 3: Click on 'More', then 'Save to PDF'.")
 
-with st.tab("Copiar & Colar"):
+with tab2:
     st.header("Copy & Paste Instructions")
     st.write("Copy your LinkedIn profile information and paste it here.")
 
-with st.tab("Fallback"):
+with tab3:
     st.header("Fallback Instructions")
     st.write("If download does not work, please use the manual method.")
 
