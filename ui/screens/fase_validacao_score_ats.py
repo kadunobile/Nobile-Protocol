@@ -47,7 +47,11 @@ def fase_validacao_score_ats():
     if st.session_state.get('score_ats_final') is None:
         with st.spinner("📊 Calculando novo Score ATS do CV otimizado..."):
             cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
-            score_resultado = calcular_score_ats(cv_otimizado, cargo)
+            score_resultado = calcular_score_ats(
+                cv_otimizado, 
+                cargo,
+                client=st.session_state.get('openai_client')
+            )
             st.session_state.score_ats_final = score_resultado
     
     score_inicial = st.session_state.get('score_ats_inicial')

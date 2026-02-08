@@ -57,7 +57,12 @@ def fase_ats_score():
     # Calcular score
     with st.spinner("🔍 Analisando CV com algoritmo ATS..."):
         try:
-            resultado = calcular_score_ats(st.session_state.cv_texto, cargo)
+            # Pass OpenAI client to enable job variations and better JD generation
+            resultado = calcular_score_ats(
+                st.session_state.cv_texto, 
+                cargo,
+                client=st.session_state.get('openai_client')
+            )
         except Exception as e:
             logger.error(f"Erro ao calcular score ATS: {e}", exc_info=True)
             st.error(f"❌ Erro ao calcular score: {e}")

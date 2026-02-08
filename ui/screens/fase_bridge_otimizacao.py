@@ -41,7 +41,8 @@ def fase_bridge_otimizacao():
             cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
             score_resultado = calcular_score_ats(
                 st.session_state.cv_texto, 
-                cargo
+                cargo,
+                client=st.session_state.get('openai_client')
             )
             st.session_state.score_ats_inicial = score_resultado
     

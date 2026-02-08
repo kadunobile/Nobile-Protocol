@@ -30,9 +30,17 @@ def fase_comparador_cv():
         cargo_alvo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
         
         with st.spinner("📊 Calculando scores ATS e analisando diferenças..."):
-            # Calcula scores ATS
-            score_original = calcular_score_ats(st.session_state.cv_texto, cargo_alvo)
-            score_otimizado = calcular_score_ats(cv_otimizado, cargo_alvo)
+            # Calcula scores ATS with OpenAI client for better JD generation
+            score_original = calcular_score_ats(
+                st.session_state.cv_texto, 
+                cargo_alvo,
+                client=st.session_state.get('openai_client')
+            )
+            score_otimizado = calcular_score_ats(
+                cv_otimizado, 
+                cargo_alvo,
+                client=st.session_state.get('openai_client')
+            )
             
             # Calcula delta
             delta_score = score_otimizado['score_total'] - score_original['score_total']
@@ -76,39 +84,51 @@ def fase_comparador_cv():
         
         # Análise detalhada por categoria
         st.markdown("---")
-        st.markdown("### 📋 Análise Detalhada por Categoria")
+        st.markdown("### 📋 Análise Detalhada")
         
-        categorias = [
-            ('Seções Essenciais', 'secoes', 20),
-            ('Palavras-Chave', 'keywords', 30),
-            ('Métricas Quantificáveis', 'metricas', 20),
-            ('Formatação', 'formatacao', 15),
-            ('Tamanho Adequado', 'tamanho', 15)
-        ]
-        
-        for nome, chave, max_pts in categorias:
-            col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+        # Check if breakdown exists (backward compatibility)
+        if 'breakdown' in score_original and 'breakdown' in score_otimizado:
+            st.markdown("#### Análise por Categoria")
+            categorias = [
+                ('Seções Essenciais', 'secoes', 20),
+                ('Palavras-Chave', 'keywords', 30),
+                ('Métricas Quantificáveis', 'metricas', 20),
+                ('Formatação', 'formatacao', 15),
+                ('Tamanho Adequado', 'tamanho', 15)
+            ]
             
-            orig_val = score_original['breakdown'][chave]
-            otim_val = score_otimizado['breakdown'][chave]
-            delta_val = otim_val - orig_val
+            for nome, chave, max_pts in categorias:
+                col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+                
+                orig_val = score_original['breakdown'][chave]
+                otim_val = score_otimizado['breakdown'][chave]
+                delta_val = otim_val - orig_val
+                
+                with col1:
+                    st.markdown(f"**{nome}** (máx: {max_pts} pts)")
+                
+                with col2:
+                    st.text(f"{orig_val:.1f}")
+                
+                with col3:
+                    st.text(f"{otim_val:.1f}")
+                
+                with col4:
+                    if delta_val > 0:
+                        st.markdown("🟢")
+                    elif delta_val < 0:
+                        st.markdown("🔴")
+                    else:
+                        st.markdown("⚪")
+        else:
+            # New scoring system - show method info instead
+            st.info(f"""
+            **Método de Pontuação:** {score_original['detalhes']['metodo']}  
+            **N-grams:** {score_original['detalhes']['ngrams']}
             
-            with col1:
-                st.markdown(f"**{nome}** (máx: {max_pts} pts)")
-            
-            with col2:
-                st.text(f"{orig_val:.1f}")
-            
-            with col3:
-                st.text(f"{otim_val:.1f}")
-            
-            with col4:
-                if delta_val > 0:
-                    st.markdown("🟢")
-                elif delta_val < 0:
-                    st.markdown("🔴")
-                else:
-                    st.markdown("⚪")
+            O novo sistema de pontuação ATS v2.1 usa TF-IDF com Job Description gerada por IA
+            que inclui variações de mercado do cargo, resultando em scores mais realistas e precisos.
+            """)
         
         # Tabs de visualização
         st.markdown("---")
