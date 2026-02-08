@@ -98,9 +98,9 @@ def fase_0_upload():
     st.markdown("")
     
     st.warning(
-        "⚠️ **Importante:** Aceitamos **somente o PDF exportado do LinkedIn.** "
+        "⚠️ **Importante:** Envie o **Perfil exportado do LinkedIn.** "
         "CVs feitos no Word, Canva ou outros modelos não funcionam corretamente "
-        "para otimização ATS."
+        "para otimização ATS e podem não funcionar na ferramenta."
     )
     
     st.markdown("---")
