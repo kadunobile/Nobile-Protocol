@@ -2,6 +2,17 @@ import streamlit as st
 from core.utils import scroll_topo
 from core.ats_scorer import calcular_score_ats, extrair_cargo_do_cv
 
+# Constante para fallback de cargo
+CARGO_FALLBACK = "Profissional"
+
+
+def limpar_cache_ats():
+    """Limpa o cache de score ATS do session_state."""
+    if 'score_ats_inicial' in st.session_state:
+        del st.session_state.score_ats_inicial
+    if 'cargo_atual' in st.session_state:
+        del st.session_state.cargo_atual
+
 
 def fase_1_diagnostico():
     scroll_topo()
@@ -20,7 +31,7 @@ def fase_1_diagnostico():
             )
             
             if not cargo_atual:
-                cargo_atual = "Profissional"  # fallback
+                cargo_atual = CARGO_FALLBACK
             
             st.session_state.cargo_atual = cargo_atual
             
@@ -85,10 +96,7 @@ def fase_1_diagnostico():
     with col1:
         if st.button("⬅️ Voltar", use_container_width=True):
             # Limpar score para recalcular se voltar
-            if 'score_ats_inicial' in st.session_state:
-                del st.session_state.score_ats_inicial
-            if 'cargo_atual' in st.session_state:
-                del st.session_state.cargo_atual
+            limpar_cache_ats()
             st.session_state.fase = 'FASE_0_UPLOAD'
             st.rerun()
     

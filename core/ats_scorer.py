@@ -59,6 +59,7 @@ class ATSEngine:
         job_clean = self._clean_text(job_description)
         
         if not cv_clean or not job_clean:
+            logger.warning("CV ou Job Description vazio após limpeza - retornando score 0")
             return 0.0
         
         try:
@@ -137,6 +138,8 @@ def extrair_cargo_do_cv(client, cv_texto: str) -> Optional[str]:
             "Responda APENAS com o nome do cargo, nada mais. "
             "Exemplo de resposta: Gerente de Vendas"
         )},
+        # Limita a 3000 caracteres para reduzir tokens e focar no início do CV
+        # onde geralmente está a experiência mais recente
         {"role": "user", "content": f"CV:\n{cv_texto[:3000]}"}
     ]
     
