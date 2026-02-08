@@ -128,6 +128,7 @@ _termos_genericos_gap = {
     'proficiency', 'proficient', 'fluent', 'fluency',
     'operations', 'operações', 'revenue', 'receita',
     'engineer', 'engenheiro', 'developer', 'desenvolvedor', 'software',
+    'analyst', 'consultor', 'consultant',
 }
 
 
