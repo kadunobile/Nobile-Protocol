@@ -93,7 +93,7 @@ class TestAtsScorer:
         # Verifica presença das informações básicas
         assert 'metodo' in detalhes
         assert 'ngrams' in detalhes
-        assert detalhes['metodo'] == 'TF-IDF + Cosine Similarity'
+        assert detalhes['metodo'] == 'TF-IDF + Cosine Similarity (v2.1)'
         assert detalhes['ngrams'] == '1-3'
     
     def test_calcular_score_ats_cv_vazio(self):
