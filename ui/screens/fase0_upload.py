@@ -3,6 +3,12 @@ from core.prompts import SYSTEM_PROMPT
 from core.utils import extrair_texto_universal, chamar_gpt
 
 
+# Constantes para validação de PDF do LinkedIn
+MIN_SECOES_LINKEDIN = 3  # Número mínimo de seções típicas do LinkedIn para considerar válido
+MIN_SECOES_AMBIGUO = 2   # Número mínimo de seções para aceitar com aviso
+THRESHOLD_SINAIS_GENERICOS = 2  # Número mínimo de sinais de CV tradicional para rejeitar
+
+
 def validar_pdf_linkedin(texto: str) -> dict:
     """
     Validação básica para verificar se o PDF veio do LinkedIn.
@@ -33,8 +39,8 @@ def validar_pdf_linkedin(texto: str) -> dict:
     # Checar menção ao LinkedIn
     tem_linkedin = 'linkedin' in texto_lower
     
-    # Checar se tem estrutura mínima (pelo menos 3 seções típicas)
-    tem_estrutura = secoes_encontradas >= 3
+    # Checar se tem estrutura mínima
+    tem_estrutura = secoes_encontradas >= MIN_SECOES_LINKEDIN
     
     # Checar se não é CV genérico/Word (padrões que NÃO são LinkedIn)
     sinais_nao_linkedin = [
@@ -43,7 +49,7 @@ def validar_pdf_linkedin(texto: str) -> dict:
         'pretensão salarial',     # CVs BR tradicionais
         'estado civil',           # CVs BR tradicionais
     ]
-    tem_sinais_generico = sum(1 for s in sinais_nao_linkedin if s in texto_lower) >= 2
+    tem_sinais_generico = sum(1 for s in sinais_nao_linkedin if s in texto_lower) >= THRESHOLD_SINAIS_GENERICOS
     
     if tem_sinais_generico:
         return {
@@ -56,7 +62,7 @@ def validar_pdf_linkedin(texto: str) -> dict:
         return {'valido': True, 'motivo': ''}
     
     # Caso ambíguo - aceitar mas avisar
-    if secoes_encontradas >= 2:
+    if secoes_encontradas >= MIN_SECOES_AMBIGUO:
         return {
             'valido': True,
             'motivo': 'aviso'  # Flag para mostrar aviso suave
