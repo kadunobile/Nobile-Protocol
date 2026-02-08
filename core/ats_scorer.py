@@ -116,6 +116,18 @@ _custom_stops = {
 # Combinar: NLTK base (~400) + Custom (~150) = ~550+ stopwords
 STOPWORDS_PT_EN = list(_nltk_stops.union(_custom_stops))
 
+# ─── Termos genéricos que nunca devem aparecer como gap ───
+_termos_genericos_gap = {
+    'certified', 'certification', 'certificate',
+    'qualified', 'qualification',
+    'senior', 'junior', 'pleno', 'sênior', 'júnior',
+    'manager', 'lead', 'head', 'director', 'chief',
+    'gerente', 'coordenador', 'analista', 'especialista',
+    'supervisor', 'diretor', 'líder',
+    'six', 'sigma',
+    'proficiency', 'proficient', 'fluent', 'fluency',
+}
+
 
 def _limpar_texto(texto: str) -> str:
     """Padroniza o texto para análise."""
@@ -197,9 +209,42 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
     })
     
     # Gaps: termos da vaga que NÃO estão no CV
-    termos_faltantes = df_analise[
+    termos_faltantes_raw = df_analise[
         (df_analise['peso_vaga'] > 0) & (df_analise['peso_cv'] == 0)
-    ].sort_values(by='peso_vaga', ascending=False).head(10)
+    ].sort_values(by='peso_vaga', ascending=False)
+    
+    # Filtrar: remover termos genéricos e n-grams que são apenas títulos de cargo
+    def _is_generic_term(termo: str) -> bool:
+        """Verifica se um termo deve ser filtrado dos gaps."""
+        # Remover siglas muito curtas
+        if len(termo) <= 2:
+            return True
+        
+        # Remover se é termo genérico standalone
+        if termo in _termos_genericos_gap:
+            return True
+        
+        # Remover n-grams que contêm palavras genéricas
+        palavras_termo = termo.split()
+        for palavra in palavras_termo:
+            if palavra in _termos_genericos_gap:
+                return True
+        
+        # Remover termos que contêm títulos de cargo
+        termos_cargo = [
+            'gerente', 'manager', 'operations manager',
+            'head de', 'diretor', 'lead de', 'coordenador',
+            'analista', 'especialista', 'supervisor',
+        ]
+        for cargo in termos_cargo:
+            if cargo in termo:
+                return True
+        
+        return False
+    
+    termos_faltantes = termos_faltantes_raw[
+        ~termos_faltantes_raw['termo'].apply(_is_generic_term)
+    ].head(10)
     
     # Pontos fortes: termos que ambos têm
     pontos_fortes = df_analise[
@@ -235,15 +280,18 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
 
 def buscar_variacoes_cargo(client, cargo: str) -> List[str]:
     """
-    Usa IA para encontrar variações de mercado de um cargo.
+    Usa IA para encontrar variações REAIS de mercado de um cargo.
     """
     logger.info(f"Buscando variações de mercado para: {cargo}")
     
     msgs = [
         {"role": "system", "content": (
-            "Você é um especialista em recrutamento e mercado de trabalho. "
-            "Dado um cargo, liste 5 variações desse cargo como aparecem em vagas reais no mercado. "
-            "Inclua variações em português e inglês que recrutadores usam. "
+            "Você é um especialista em recrutamento no Brasil e mercado de trabalho. "
+            "Dado um cargo, liste entre 5 e 8 variações REAIS desse cargo como aparecem "
+            "em vagas publicadas no LinkedIn, Gupy, Catho e Indeed. "
+            "Inclua variações em português E inglês que recrutadores REALMENTE usam. "
+            "Mantenha o mesmo nível hierárquico (se é gerente, liste cargos de gerência). "
+            "NÃO invente cargos — liste apenas os que EXISTEM no mercado real. "
             "Responda APENAS com a lista, um cargo por linha, sem numeração nem explicação."
         )},
         {"role": "user", "content": f"Cargo: {cargo}"}
@@ -265,8 +313,8 @@ def buscar_variacoes_cargo(client, cargo: str) -> List[str]:
 
 def gerar_job_description(client, cargo: str) -> Optional[str]:
     """
-    Gera uma Job Description focada em TERMOS TÉCNICOS, ferramentas,
-    metodologias e siglas da área — não em verbos genéricos.
+    Gera uma Job Description focada em TERMOS TÉCNICOS reais do cargo,
+    sem exemplos genéricos que contaminam a análise.
     """
     logger.info(f"Gerando Job Description técnica para: {cargo}")
     
@@ -275,17 +323,22 @@ def gerar_job_description(client, cargo: str) -> Optional[str]:
     
     msgs = [
         {"role": "system", "content": (
-            "Você é um especialista em recrutamento técnico e sistemas ATS. "
+            "Você é um especialista em recrutamento técnico e sistemas ATS no Brasil.\n\n"
             "Gere uma Job Description para o cargo informado focada EXCLUSIVAMENTE em:\n"
-            "- Ferramentas e softwares específicos (ex: Salesforce, Power BI, HubSpot, SAP)\n"
-            "- Metodologias e frameworks (ex: Scrum, Kanban, OKR, Six Sigma)\n"
-            "- Siglas e termos técnicos da área (ex: CAC, LTV, NRR, ARR, SQL, KPI)\n"
-            "- Certificações relevantes (ex: PMP, AWS, Google Analytics)\n"
-            "- Tecnologias e linguagens (ex: Python, SQL, Power Query, DAX)\n"
-            "- Conceitos técnicos específicos (ex: forecasting, pipeline, churn, revenue operations)\n\n"
-            "NÃO use verbos genéricos como 'desenvolver', 'gerenciar', 'implementar', 'coordenar'. "
-            "NÃO use frases genéricas como 'trabalho em equipe', 'boa comunicação', 'proatividade'. "
-            "Foque 100% em termos que DIFERENCIAM candidatos em sistemas ATS.\n\n"
+            "- Ferramentas e softwares ESPECÍFICOS da área desse cargo\n"
+            "- Metodologias e frameworks REALMENTE usados nesse cargo\n"
+            "- Siglas e termos técnicos ESPECÍFICOS dessa função\n"
+            "- Certificações relevantes APENAS para esse cargo\n"
+            "- Tecnologias REALMENTE exigidas nessa função\n"
+            "- Conceitos técnicos ESPECÍFICOS dessa área\n\n"
+            "REGRAS CRÍTICAS:\n"
+            "- NÃO inclua termos genéricos de outras áreas\n"
+            "- NÃO use exemplos que não sejam da área do cargo\n"
+            "- NÃO inclua ferramentas/metodologias irrelevantes para a função\n"
+            "- Cada termo mencionado deve ser algo que um recrutador REALMENTE "
+            "buscaria ao filtrar candidatos para ESSE cargo específico\n"
+            "- NÃO use verbos genéricos como 'desenvolver', 'gerenciar', 'implementar'\n"
+            "- NÃO use frases genéricas como 'trabalho em equipe', 'boa comunicação'\n\n"
             "A JD deve cobrir o cargo principal E suas variações de mercado.\n"
             "Inclua termos em português E inglês.\n"
             "Responda APENAS com a Job Description, sem introdução."
@@ -293,7 +346,8 @@ def gerar_job_description(client, cargo: str) -> Optional[str]:
         {"role": "user", "content": (
             f"Cargo principal: {cargo}\n\n"
             f"Variações de mercado:\n{variacoes_texto}\n\n"
-            f"Gere a Job Description TÉCNICA cobrindo todos esses perfis."
+            f"Gere a Job Description TÉCNICA cobrindo APENAS termos relevantes "
+            f"para esse cargo específico e suas variações."
         )}
     ]
     
