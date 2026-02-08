@@ -57,6 +57,9 @@ class TestAtsScorer:
         assert 'percentual' in resultado
         assert 'nivel' in resultado
         assert 'detalhes' in resultado
+        assert 'pontos_fortes' in resultado
+        assert 'gaps_identificados' in resultado
+        assert 'plano_acao' in resultado
         
         # Verifica tipos
         assert isinstance(resultado['score_total'], (int, float))
@@ -64,6 +67,9 @@ class TestAtsScorer:
         assert isinstance(resultado['percentual'], (int, float))
         assert isinstance(resultado['nivel'], str)
         assert isinstance(resultado['detalhes'], dict)
+        assert isinstance(resultado['pontos_fortes'], list)
+        assert isinstance(resultado['gaps_identificados'], list)
+        assert isinstance(resultado['plano_acao'], list)
         
         # Verifica valores dentro dos limites
         assert 0 <= resultado['score_total'] <= 100
@@ -93,8 +99,10 @@ class TestAtsScorer:
         # Verifica presença das informações básicas
         assert 'metodo' in detalhes
         assert 'ngrams' in detalhes
-        assert detalhes['metodo'] == 'TF-IDF + Cosine Similarity'
+        assert 'stopwords' in detalhes
+        assert 'TF-IDF + Cosine Similarity' in detalhes['metodo']
         assert detalhes['ngrams'] == '1-3'
+        assert detalhes['stopwords'] == 'PT + EN'
     
     def test_calcular_score_ats_cv_vazio(self):
         """Testa cálculo com CV vazio."""

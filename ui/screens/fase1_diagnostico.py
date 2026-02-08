@@ -2,16 +2,14 @@ import streamlit as st
 from core.utils import scroll_topo
 from core.ats_scorer import calcular_score_ats, extrair_cargo_do_cv
 
-# Constante para fallback de cargo
 CARGO_FALLBACK = "Profissional"
 
 
 def limpar_cache_ats():
     """Limpa o cache de score ATS do session_state."""
-    if 'score_ats_inicial' in st.session_state:
-        del st.session_state.score_ats_inicial
-    if 'cargo_atual' in st.session_state:
-        del st.session_state.cargo_atual
+    for key in ['score_ats_inicial', 'cargo_atual']:
+        if key in st.session_state:
+            del st.session_state[key]
 
 
 def fase_1_diagnostico():
@@ -20,10 +18,9 @@ def fase_1_diagnostico():
     st.markdown("# 🔍 Diagnóstico do Perfil")
     st.markdown("---")
     
-    # ─── Score ATS baseado no cargo atual ───
-    # Calcular apenas uma vez e salvar no session_state
+    # ─── Calcular ATS (apenas uma vez) ───
     if 'score_ats_inicial' not in st.session_state or 'cargo_atual' not in st.session_state:
-        with st.spinner("📊 Calculando seu Score ATS..."):
+        with st.spinner("📊 Analisando seu perfil com ATS inteligente..."):
             # Extrair cargo atual do CV
             cargo_atual = extrair_cargo_do_cv(
                 st.session_state.openai_client,
@@ -35,7 +32,7 @@ def fase_1_diagnostico():
             
             st.session_state.cargo_atual = cargo_atual
             
-            # Calcular score ATS com JD gerada por IA
+            # Calcular score ATS completo
             resultado_ats = calcular_score_ats(
                 st.session_state.cv_texto,
                 cargo_atual,
@@ -44,13 +41,12 @@ def fase_1_diagnostico():
             
             st.session_state.score_ats_inicial = resultado_ats
     
-    resultado_ats = st.session_state.score_ats_inicial
+    resultado = st.session_state.score_ats_inicial
     cargo_atual = st.session_state.cargo_atual
-    score = resultado_ats['score_total']
-    nivel = resultado_ats['nivel']
+    score = resultado['score_total']
+    nivel = resultado['nivel']
     
     # ─── Card de Score ATS ───
-    # Cor baseada no nível
     if score >= 70:
         cor = "#2ecc71"
         emoji = "🟢"
@@ -75,7 +71,6 @@ def fase_1_diagnostico():
     
     st.markdown("")
     
-    # ─── Explicação rápida do score ───
     st.info(
         "📊 **O que é o Score ATS?** É a compatibilidade do seu perfil com o que "
         "sistemas automatizados de recrutamento buscam para seu cargo atual. "
@@ -84,18 +79,54 @@ def fase_1_diagnostico():
     
     st.markdown("---")
     
-    # ─── Diagnóstico da IA ───
-    st.markdown("### 📋 Diagnóstico Completo")
-    st.markdown(st.session_state.analise_inicial)
+    # ─── Pontos Fortes ───
+    pontos_fortes = resultado.get('pontos_fortes', [])
+    if pontos_fortes:
+        st.markdown("### ✅ Pontos Fortes")
+        st.markdown(
+            "Termos do seu perfil que **já estão alinhados** com o que o mercado busca:"
+        )
+        # Mostrar como tags/chips
+        tags_html = " ".join(
+            f'<span style="background: rgba(46,204,113,0.15); color: #2ecc71; '
+            f'padding: 4px 12px; border-radius: 20px; margin: 4px; '
+            f'display: inline-block; font-size: 0.9rem;">{termo}</span>'
+            for termo in pontos_fortes
+        )
+        st.markdown(tags_html, unsafe_allow_html=True)
+        st.markdown("")
+    
+    # ─── Gaps ───
+    gaps = resultado.get('gaps_identificados', [])
+    if gaps:
+        st.markdown("### 🚫 Gaps Identificados")
+        st.markdown(
+            "Termos importantes para o cargo que **não aparecem** no seu perfil:"
+        )
+        tags_html = " ".join(
+            f'<span style="background: rgba(231,76,60,0.15); color: #e74c3c; '
+            f'padding: 4px 12px; border-radius: 20px; margin: 4px; '
+            f'display: inline-block; font-size: 0.9rem; text-transform: uppercase;">{termo}</span>'
+            for termo in gaps[:8]
+        )
+        st.markdown(tags_html, unsafe_allow_html=True)
+        st.markdown("")
+    
+    # ─── Plano de Ação ───
+    plano = resultado.get('plano_acao', [])
+    if plano:
+        st.markdown("### 💡 Plano de Ação")
+        for item in plano:
+            st.markdown(item)
+        st.markdown("")
     
     st.markdown("---")
     
-    # ─── Botões de ação ───
+    # ─── Botões ───
     col1, col2, col3 = st.columns([1, 2, 1])
     
     with col1:
         if st.button("⬅️ Voltar", use_container_width=True):
-            # Limpar score para recalcular se voltar
             limpar_cache_ats()
             st.session_state.fase = 'FASE_0_UPLOAD'
             st.rerun()
