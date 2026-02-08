@@ -1,184 +1,217 @@
 """
-Sistema de Pontuação ATS (Applicant Tracking System).
+Sistema de Pontuação ATS (Applicant Tracking System) - v2.
 
-Este módulo simula como sistemas automatizados de recrutamento avaliam currículos,
-fornecendo pontuação detalhada e recomendações de melhoria.
+Usa TF-IDF + Cosine Similarity para calcular compatibilidade real
+entre o CV do candidato e uma Job Description gerada por IA.
+
+Substitui o sistema anterior baseado em regex e listas fixas.
 """
 
 import re
 import logging
-from typing import Dict, List
+from typing import Dict, Optional
+
+import streamlit as st
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+from core.utils import chamar_gpt
 
 # Configurar logger
 logger = logging.getLogger(__name__)
 
 
-def calcular_score_ats(cv_texto: str, cargo_alvo: str) -> Dict:
+class ATSEngine:
     """
-    Simula score de ATS (Applicant Tracking System).
+    Engine de ATS baseada em TF-IDF + Cosine Similarity.
     
-    Analisa o currículo em 5 dimensões principais:
-    1. Presença de seções essenciais (20 pontos)
-    2. Densidade de palavras-chave relevantes (30 pontos)
-    3. Métricas quantificáveis (20 pontos)
-    4. Formatação adequada (15 pontos)
-    5. Tamanho apropriado (15 pontos)
+    Captura termos compostos (n-grams de 1 a 3 palavras),
+    crucial para cargos técnicos e de gestão.
+    """
+    
+    def __init__(self):
+        self.vectorizer = TfidfVectorizer(
+            ngram_range=(1, 3),
+            max_df=0.85,
+            min_df=1
+        )
+    
+    def _clean_text(self, text: str) -> str:
+        """Limpeza de texto para padronização."""
+        if not text:
+            return ""
+        text = re.sub(r'[^\w\s]', ' ', str(text).lower())
+        text = re.sub(r'\s+', ' ', text).strip()
+        return text
+    
+    def calculate_match(self, cv_text: str, job_description: str) -> float:
+        """
+        Calcula a nota de compatibilidade (0.0 a 100.0).
+        
+        Args:
+            cv_text: Texto completo do CV
+            job_description: Descrição da vaga para comparação
+            
+        Returns:
+            Float com score de 0 a 100
+        """
+        cv_clean = self._clean_text(cv_text)
+        job_clean = self._clean_text(job_description)
+        
+        if not cv_clean or not job_clean:
+            logger.warning("CV ou Job Description vazio após limpeza - retornando score 0")
+            return 0.0
+        
+        try:
+            tfidf_matrix = self.vectorizer.fit_transform([cv_clean, job_clean])
+            similarity_matrix = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])
+            match_score = similarity_matrix[0][0]
+            return round(match_score * 100, 2)
+        except ValueError:
+            return 0.0
+        except Exception as e:
+            logger.error(f"Erro no cálculo ATS: {e}")
+            return 0.0
+
+
+# Instância global reutilizável
+_ats_engine = ATSEngine()
+
+
+def gerar_job_description(client, cargo: str) -> Optional[str]:
+    """
+    Gera uma Job Description padrão de mercado usando IA.
     
     Args:
-        cv_texto: Texto completo do currículo
-        cargo_alvo: Cargo desejado para otimização de keywords
-    
-    Returns:
-        Dict com score total, breakdown detalhado e recomendações
+        client: Cliente OpenAI inicializado
+        cargo: Nome do cargo para gerar a JD
         
-    Examples:
-        >>> resultado = calcular_score_ats("CV texto...", "Gerente de Projetos")
-        >>> print(resultado['score_total'])
-        75.5
+    Returns:
+        Job Description gerada ou None em caso de erro
     """
-    logger.info(f"Iniciando cálculo de score ATS para cargo: {cargo_alvo}")
+    logger.info(f"Gerando Job Description para: {cargo}")
     
-    score = 0
-    max_score = 100
-    detalhes = {}
+    msgs = [
+        {"role": "system", "content": (
+            "Você é um especialista em recrutamento. "
+            "Gere uma Job Description (descrição de vaga) realista e completa para o cargo informado. "
+            "Inclua: responsabilidades, requisitos técnicos, soft skills, ferramentas, "
+            "qualificações desejadas e diferenciais. "
+            "Use termos que sistemas ATS reais buscam. "
+            "Responda APENAS com a Job Description, sem introdução nem comentários. "
+            "Escreva em português brasileiro."
+        )},
+        {"role": "user", "content": f"Gere a Job Description para o cargo: {cargo}"}
+    ]
     
-    # 1. Presença de seções essenciais (20 pontos)
-    secoes_encontradas = 0
-    secoes = {
-        'experiência': r'(experiência|professional experience|trabalho|exp\.)',
-        'educação': r'(educação|formação|education|academic)',
-        'habilidades': r'(habilidades|skills|competências|conhecimentos)',
-        'contato': r'(email|telefone|linkedin|phone|celular)'
-    }
+    jd = chamar_gpt(
+        client,
+        msgs,
+        temperature=0.3,
+        seed=42
+    )
     
-    for nome, pattern in secoes.items():
-        if re.search(pattern, cv_texto, re.IGNORECASE):
-            secoes_encontradas += 1
-            logger.debug(f"Seção '{nome}' encontrada")
-    
-    score_secoes = (secoes_encontradas / len(secoes)) * 20
-    score += score_secoes
-    detalhes['secoes'] = {
-        'score': score_secoes,
-        'encontradas': secoes_encontradas,
-        'total': len(secoes)
-    }
-    
-    # 2. Densidade de palavras-chave (30 pontos)
-    keywords_cargo = extrair_keywords_cargo(cargo_alvo)
-    keywords_encontradas = sum(1 for kw in keywords_cargo if kw.lower() in cv_texto.lower())
-    
-    score_keywords = (keywords_encontradas / max(len(keywords_cargo), 1)) * 30
-    score += score_keywords
-    detalhes['keywords'] = {
-        'score': score_keywords,
-        'encontradas': keywords_encontradas,
-        'total': len(keywords_cargo),
-        'faltando': [kw for kw in keywords_cargo if kw.lower() not in cv_texto.lower()][:5]
-    }
-    logger.debug(f"Keywords: {keywords_encontradas}/{len(keywords_cargo)} encontradas")
-    
-    # 3. Métricas quantificáveis (20 pontos)
-    numeros = re.findall(r'\d+[%]?', cv_texto)
-    score_metricas = min(len(numeros) / 10, 1) * 20  # Máximo com 10+ números
-    score += score_metricas
-    detalhes['metricas'] = {
-        'score': score_metricas,
-        'quantidade': len(numeros)
-    }
-    logger.debug(f"Métricas: {len(numeros)} números encontrados")
-    
-    # 4. Formatação (15 pontos)
-    # Verifica bullets, datas, consistência
-    bullets = len(re.findall(r'^[\•\-\*]', cv_texto, re.MULTILINE))
-    datas = len(re.findall(r'\b(19|20)\d{2}\b', cv_texto))
-    
-    score_formatacao = min((bullets / 10 + datas / 5) / 2, 1) * 15
-    score += score_formatacao
-    detalhes['formatacao'] = {
-        'score': score_formatacao,
-        'bullets': bullets,
-        'datas': datas
-    }
-    logger.debug(f"Formatação: {bullets} bullets, {datas} datas")
-    
-    # 5. Tamanho adequado (15 pontos)
-    palavras = len(cv_texto.split())
-    if 300 <= palavras <= 800:  # Ideal
-        score_tamanho = 15
-    elif 200 <= palavras < 300 or 800 < palavras <= 1200:
-        score_tamanho = 10
+    if jd:
+        logger.info(f"JD gerada com sucesso ({len(jd)} caracteres)")
     else:
-        score_tamanho = 5
+        logger.error("Falha ao gerar JD")
     
-    score += score_tamanho
-    detalhes['tamanho'] = {
-        'score': score_tamanho,
-        'palavras': palavras,
-        'ideal': '300-800 palavras'
-    }
-    logger.debug(f"Tamanho: {palavras} palavras")
+    return jd
+
+
+def extrair_cargo_do_cv(client, cv_texto: str) -> Optional[str]:
+    """
+    Extrai o cargo atual/mais recente do candidato a partir do CV.
+    
+    Args:
+        client: Cliente OpenAI inicializado
+        cv_texto: Texto completo do CV
+        
+    Returns:
+        Nome do cargo extraído ou None
+    """
+    logger.info("Extraindo cargo atual do CV")
+    
+    msgs = [
+        {"role": "system", "content": (
+            "Analise o CV abaixo e identifique o cargo ATUAL ou MAIS RECENTE do candidato. "
+            "Responda APENAS com o nome do cargo, nada mais. "
+            "Exemplo de resposta: Gerente de Vendas"
+        )},
+        # Limita a 3000 caracteres para reduzir tokens e focar no início do CV
+        # onde geralmente está a experiência mais recente
+        {"role": "user", "content": f"CV:\n{cv_texto[:3000]}"}
+    ]
+    
+    cargo = chamar_gpt(
+        client,
+        msgs,
+        temperature=0.1,
+        seed=42
+    )
+    
+    if cargo:
+        cargo = cargo.strip().strip('"').strip("'")
+        logger.info(f"Cargo extraído: {cargo}")
+    else:
+        logger.error("Falha ao extrair cargo do CV")
+    
+    return cargo
+
+
+def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
+    """
+    Calcula Score ATS usando TF-IDF + Cosine Similarity.
+    
+    Se um client OpenAI for fornecido, gera uma JD real via IA.
+    Caso contrário, usa o cargo como JD simplificada.
+    
+    Args:
+        cv_texto: Texto completo do CV
+        cargo_alvo: Cargo para gerar a Job Description
+        client: Cliente OpenAI (opcional, mas recomendado)
+        
+    Returns:
+        Dict com score_total, percentual, nivel e detalhes
+    """
+    logger.info(f"Calculando score ATS para cargo: {cargo_alvo}")
+    
+    # Gerar Job Description
+    job_description = None
+    if client:
+        job_description = gerar_job_description(client, cargo_alvo)
+    
+    # Fallback: usar cargo como texto base
+    if not job_description:
+        logger.warning("Usando cargo como JD simplificada (sem client OpenAI)")
+        job_description = f"""
+        Vaga para {cargo_alvo}. 
+        Requisitos: experiência na área, habilidades técnicas relevantes, 
+        capacidade de trabalho em equipe, boa comunicação, 
+        resultados mensuráveis, gestão de projetos.
+        """
+    
+    # Calcular score principal (TF-IDF)
+    score_tfidf = _ats_engine.calculate_match(cv_texto, job_description)
+    
+    # Classificar
+    nivel = classificar_score(score_tfidf)
     
     resultado = {
-        'score_total': round(score, 1),
-        'max_score': max_score,
-        'percentual': round((score / max_score) * 100, 1),
-        'nivel': classificar_score(score),
-        'detalhes': detalhes
+        'score_total': score_tfidf,
+        'max_score': 100,
+        'percentual': score_tfidf,
+        'nivel': nivel,
+        'cargo_avaliado': cargo_alvo,
+        'jd_gerada': job_description is not None,
+        'detalhes': {
+            'metodo': 'TF-IDF + Cosine Similarity',
+            'ngrams': '1-3',
+        }
     }
     
-    logger.info(f"Score ATS calculado: {resultado['score_total']}/{max_score} ({resultado['percentual']}%)")
+    logger.info(f"Score ATS: {score_tfidf}/100 ({nivel})")
     return resultado
-
-
-def extrair_keywords_cargo(cargo: str) -> List[str]:
-    """
-    Extrai keywords típicas de um cargo.
-    
-    Mapeia diferentes áreas profissionais para suas palavras-chave características.
-    
-    Args:
-        cargo: Nome do cargo alvo
-        
-    Returns:
-        Lista de palavras-chave relevantes para o cargo
-        
-    Examples:
-        >>> keywords = extrair_keywords_cargo("Gerente de Vendas")
-        >>> 'CRM' in keywords
-        True
-    """
-    keywords_por_area = {
-        'gerente': ['gestão', 'equipe', 'liderança', 'planejamento', 'estratégia', 'budget', 'KPI'],
-        'vendas': ['pipeline', 'CRM', 'negociação', 'prospecção', 'quota', 'vendas', 'clientes'],
-        'marketing': ['campanhas', 'digital', 'SEO', 'analytics', 'social media', 'branding'],
-        'tech': ['desenvolvimento', 'código', 'API', 'database', 'cloud', 'CI/CD'],
-        'desenvolv': ['desenvolvimento', 'código', 'API', 'database', 'cloud', 'CI/CD', 'git'],
-        'engenheiro': ['desenvolvimento', 'código', 'API', 'database', 'cloud', 'CI/CD', 'arquitetura'],
-        'rh': ['recrutamento', 'seleção', 'cultura', 'people', 'onboarding', 'performance'],
-        'recursos humanos': ['recrutamento', 'seleção', 'cultura', 'people', 'onboarding', 'performance'],
-        'financ': ['finanças', 'orçamento', 'forecast', 'análise', 'custos', 'ROI'],
-        'produto': ['roadmap', 'backlog', 'stakeholders', 'MVP', 'métricas', 'produto'],
-        'product': ['roadmap', 'backlog', 'stakeholders', 'MVP', 'métricas', 'produto'],
-        'designer': ['UI', 'UX', 'prototipagem', 'design', 'figma', 'usuário'],
-        'analista': ['análise', 'dados', 'relatórios', 'métricas', 'dashboard', 'insights']
-    }
-    
-    cargo_lower = cargo.lower()
-    keywords = []
-    
-    # Busca por palavras-chave da área
-    for area, kws in keywords_por_area.items():
-        if area in cargo_lower:
-            keywords.extend(kws)
-            break  # Usa apenas a primeira correspondência para evitar duplicatas
-    
-    # Se não encontrou área específica, usa keywords genéricas
-    if not keywords:
-        keywords = ['gestão', 'resultados', 'equipe', 'projetos', 'estratégia', 'planejamento']
-    
-    logger.debug(f"Keywords extraídas para '{cargo}': {keywords}")
-    return keywords
 
 
 def classificar_score(score: float) -> str:
@@ -190,18 +223,12 @@ def classificar_score(score: float) -> str:
         
     Returns:
         Classificação textual do score
-        
-    Examples:
-        >>> classificar_score(85)
-        'Excelente'
-        >>> classificar_score(45)
-        'Regular'
     """
-    if score >= 80:
+    if score >= 70:
         return "Excelente"
-    elif score >= 60:
+    elif score >= 50:
         return "Bom"
-    elif score >= 40:
+    elif score >= 30:
         return "Regular"
     else:
         return "Precisa Melhorar"
