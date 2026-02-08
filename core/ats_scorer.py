@@ -1,11 +1,12 @@
 """
-Sistema de Pontuação ATS (Applicant Tracking System) - v3.1.
+Sistema de Pontuação ATS (Applicant Tracking System) - v3.2.
 
-Usa TF-IDF + Cosine Similarity com stopwords PT/EN expandidas
+Usa TF-IDF + Cosine Similarity com stopwords NLTK (PT/EN) + termos customizados
 para calcular compatibilidade entre CV e Job Description gerada por IA.
 
-v3.1 melhorias:
-- Stopwords expandidas com verbos genéricos de JD
+v3.2 melhorias:
+- Substituição da lista manual de stopwords por NLTK (base robusta de ~400 termos PT + EN)
+- Combinação com termos customizados de CV/JD (~150 termos) = ~550+ stopwords total
 - Prompt da JD focado em termos técnicos, ferramentas e siglas
 - Filtro de n-grams genéricos nos gaps e pontos fortes
 
@@ -19,43 +20,26 @@ from typing import Dict, Optional, List
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import nltk
+
+# Garantir download dos stopwords na primeira execução
+try:
+    nltk.data.find('corpora/stopwords')
+except LookupError:
+    nltk.download('stopwords', quiet=True)
+
+from nltk.corpus import stopwords
 
 from core.utils import chamar_gpt
 
 logger = logging.getLogger(__name__)
 
-# Stopwords PT + EN — palavras que o ATS deve ignorar
-# Inclui verbos genéricos de Job Descriptions que aparecem em QUALQUER vaga
-STOPWORDS_PT_EN = [
-    # Artigos, preposições, pronomes PT
-    'de', 'a', 'o', 'que', 'e', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no',
-    'se', 'na', 'por', 'mais', 'as', 'dos', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu',
-    'sua', 'ou', 'ser', 'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo',
-    'pela', 'até', 'isso', 'ela', 'entre', 'era', 'depois', 'sem', 'mesmo', 'aos', 'ter', 'seus',
-    'quem', 'nas', 'me', 'esse', 'eles', 'estão', 'você', 'tinha', 'foram', 'essa', 'num', 'nem',
-    'suas', 'meu', 'às', 'minha', 'têm', 'numa', 'pelos', 'elas', 'havia', 'seja', 'qual', 'será',
-    'nós', 'tenho', 'lhe', 'deles', 'essas', 'esses', 'pelas', 'este', 'fosse', 'dele', 'tu', 'te',
-    'vocês', 'vos', 'lhes', 'meus', 'minhas', 'teu', 'tua', 'teus', 'tuas', 'nosso', 'nossa', 'nossos',
-    'nossas', 'dela', 'delas', 'esta', 'estes', 'estas', 'aquele', 'aquela', 'aqueles', 'aquelas',
-    'isto', 'aquilo', 'estou', 'estamos', 'estive', 'esteve', 'estivemos', 'estiveram',
-    'estava', 'estávamos', 'estavam', 'estivera', 'estivéramos', 'esteja', 'estejamos', 'estejam',
-    'estivesse', 'estivéssemos', 'estivessem', 'estiver', 'estivermos', 'estiverem', 'hei',
-    'havemos', 'hão', 'houve', 'houvemos', 'houveram', 'houvera', 'houvéramos', 'haja', 'hajamos',
-    'hajam', 'houvesse', 'houvéssemos', 'houvessem', 'houver', 'houvermos', 'houverem', 'houverei',
-    'houverá', 'houveremos', 'houverão', 'houveria', 'houveríamos', 'houveriam', 'sou', 'somos',
-    'são', 'éramos', 'eram', 'fui', 'fomos', 'fora', 'fôramos',
-    'sejamos', 'sejam', 'fôssemos', 'fossem', 'for', 'formos', 'forem', 'serei',
-    'seremos', 'serão', 'seria', 'seríamos', 'seriam', 'temos', 'tém',
-    'tínhamos', 'tinham', 'tive', 'teve', 'tivemos', 'tiveram', 'tivera', 'tivéramos', 'tenha',
-    'tenhamos', 'tenham', 'tivesse', 'tivéssemos', 'tivessem', 'tiver', 'tivermos', 'tiverem', 'terei',
-    'terá', 'teremos', 'terão', 'teria', 'teríamos', 'teriam',
-    # Preposições e conjunções EN
-    'and', 'to', 'the', 'of', 'in', 'for', 'with', 'on', 'at', 'from', 'by', 'about', 'as', 'into',
-    'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before',
-    'under', 'around', 'among', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has',
-    'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'shall',
-    'can', 'need', 'must', 'it', 'its', 'this', 'that', 'these', 'those', 'we', 'they', 'you',
-    'he', 'she', 'i', 'my', 'your', 'his', 'her', 'our', 'their', 'an', 'a', 'or', 'but', 'not',
+# ─── STOPWORDS: NLTK (PT + EN) + Termos customizados de CV/JD ───
+# Base robusta do NLTK (~400 stopwords PT + EN)
+_nltk_stops = set(stopwords.words('portuguese')).union(set(stopwords.words('english')))
+
+# Termos customizados específicos de CV e Job Descriptions
+_custom_stops = {
     # ─── VERBOS GENÉRICOS DE JD (aparecem em QUALQUER vaga) ───
     'desenvolver', 'gerenciar', 'impulsionar', 'otimizar', 'garantir', 'implementar',
     'coordenar', 'supervisionar', 'elaborar', 'executar', 'planejar', 'monitorar',
@@ -76,7 +60,7 @@ STOPWORDS_PT_EN = [
     'communicate', 'collaborate', 'integrate', 'align', 'prioritize',
     'delegate', 'negotiate', 'deliver', 'build', 'create', 'design',
     'establish', 'provide', 'work', 'handle', 'oversee', 'prepare',
-    # ─── PALAVRAS GENÉRICAS DE JD ───
+    # ─── PALAVRAS GENÉRICAS DE JD / CV ───
     'empresa', 'área', 'equipe', 'time', 'profissional', 'candidato',
     'experiência', 'conhecimento', 'habilidade', 'capacidade', 'competência',
     'responsável', 'responsabilidade', 'atividade', 'atividades', 'função',
@@ -106,6 +90,13 @@ STOPWORDS_PT_EN = [
     'strong', 'excellent', 'good', 'proven', 'relevant',
     'including', 'related', 'across', 'within', 'using',
     'new', 'key', 'high', 'level', 'well',
+    # ─── TERMOS DE CV (endereço, meses, etc.) ───
+    'cargo', 'janeiro', 'fevereiro', 'março', 'abril',
+    'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro',
+    'novembro', 'dezembro', 'jan', 'fev', 'mar', 'abr', 'mai', 'jun',
+    'jul', 'ago', 'set', 'out', 'nov', 'dez',
+    'paulo', 'são', 'rio', 'brasil', 'br', 'rua', 'apto', 'cep',
+    'presente', 'atual', 'atualmente',
     # ─── CONECTORES E TERMOS VAZIOS ───
     'além', 'disso', 'assim', 'ainda', 'sobre', 'cada', 'todo', 'toda',
     'todos', 'todas', 'outro', 'outra', 'outros', 'outras',
@@ -120,7 +111,10 @@ STOPWORDS_PT_EN = [
     'relacionadas', 'relacionados', 'relacionada', 'relacionado',
     'adequada', 'adequado', 'adequadas', 'adequados',
     'efetiva', 'efetivo', 'efetivas', 'efetivos',
-]
+}
+
+# Combinar: NLTK base (~400) + Custom (~150) = ~550+ stopwords
+STOPWORDS_PT_EN = list(_nltk_stops.union(_custom_stops))
 
 
 def _limpar_texto(texto: str) -> str:
@@ -384,9 +378,9 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
         'plano_acao': analise['plano_acao'],
         'jd_gerada': job_description is not None,
         'detalhes': {
-            'metodo': 'TF-IDF + Cosine Similarity (v3.1)',
+            'metodo': 'TF-IDF + Cosine Similarity (v3.2)',
             'ngrams': '1-3',
-            'stopwords': 'PT + EN + Verbos genéricos JD',
+            'stopwords': 'NLTK (PT + EN) + Custom CV/JD (~550+)',
         }
     }
     

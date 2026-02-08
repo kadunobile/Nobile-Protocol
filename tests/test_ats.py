@@ -102,7 +102,7 @@ class TestAtsScorer:
         assert 'stopwords' in detalhes
         assert 'TF-IDF + Cosine Similarity' in detalhes['metodo']
         assert detalhes['ngrams'] == '1-3'
-        assert detalhes['stopwords'] == 'PT + EN + Verbos genéricos JD'
+        assert detalhes['stopwords'] == 'NLTK (PT + EN) + Custom CV/JD (~550+)'
     
     def test_calcular_score_ats_cv_vazio(self):
         """Testa cálculo com CV vazio."""
