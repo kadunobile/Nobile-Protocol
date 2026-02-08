@@ -1,8 +1,13 @@
 """
-Sistema de Pontuação ATS (Applicant Tracking System) - v3.
+Sistema de Pontuação ATS (Applicant Tracking System) - v3.1.
 
-Usa TF-IDF + Cosine Similarity com stopwords PT/EN para calcular
-compatibilidade entre CV e Job Description gerada por IA.
+Usa TF-IDF + Cosine Similarity com stopwords PT/EN expandidas
+para calcular compatibilidade entre CV e Job Description gerada por IA.
+
+v3.1 melhorias:
+- Stopwords expandidas com verbos genéricos de JD
+- Prompt da JD focado em termos técnicos, ferramentas e siglas
+- Filtro de n-grams genéricos nos gaps e pontos fortes
 
 Retorna: Score + Pontos Fortes + Gaps + Plano de Ação.
 """
@@ -20,7 +25,9 @@ from core.utils import chamar_gpt
 logger = logging.getLogger(__name__)
 
 # Stopwords PT + EN — palavras que o ATS deve ignorar
+# Inclui verbos genéricos de Job Descriptions que aparecem em QUALQUER vaga
 STOPWORDS_PT_EN = [
+    # Artigos, preposições, pronomes PT
     'de', 'a', 'o', 'que', 'e', 'do', 'da', 'em', 'um', 'para', 'é', 'com', 'não', 'uma', 'os', 'no',
     'se', 'na', 'por', 'mais', 'as', 'dos', 'como', 'mas', 'foi', 'ao', 'ele', 'das', 'tem', 'à', 'seu',
     'sua', 'ou', 'ser', 'quando', 'muito', 'há', 'nos', 'já', 'está', 'eu', 'também', 'só', 'pelo',
@@ -41,9 +48,78 @@ STOPWORDS_PT_EN = [
     'seremos', 'serão', 'seria', 'seríamos', 'seriam', 'temos', 'tém',
     'tínhamos', 'tinham', 'tive', 'teve', 'tivemos', 'tiveram', 'tivera', 'tivéramos', 'tenha',
     'tenhamos', 'tenham', 'tivesse', 'tivéssemos', 'tivessem', 'tiver', 'tivermos', 'tiverem', 'terei',
-    'terá', 'teremos', 'terão', 'teria', 'teríamos', 'teriam', 'and', 'to', 'the', 'of', 'in', 'for',
-    'with', 'on', 'at', 'from', 'by', 'about', 'as', 'into', 'like', 'through', 'after', 'over',
-    'between', 'out', 'against', 'during', 'without', 'before', 'under', 'around', 'among'
+    'terá', 'teremos', 'terão', 'teria', 'teríamos', 'teriam',
+    # Preposições e conjunções EN
+    'and', 'to', 'the', 'of', 'in', 'for', 'with', 'on', 'at', 'from', 'by', 'about', 'as', 'into',
+    'like', 'through', 'after', 'over', 'between', 'out', 'against', 'during', 'without', 'before',
+    'under', 'around', 'among', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has',
+    'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'shall',
+    'can', 'need', 'must', 'it', 'its', 'this', 'that', 'these', 'those', 'we', 'they', 'you',
+    'he', 'she', 'i', 'my', 'your', 'his', 'her', 'our', 'their', 'an', 'a', 'or', 'but', 'not',
+    # ─── VERBOS GENÉRICOS DE JD (aparecem em QUALQUER vaga) ───
+    'desenvolver', 'gerenciar', 'impulsionar', 'otimizar', 'garantir', 'implementar',
+    'coordenar', 'supervisionar', 'elaborar', 'executar', 'planejar', 'monitorar',
+    'acompanhar', 'realizar', 'conduzir', 'promover', 'apoiar', 'contribuir',
+    'participar', 'atuar', 'assegurar', 'propor', 'definir', 'estabelecer',
+    'manter', 'identificar', 'analisar', 'avaliar', 'gerir', 'liderar',
+    'orientar', 'direcionar', 'facilitar', 'viabilizar', 'fomentar',
+    'aprimorar', 'estruturar', 'organizar', 'controlar', 'reportar',
+    'comunicar', 'interagir', 'colaborar', 'integrar', 'alinhar',
+    'priorizar', 'delegar', 'negociar', 'articular', 'mapear',
+    'diagnosticar', 'solucionar', 'resolver', 'mitigar', 'prevenir',
+    'develop', 'manage', 'drive', 'optimize', 'ensure', 'implement',
+    'coordinate', 'supervise', 'execute', 'plan', 'monitor',
+    'track', 'conduct', 'promote', 'support', 'contribute',
+    'participate', 'maintain', 'identify', 'analyze', 'evaluate',
+    'lead', 'guide', 'direct', 'facilitate', 'foster',
+    'enhance', 'structure', 'organize', 'control', 'report',
+    'communicate', 'collaborate', 'integrate', 'align', 'prioritize',
+    'delegate', 'negotiate', 'deliver', 'build', 'create', 'design',
+    'establish', 'provide', 'work', 'handle', 'oversee', 'prepare',
+    # ─── PALAVRAS GENÉRICAS DE JD ───
+    'empresa', 'área', 'equipe', 'time', 'profissional', 'candidato',
+    'experiência', 'conhecimento', 'habilidade', 'capacidade', 'competência',
+    'responsável', 'responsabilidade', 'atividade', 'atividades', 'função',
+    'objetivo', 'resultado', 'resultados', 'processo', 'processos',
+    'projeto', 'projetos', 'solução', 'soluções', 'estratégia', 'estratégias',
+    'nível', 'alto', 'alta', 'forte', 'fortes', 'sólida', 'sólido',
+    'bom', 'boa', 'bons', 'boas', 'excelente', 'excelentes',
+    'desejável', 'desejáveis', 'necessário', 'necessária', 'obrigatório', 'obrigatória',
+    'diferencial', 'diferenciais', 'requisito', 'requisitos',
+    'mínimo', 'mínima', 'anos', 'ano', 'superior', 'completo', 'completa',
+    'graduação', 'formação', 'pós', 'curso', 'cursos',
+    'trabalho', 'mercado', 'negócio', 'negócios', 'cliente', 'clientes',
+    'interno', 'interna', 'internos', 'internas', 'externo', 'externa',
+    'relacionamento', 'relacionamentos', 'parceiro', 'parceiros',
+    'demanda', 'demandas', 'necessidade', 'necessidades',
+    'oportunidade', 'oportunidades', 'melhoria', 'melhorias',
+    'indicador', 'indicadores', 'meta', 'metas',
+    'relatório', 'relatórios', 'report', 'reports',
+    'reunião', 'reuniões', 'apresentação', 'apresentações',
+    'prazo', 'prazos', 'entrega', 'entregas',
+    'qualidade', 'eficiência', 'produtividade',
+    'inovação', 'transformação', 'crescimento',
+    'visão', 'missão', 'valor', 'valores', 'cultura',
+    'based', 'ability', 'skills', 'skill', 'experience', 'knowledge',
+    'team', 'company', 'business', 'role', 'position',
+    'responsible', 'required', 'preferred', 'minimum', 'years',
+    'strong', 'excellent', 'good', 'proven', 'relevant',
+    'including', 'related', 'across', 'within', 'using',
+    'new', 'key', 'high', 'level', 'well',
+    # ─── CONECTORES E TERMOS VAZIOS ───
+    'além', 'disso', 'assim', 'ainda', 'sobre', 'cada', 'todo', 'toda',
+    'todos', 'todas', 'outro', 'outra', 'outros', 'outras',
+    'onde', 'aqui', 'ali', 'lá', 'então', 'portanto', 'porém',
+    'contudo', 'entretanto', 'todavia', 'pois', 'porque', 'embora',
+    'caso', 'conforme', 'segundo', 'através', 'meio', 'forma',
+    'modo', 'tipo', 'parte', 'fim', 'base', 'dia', 'vez',
+    'vezes', 'bem', 'mal', 'demais', 'menos', 'tanto',
+    'quanto', 'tal', 'tais', 'apenas', 'somente',
+    'principalmente', 'especialmente', 'geralmente', 'normalmente',
+    'diretamente', 'indiretamente', 'constantemente', 'continuamente',
+    'relacionadas', 'relacionados', 'relacionada', 'relacionado',
+    'adequada', 'adequado', 'adequadas', 'adequados',
+    'efetiva', 'efetivo', 'efetivas', 'efetivos',
 ]
 
 
@@ -59,8 +135,7 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
     """
     Executa análise completa: Score + Gaps + Pontos Fortes + Plano de Ação.
     
-    Cria uma NOVA instância do TfidfVectorizer a cada chamada
-    para evitar estado sujo.
+    Cria uma NOVA instância do TfidfVectorizer a cada chamada.
     
     Args:
         cv_texto: Texto completo do CV
@@ -82,7 +157,6 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
         }
     
     try:
-        # Nova instância a cada chamada — sem estado sujo
         vectorizer = TfidfVectorizer(
             stop_words=STOPWORDS_PT_EN,
             ngram_range=(1, 3),
@@ -105,7 +179,6 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
     raw_similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
     
     # Escalar para faixa realista
-    # Cosine similarity entre CV longo e JD tipicamente fica entre 0.05-0.40
     if raw_similarity <= 0.0:
         score_final = 0.0
     elif raw_similarity >= 0.35:
@@ -116,8 +189,9 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
     score_final = round(score_final, 1)
     
     logger.debug(f"Raw similarity: {raw_similarity:.4f}, Scaled score: {score_final}")
+    logger.debug(f"Vocabulário: {len(feature_names)} termos (após stopwords)")
     
-    # Análise de termos com pandas
+    # Análise de termos
     dense = tfidf_matrix.todense()
     lista_cv = dense[0].tolist()[0]
     lista_vaga = dense[1].tolist()[0]
@@ -128,12 +202,12 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
         'peso_cv': lista_cv
     })
     
-    # Gaps: termos da vaga que NÃO estão no CV (ordenados por importância)
+    # Gaps: termos da vaga que NÃO estão no CV
     termos_faltantes = df_analise[
         (df_analise['peso_vaga'] > 0) & (df_analise['peso_cv'] == 0)
     ].sort_values(by='peso_vaga', ascending=False).head(10)
     
-    # Pontos fortes: termos que ambos têm (ordenados por peso no CV)
+    # Pontos fortes: termos que ambos têm
     pontos_fortes = df_analise[
         (df_analise['peso_vaga'] > 0) & (df_analise['peso_cv'] > 0)
     ].sort_values(by='peso_cv', ascending=False).head(8)
@@ -168,13 +242,6 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
 def buscar_variacoes_cargo(client, cargo: str) -> List[str]:
     """
     Usa IA para encontrar variações de mercado de um cargo.
-    
-    Args:
-        client: Cliente OpenAI inicializado
-        cargo: Nome do cargo original
-        
-    Returns:
-        Lista de variações do cargo
     """
     logger.info(f"Buscando variações de mercado para: {cargo}")
     
@@ -204,44 +271,42 @@ def buscar_variacoes_cargo(client, cargo: str) -> List[str]:
 
 def gerar_job_description(client, cargo: str) -> Optional[str]:
     """
-    Gera uma Job Description composta que cobre o cargo original
-    e suas variações de mercado.
-    
-    Args:
-        client: Cliente OpenAI inicializado
-        cargo: Nome do cargo para gerar a JD
-        
-    Returns:
-        Job Description gerada ou None
+    Gera uma Job Description focada em TERMOS TÉCNICOS, ferramentas,
+    metodologias e siglas da área — não em verbos genéricos.
     """
-    logger.info(f"Gerando Job Description composta para: {cargo}")
+    logger.info(f"Gerando Job Description técnica para: {cargo}")
     
     variacoes = buscar_variacoes_cargo(client, cargo)
     variacoes_texto = "\n".join(f"- {v}" for v in variacoes)
     
     msgs = [
         {"role": "system", "content": (
-            "Você é um especialista em recrutamento. "
-            "Gere uma Job Description (descrição de vaga) realista e completa. "
-            "A JD deve cobrir o cargo principal E suas variações de mercado listadas. "
-            "Inclua: responsabilidades, requisitos técnicos, soft skills, ferramentas, "
-            "qualificações desejadas e diferenciais. "
-            "Use termos que sistemas ATS reais buscam. "
-            "Inclua palavras-chave tanto em português quanto em inglês. "
-            "Responda APENAS com a Job Description, sem introdução nem comentários. "
-            "Escreva em português brasileiro."
+            "Você é um especialista em recrutamento técnico e sistemas ATS. "
+            "Gere uma Job Description para o cargo informado focada EXCLUSIVAMENTE em:\n"
+            "- Ferramentas e softwares específicos (ex: Salesforce, Power BI, HubSpot, SAP)\n"
+            "- Metodologias e frameworks (ex: Scrum, Kanban, OKR, Six Sigma)\n"
+            "- Siglas e termos técnicos da área (ex: CAC, LTV, NRR, ARR, SQL, KPI)\n"
+            "- Certificações relevantes (ex: PMP, AWS, Google Analytics)\n"
+            "- Tecnologias e linguagens (ex: Python, SQL, Power Query, DAX)\n"
+            "- Conceitos técnicos específicos (ex: forecasting, pipeline, churn, revenue operations)\n\n"
+            "NÃO use verbos genéricos como 'desenvolver', 'gerenciar', 'implementar', 'coordenar'. "
+            "NÃO use frases genéricas como 'trabalho em equipe', 'boa comunicação', 'proatividade'. "
+            "Foque 100% em termos que DIFERENCIAM candidatos em sistemas ATS.\n\n"
+            "A JD deve cobrir o cargo principal E suas variações de mercado.\n"
+            "Inclua termos em português E inglês.\n"
+            "Responda APENAS com a Job Description, sem introdução."
         )},
         {"role": "user", "content": (
             f"Cargo principal: {cargo}\n\n"
-            f"Variações de mercado deste cargo:\n{variacoes_texto}\n\n"
-            f"Gere a Job Description cobrindo todos esses perfis."
+            f"Variações de mercado:\n{variacoes_texto}\n\n"
+            f"Gere a Job Description TÉCNICA cobrindo todos esses perfis."
         )}
     ]
     
     jd = chamar_gpt(client, msgs, temperature=0.3, seed=42)
     
     if jd:
-        logger.info(f"JD composta gerada ({len(jd)} chars)")
+        logger.info(f"JD técnica gerada ({len(jd)} chars)")
     else:
         logger.error("Falha ao gerar JD")
     
@@ -251,13 +316,6 @@ def gerar_job_description(client, cargo: str) -> Optional[str]:
 def extrair_cargo_do_cv(client, cv_texto: str) -> Optional[str]:
     """
     Extrai o cargo atual/mais recente do candidato a partir do CV.
-    
-    Args:
-        client: Cliente OpenAI inicializado
-        cv_texto: Texto completo do CV
-        
-    Returns:
-        Nome do cargo extraído ou None
     """
     logger.info("Extraindo cargo atual do CV")
     
@@ -283,10 +341,7 @@ def extrair_cargo_do_cv(client, cv_texto: str) -> Optional[str]:
 
 def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
     """
-    Calcula Score ATS completo: Score + Gaps + Pontos Fortes + Plano de Ação.
-    
-    Se um client OpenAI for fornecido, gera uma JD composta via IA
-    com variações de mercado do cargo.
+    Calcula Score ATS completo com análise de gaps técnicos.
     
     Args:
         cv_texto: Texto completo do CV
@@ -299,14 +354,12 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
     """
     logger.info(f"Calculando score ATS para cargo: {cargo_alvo}")
     
-    # Gerar Job Description composta
     job_description = None
     if client:
         job_description = gerar_job_description(client, cargo_alvo)
     
-    # Fallback
     if not job_description:
-        logger.warning("Usando JD simplificada (sem client OpenAI)")
+        logger.warning("Usando JD simplificada")
         job_description = (
             f"Vaga para {cargo_alvo}. "
             f"Requisitos: experiência na área, habilidades técnicas relevantes, "
@@ -315,7 +368,6 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
             f"análise de dados, planejamento estratégico."
         )
     
-    # Análise completa
     analise = _analisar_compatibilidade(cv_texto, job_description)
     
     score = analise['score']
@@ -332,9 +384,9 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
         'plano_acao': analise['plano_acao'],
         'jd_gerada': job_description is not None,
         'detalhes': {
-            'metodo': 'TF-IDF + Cosine Similarity (v3)',
+            'metodo': 'TF-IDF + Cosine Similarity (v3.1)',
             'ngrams': '1-3',
-            'stopwords': 'PT + EN',
+            'stopwords': 'PT + EN + Verbos genéricos JD',
         }
     }
     
