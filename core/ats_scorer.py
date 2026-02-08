@@ -24,6 +24,13 @@ from core.utils import chamar_gpt
 # Configurar logger
 logger = logging.getLogger(__name__)
 
+# Constantes para escala de score
+# Baseado em observações empíricas: cosine similarity entre CV e JD tipicamente fica entre 0.05-0.40
+RAW_SCORE_MAX = 0.35  # Valores acima de 0.35 são considerados excelentes
+SCALED_SCORE_MAX = 95.0  # Score máximo escalado (deixamos 5 pontos de margem para 100)
+SCALED_SCORE_MIN = 5.0   # Score mínimo quando há alguma similaridade
+SCALED_RANGE = 90.0      # Faixa de escala (95 - 5)
+
 
 def _clean_text(text: str) -> str:
     """Limpeza de texto para padronização."""
@@ -70,16 +77,14 @@ def _calculate_tfidf_score(cv_text: str, job_description: str) -> float:
         logger.debug(f"Raw cosine similarity: {raw_score:.4f}")
         logger.debug(f"Vocabulário: {len(vectorizer.vocabulary_)} termos")
         
-        # Escalar o score para faixa realista
-        # Cosine similarity entre CV longo e JD tipicamente fica entre 0.05-0.40
-        # Escalamos: 0.0 -> 0, 0.15 -> 50, 0.35+ -> 95
-        # Fórmula: min(score_raw / 0.35, 1.0) * 95 + 5 (piso de 5 se há alguma similaridade)
+        # Escalar o score para faixa realista usando constantes definidas
+        # Fórmula: valores de 0 até RAW_SCORE_MAX são mapeados linearmente para SCALED_RANGE
         if raw_score <= 0.0:
             scaled_score = 0.0
-        elif raw_score >= 0.35:
-            scaled_score = 95.0
+        elif raw_score >= RAW_SCORE_MAX:
+            scaled_score = SCALED_SCORE_MAX
         else:
-            scaled_score = (raw_score / 0.35) * 90.0 + 5.0
+            scaled_score = (raw_score / RAW_SCORE_MAX) * SCALED_RANGE + SCALED_SCORE_MIN
         
         logger.debug(f"Scaled score: {scaled_score:.2f}")
         return round(scaled_score, 2)
@@ -137,8 +142,10 @@ def buscar_variacoes_cargo(client, cargo: str) -> List[str]:
         return [cargo]
     
     variacoes = [v.strip() for v in resposta.strip().split('\n') if v.strip()]
-    # Garantir que o cargo original está incluído
-    if cargo not in variacoes:
+    
+    # Garantir que o cargo original está incluído (case-insensitive check para evitar duplicatas)
+    cargo_lower = cargo.lower()
+    if not any(v.lower() == cargo_lower for v in variacoes):
         variacoes.insert(0, cargo)
     
     logger.info(f"Variações encontradas: {variacoes}")
