@@ -126,6 +126,7 @@ _termos_genericos_gap = {
     'supervisor', 'diretor', 'líder',
     'six', 'sigma',
     'proficiency', 'proficient', 'fluent', 'fluency',
+    'operations', 'operações', 'revenue', 'receita',
 }
 
 
@@ -228,16 +229,6 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
         palavras_termo = termo.split()
         for palavra in palavras_termo:
             if palavra in _termos_genericos_gap:
-                return True
-        
-        # Remover termos que contêm títulos de cargo
-        termos_cargo = [
-            'gerente', 'manager', 'operations manager',
-            'head de', 'diretor', 'lead de', 'coordenador',
-            'analista', 'especialista', 'supervisor',
-        ]
-        for cargo in termos_cargo:
-            if cargo in termo:
                 return True
         
         return False
