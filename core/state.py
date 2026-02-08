@@ -21,7 +21,8 @@ def inicializar_session_state():
         'linkedin_skills': [],
         'linkedin_about': "",
         'dados_coletados': {},
-        'reality_check_resultado': None
+        'reality_check_resultado': None,
+        'reality_ats_resultado': None
     }
     for key, value in defaults.items():
         if key not in st.session_state:
