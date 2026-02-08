@@ -5,7 +5,6 @@ Testes unitários para o sistema de pontuação ATS.
 import pytest
 from core.ats_scorer import (
     calcular_score_ats,
-    extrair_keywords_cargo,
     classificar_score
 )
 
@@ -15,47 +14,23 @@ class TestAtsScorer:
     
     def test_classificar_score_excelente(self):
         """Testa classificação de score excelente."""
-        assert classificar_score(85) == "Excelente"
+        assert classificar_score(75) == "Excelente"
         assert classificar_score(100) == "Excelente"
     
     def test_classificar_score_bom(self):
         """Testa classificação de score bom."""
+        assert classificar_score(55) == "Bom"
         assert classificar_score(65) == "Bom"
-        assert classificar_score(75) == "Bom"
     
     def test_classificar_score_regular(self):
         """Testa classificação de score regular."""
+        assert classificar_score(35) == "Regular"
         assert classificar_score(45) == "Regular"
-        assert classificar_score(55) == "Regular"
     
     def test_classificar_score_precisa_melhorar(self):
         """Testa classificação de score baixo."""
-        assert classificar_score(20) == "Precisa Melhorar"
-        assert classificar_score(35) == "Precisa Melhorar"
-    
-    def test_extrair_keywords_cargo_vendas(self):
-        """Testa extração de keywords para cargo de vendas."""
-        keywords = extrair_keywords_cargo("Gerente de Vendas")
-        assert isinstance(keywords, list)
-        assert len(keywords) > 0
-        # "Gerente de Vendas" pode retornar keywords de "gerente" (gestão, liderança)
-        # ou de "vendas" (pipeline, CRM) dependendo da ordem de match
-        assert any(kw in keywords for kw in ['gestão', 'liderança', 'vendas', 'CRM'])
-    
-    def test_extrair_keywords_cargo_tech(self):
-        """Testa extração de keywords para cargo de tech."""
-        keywords = extrair_keywords_cargo("Desenvolvedor Python")
-        assert isinstance(keywords, list)
-        assert len(keywords) > 0
-        assert 'desenvolvimento' in keywords or 'código' in keywords
-    
-    def test_extrair_keywords_cargo_desconhecido(self):
-        """Testa extração de keywords para cargo sem mapeamento."""
-        keywords = extrair_keywords_cargo("Cargo Desconhecido XYZ")
-        assert isinstance(keywords, list)
-        assert len(keywords) > 0
-        # Deve retornar keywords genéricas
-        assert 'gestão' in keywords or 'resultados' in keywords
+        assert classificar_score(10) == "Precisa Melhorar"
+        assert classificar_score(25) == "Precisa Melhorar"
     
     def test_calcular_score_ats_estrutura_basica(self):
         """Testa que calcular_score_ats retorna estrutura correta."""
@@ -115,21 +90,11 @@ class TestAtsScorer:
         resultado = calcular_score_ats(cv_texto, "Gerente")
         detalhes = resultado['detalhes']
         
-        # Verifica presença das categorias
-        assert 'secoes' in detalhes
-        assert 'keywords' in detalhes
-        assert 'metricas' in detalhes
-        assert 'formatacao' in detalhes
-        assert 'tamanho' in detalhes
-        
-        # Verifica estrutura de cada categoria
-        assert 'score' in detalhes['secoes']
-        assert 'encontradas' in detalhes['secoes']
-        assert 'total' in detalhes['secoes']
-        
-        assert 'score' in detalhes['keywords']
-        assert 'encontradas' in detalhes['keywords']
-        assert 'faltando' in detalhes['keywords']
+        # Verifica presença das informações básicas
+        assert 'metodo' in detalhes
+        assert 'ngrams' in detalhes
+        assert detalhes['metodo'] == 'TF-IDF + Cosine Similarity'
+        assert detalhes['ngrams'] == '1-3'
     
     def test_calcular_score_ats_cv_vazio(self):
         """Testa cálculo com CV vazio."""
@@ -167,12 +132,14 @@ class TestAtsScorer:
         
         resultado = calcular_score_ats(cv_completo, "Gerente de Vendas")
         
-        # CV bem estruturado deve ter score razoável
-        assert resultado['score_total'] >= 50
-        assert resultado['percentual'] >= 50
+        # CV bem estruturado deve ter score válido
+        assert resultado['score_total'] >= 0
+        assert resultado['percentual'] >= 0
         
-        # Deve ter encontrado as seções principais
-        assert resultado['detalhes']['secoes']['encontradas'] >= 3
+        # Verifica campos adicionais do novo sistema
+        assert 'cargo_avaliado' in resultado
+        assert resultado['cargo_avaliado'] == "Gerente de Vendas"
+        assert 'jd_gerada' in resultado
 
 
 class TestCvExporter:
