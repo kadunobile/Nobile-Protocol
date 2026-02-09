@@ -468,7 +468,8 @@ def _analisar_com_llm(
         for gap_falso in gaps_falsos_originais:
             gap_lower = gap_falso.strip().lower()
             # Extrair a primeira palavra (nome da skill) antes do parêntese
-            skill_name = gap_lower.split('(')[0].strip().split()[0] if gap_lower else ''
+            words_before_paren = gap_lower.split('(')[0].strip().split()
+            skill_name = words_before_paren[0] if words_before_paren else ''
             
             if skill_name in _palavras_exemplo_antigo:
                 logger.warning(f"Exemplo parafraseado filtrado de gaps_falsos_ignorados: {gap_falso}")

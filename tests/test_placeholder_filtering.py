@@ -93,10 +93,18 @@ class TestPlaceholderFiltering:
         assert resultado is not None
         gaps_falsos = resultado['gaps_falsos_ignorados']
         
+        # Extrair nomes de skills (primeira palavra antes do parêntese)
+        def extract_skill_name(gap_falso):
+            """Extrai o nome da skill do gap falso."""
+            words = gap_falso.lower().split('(')[0].strip().split()
+            return words[0] if words else ''
+        
+        skill_names = [extract_skill_name(gf) for gf in gaps_falsos]
+        
         # Exemplos parafraseados devem ter sido removidos (SQL, Python, Tableau)
-        assert not any('sql' in gf.lower().split('(')[0].strip().split()[0] for gf in gaps_falsos)
-        assert not any('python' in gf.lower().split('(')[0].strip().split()[0] for gf in gaps_falsos)
-        assert not any('tableau' in gf.lower().split('(')[0].strip().split()[0] for gf in gaps_falsos)
+        assert 'sql' not in skill_names
+        assert 'python' not in skill_names
+        assert 'tableau' not in skill_names
         
         # Gaps falsos reais devem permanecer
         assert "SAP APO (candidato usa outro ERP compatível)" in gaps_falsos
