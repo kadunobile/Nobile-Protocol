@@ -22,6 +22,7 @@ from core.cv_estruturado import (
 
 # Configuration constants
 DEFAULT_MAX_EXPERIENCES = 3  # Default number of experiences to optimize
+MIN_RESPONSE_LENGTH = 10  # Minimum response length to be considered substantive
 
 # Keywords que indicam que o usuário não tem experiência com um gap
 NEGATIVE_RESPONSE_KEYWORDS = [
@@ -211,7 +212,7 @@ def processar_modulo_otimizador(prompt):
         
         # Se não for comando de avançar, SALVAR a resposta como dado coletado
         # e permitir que o chat continue normalmente para mais perguntas
-        if len(prompt.strip()) > 10:  # Resposta com conteúdo substantivo
+        if len(prompt.strip()) > MIN_RESPONSE_LENGTH:  # Resposta com conteúdo substantivo
             st.session_state.dados_coleta_historico.append(prompt)
             st.session_state.dados_coleta_count += 1
             

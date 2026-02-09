@@ -6,6 +6,7 @@ o processo de otimização, permitindo que o output final use informações reai
 ao invés de placeholders.
 """
 
+import re
 import streamlit as st
 from typing import Dict, List, Any, Optional
 
@@ -82,7 +83,6 @@ def salvar_dados_coleta(dados: Dict[str, Any]) -> None:
         resposta = dados['raw_response']
         
         # Buscar números e percentuais (métricas)
-        import re
         metricas = re.findall(r'\d+[%]?|\d+\+', resposta)
         if metricas:
             cv_est['metricas_coletadas']['volumes'].extend(metricas)
