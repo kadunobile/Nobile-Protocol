@@ -353,9 +353,13 @@ def _analisar_com_llm(
         "ferramentas de outros arquétipos\n\n"
         "3. **Gaps Falsos Ignorados**: OBRIGATÓRIO - Liste skills que você CONSIDEROU mas DESCARTOU "
         "como gap (double-check/chain-of-thought). Justifique por que não são gaps válidos.\n\n"
-        "⚠️ REGRA PARA gaps_falsos_ignorados: NUNCA copie os exemplos. Analise o CV e o cargo ESPECÍFICO "
-        "do candidato e liste skills que você CONSIDEROU como possíveis gaps mas DESCARTOU com justificativa real. "
-        "Cada item deve ser ÚNICO para este candidato/cargo.\n\n"
+        "⚠️ REGRA CRÍTICA PARA gaps_falsos_ignorados:\n"
+        "- PROIBIDO mencionar SQL, Python ou Tableau como gaps falsos (esses eram exemplos antigos do sistema)\n"
+        "- Analise o CV REAL do candidato e o cargo ESPECÍFICO\n"
+        "- Liste skills que são REALMENTE relevantes para ESTE cargo e que você descartou com motivo REAL\n"
+        "- Exemplo CORRETO para Head of Pricing: 'SAP APO (candidato usa outro ERP compatível)'\n"
+        "- Exemplo CORRETO para Gerente de Vendas: 'Outreach (candidato já usa ferramenta similar de sales engagement)'\n"
+        "- Cada item DEVE ser uma skill/ferramenta DIFERENTE das anteriores e ESPECÍFICA para o cargo\n\n"
         "4. **Score (0-100)**: Avalie considerando:\n"
         "   - Experiência Core (senioridade, anos): 50%\n"
         "   - Hard Skills Match (ferramentas): 20%\n"
@@ -369,7 +373,7 @@ def _analisar_com_llm(
         '    "arquetipo_cargo": "VENDAS",\n'
         '    "pontos_fortes": ["CRM Salesforce", "Pipeline Management", "métricas B2B"],\n'
         '    "gaps_identificados": ["<nome_ferramenta_especifica>", "<nome_metodologia_real>"],\n'
-        '    "gaps_falsos_ignorados": ["<skill_descartada_1> (<motivo_1>)", "<skill_descartada_2> (<motivo_2>)"],\n'
+        '    "gaps_falsos_ignorados": ["<skill_REAL_descartada> (<motivo_real_específico>)", "<outra_skill_REAL> (<outro_motivo>)"],\n'
         '    "plano_acao": ["🔍 Palavras-chave ausentes...", "⚠️ Boa base, mas..."]\n'
         "}\n"
         "```\n\n"
@@ -453,22 +457,23 @@ def _analisar_com_llm(
             resultado['gaps_falsos_ignorados'] = []
             logger.warning("LLM não retornou gaps_falsos_ignorados, usando lista vazia")
         
-        # Post-processing: Filter out copied example values from gaps_falsos_ignorados
+        # Post-processing: Filter out copied/paraphrased example values from gaps_falsos_ignorados
         gaps_falsos_originais = resultado['gaps_falsos_ignorados']
         gaps_falsos_filtrados = []
         
-        # Exemplos fixos que eram usados anteriormente e devem ser filtrados (lowercase para comparação)
-        exemplos_fixos_lower = [
-            "tableau (não é padrão para vendas)",
-            "python (não core para gestão)"
-        ]
+        # Palavras-chave dos exemplos antigos que a LLM tende a parafrasear
+        # Filtrar qualquer item que comece com essas palavras (são os exemplos do prompt sendo copiados)
+        _palavras_exemplo_antigo = ['tableau', 'python', 'sql']
         
         for gap_falso in gaps_falsos_originais:
-            # Filtrar se for exatamente um dos exemplos fixos (case-insensitive)
-            if gap_falso.strip().lower() not in exemplos_fixos_lower:
-                gaps_falsos_filtrados.append(gap_falso)
+            gap_lower = gap_falso.strip().lower()
+            # Extrair a primeira palavra (nome da skill) antes do parêntese
+            skill_name = gap_lower.split('(')[0].strip().split()[0] if gap_lower else ''
+            
+            if skill_name in _palavras_exemplo_antigo:
+                logger.warning(f"Exemplo parafraseado filtrado de gaps_falsos_ignorados: {gap_falso}")
             else:
-                logger.warning(f"Exemplo fixo copiado filtrado de gaps_falsos_ignorados: {gap_falso}")
+                gaps_falsos_filtrados.append(gap_falso)
         
         resultado['gaps_falsos_ignorados'] = gaps_falsos_filtrados
         
