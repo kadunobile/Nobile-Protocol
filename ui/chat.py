@@ -167,30 +167,40 @@ def fase_chat():
             st.rerun()
 
     # ===== RENDERIZAR BOTÕES DE CONTINUAÇÃO =====
-    # Botão para iniciar perguntas de gaps após introdução do diagnóstico
-    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
-        st.session_state.get('etapa_modulo') == 'AGUARDANDO_INICIO_GAPS'):
+    # Mapa completo de botões contextuais para todos os estados AGUARDANDO_*
+    if st.session_state.get('modulo_ativo') == 'OTIMIZADOR':
+        etapa = st.session_state.get('etapa_modulo', '')
         
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("✅ Começar a responder sobre os gaps", use_container_width=True, type="primary", key="btn_iniciar_gaps"):
-                # Simular que o usuário disse "ok" para iniciar
-                st.session_state.etapa_0_gap_triggered = False
-                st.session_state.etapa_modulo = 'ETAPA_0_GAP_INDIVIDUAL'
-                st.session_state.gap_atual_index = 0
-                st.rerun()
-    
-    # Botão para continuar após resumo do diagnóstico
-    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
-        st.session_state.get('etapa_modulo') == 'AGUARDANDO_OK_DIAGNOSTICO'):
+        # Definir botões para cada estado
+        botoes = {
+            'AGUARDANDO_INICIO_GAPS': ('▶️ Começar Diagnóstico', 'ok'),
+            'AGUARDANDO_OK_DIAGNOSTICO': ('✅ Continuar para Coleta', 'continuar'),
+            'AGUARDANDO_DADOS_COLETA': ('⏭️ Avançar para Próxima Etapa', 'continuar'),
+            'AGUARDANDO_APROVACAO_VALIDACAO': ('✅ Aprovar e Continuar', 'aprovar'),
+            'AGUARDANDO_CONTINUAR_CHECKPOINT2': ('🚀 Ir para Validação ATS', 'continuar'),
+            'AGUARDANDO_OK_SKILLS': ('✅ Aprovar Skills', 'ok'),
+            'AGUARDANDO_APROVACAO_ABOUT': ('✅ Aprovar e Exportar', 'aprovar'),
+            'AGUARDANDO_OK_KEYWORDS': ('✅ Continuar', 'ok'),
+        }
         
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
-            if st.button("✅ Continuar para Coleta de Dados", use_container_width=True, type="primary", key="btn_continuar_diagnostico"):
-                # Avançar para próxima etapa
-                st.session_state.etapa_1_coleta_focada_triggered = False
-                st.session_state.etapa_modulo = 'ETAPA_1_COLETA_FOCADA'
-                st.rerun()
+        # Tratar estados dinâmicos AGUARDANDO_APROVACAO_EXP_N
+        if etapa and etapa.startswith('AGUARDANDO_APROVACAO_EXP_'):
+            botoes[etapa] = ('⏭️ Próxima Experiência', 'próxima')
+        
+        # Renderizar botão se estado atual está no mapa
+        if etapa in botoes:
+            texto_botao, comando = botoes[etapa]
+            st.markdown("---")
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                # Usar key único baseado no etapa para evitar duplicatas
+                if st.button(texto_botao, use_container_width=True, type="primary", key=f"btn_{etapa}"):
+                    # Processar comando através do otimizador
+                    from modules.otimizador.processor import processar_modulo_otimizador
+                    resultado = processar_modulo_otimizador(comando)
+                    if resultado:
+                        st.session_state.mensagens.append({"role": "assistant", "content": resultado})
+                    st.rerun()
 
     prompt = st.chat_input("Digite sua pergunta ou resposta...")
 
