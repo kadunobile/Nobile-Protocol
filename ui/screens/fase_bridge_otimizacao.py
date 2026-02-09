@@ -201,5 +201,4 @@ def fase_bridge_otimizacao():
             st.session_state.mensagens = []
             st.session_state.fase = 'CHAT'
             st.session_state.force_scroll_top = True
-            forcar_topo()
             st.rerun()

@@ -185,6 +185,14 @@ def main():
         'CHAT': fase_chat
     }
 
+    # Verificação defensiva: se fase não reconhecida, logar e resetar
+    if st.session_state.fase not in fases:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Fase não reconhecida: {st.session_state.fase}. Resetando para FASE_0_INTRO")
+        st.error(f"⚠️ Fase inválida detectada: {st.session_state.fase}. Retornando ao início.")
+        st.session_state.fase = 'FASE_0_INTRO'
+
     fases[st.session_state.fase]()
 
 if __name__ == "__main__":
