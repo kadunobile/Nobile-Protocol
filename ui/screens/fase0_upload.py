@@ -148,7 +148,7 @@ def fase_0_upload():
                     "Se não for, os resultados podem não ser ideais."
                 )
             
-            st.success("✅ Perfil do LinkedIn carregado com sucesso!")
+            st.success("✅ Currículo carregado com sucesso!")
             
             st.markdown("---")
             

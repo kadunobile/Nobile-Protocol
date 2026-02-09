@@ -23,6 +23,10 @@ def fase_chat():
     st.markdown("---")
 
     for msg in st.session_state.mensagens:
+        # Skip internal messages (prompts do sistema não devem aparecer para o usuário)
+        if msg.get("internal") == True:
+            continue
+        
         if msg["role"] == "assistant":
             with st.chat_message("assistant"):
                 st.markdown(msg["content"])
@@ -39,7 +43,7 @@ def fase_chat():
         prompt_otimizador = processar_modulo_otimizador("")
         
         if prompt_otimizador:
-            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("🤔 Analisando keywords para seu cargo..."):
                     resp = chamar_gpt(
@@ -64,7 +68,7 @@ def fase_chat():
         prompt_otimizador = processar_modulo_otimizador("")
         
         if prompt_otimizador:
-            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("🔍 Diagnosticando gaps no seu CV..."):
                     resp = chamar_gpt(
@@ -89,7 +93,7 @@ def fase_chat():
         prompt_otimizador = processar_modulo_otimizador("")
         
         if prompt_otimizador:
-            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("📝 Preparando coleta de dados..."):
                     resp = chamar_gpt(
@@ -114,7 +118,7 @@ def fase_chat():
         prompt_otimizador = processar_modulo_otimizador("")
         
         if prompt_otimizador:
-            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("🔵 Otimizando seu perfil LinkedIn..."):
                     resp = chamar_gpt(
@@ -144,7 +148,7 @@ def fase_chat():
             prompt_otimizador = processar_modulo_otimizador(prompt)
 
             if prompt_otimizador:
-                st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador})
+                st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
                 with st.chat_message("assistant"):
                     with st.spinner("🤔 Processando etapa..."):
                         resp = chamar_gpt(

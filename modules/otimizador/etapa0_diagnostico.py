@@ -90,5 +90,5 @@ Liste as experiências profissionais que precisam ser trabalhadas:
 
 ---
 
-⏸️ **Revise o diagnóstico acima. Responda "OK" para prosseguir para a coleta de dados.**
+⏸️ **Próximo passo:** Revise se as experiências acima fazem sentido para resolver os gaps identificados. Se estiver de acordo, digite **"OK"** no chat para prosseguir para a coleta de dados.
 """

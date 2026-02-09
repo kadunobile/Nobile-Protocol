@@ -353,6 +353,9 @@ def _analisar_com_llm(
         "ferramentas de outros arquétipos\n\n"
         "3. **Gaps Falsos Ignorados**: OBRIGATÓRIO - Liste skills que você CONSIDEROU mas DESCARTOU "
         "como gap (double-check/chain-of-thought). Justifique por que não são gaps válidos.\n\n"
+        "⚠️ REGRA PARA gaps_falsos_ignorados: NUNCA copie os exemplos. Analise o CV e o cargo ESPECÍFICO "
+        "do candidato e liste skills que você CONSIDEROU como possíveis gaps mas DESCARTOU com justificativa real. "
+        "Cada item deve ser ÚNICO para este candidato/cargo.\n\n"
         "4. **Score (0-100)**: Avalie considerando:\n"
         "   - Experiência Core (senioridade, anos): 50%\n"
         "   - Hard Skills Match (ferramentas): 20%\n"
@@ -366,7 +369,7 @@ def _analisar_com_llm(
         '    "arquetipo_cargo": "VENDAS",\n'
         '    "pontos_fortes": ["CRM Salesforce", "Pipeline Management", "métricas B2B"],\n'
         '    "gaps_identificados": ["<nome_ferramenta_especifica>", "<nome_metodologia_real>"],\n'
-        '    "gaps_falsos_ignorados": ["Tableau (não é padrão para vendas)", "Python (não core para gestão)"],\n'
+        '    "gaps_falsos_ignorados": ["<skill_descartada_1> (<motivo_1>)", "<skill_descartada_2> (<motivo_2>)"],\n'
         '    "plano_acao": ["🔍 Palavras-chave ausentes...", "⚠️ Boa base, mas..."]\n'
         "}\n"
         "```\n\n"
@@ -396,8 +399,8 @@ def _analisar_com_llm(
         {"role": "user", "content": user_prompt}
     ]
     
-    # Chamar LLM com máxima consistência
-    resposta = chamar_gpt(client, msgs, temperature=0.2, seed=42)
+    # Chamar LLM com temperatura baixa para consistência, mas sem seed fixo para permitir variabilidade
+    resposta = chamar_gpt(client, msgs, temperature=0.2, seed=None)
     
     if not resposta:
         logger.warning("Falha ao obter resposta da LLM")
@@ -449,6 +452,27 @@ def _analisar_com_llm(
         if 'gaps_falsos_ignorados' not in resultado:
             resultado['gaps_falsos_ignorados'] = []
             logger.warning("LLM não retornou gaps_falsos_ignorados, usando lista vazia")
+        
+        # Post-processing: Filter out copied example values from gaps_falsos_ignorados
+        gaps_falsos_originais = resultado['gaps_falsos_ignorados']
+        gaps_falsos_filtrados = []
+        
+        # Exemplos fixos que eram usados anteriormente e devem ser filtrados
+        exemplos_fixos = [
+            "Tableau (não é padrão para vendas)",
+            "Python (não core para gestão)",
+            "tableau (não é padrão para vendas)",
+            "python (não core para gestão)"
+        ]
+        
+        for gap_falso in gaps_falsos_originais:
+            # Filtrar se for exatamente um dos exemplos fixos
+            if gap_falso.strip() not in exemplos_fixos:
+                gaps_falsos_filtrados.append(gap_falso)
+            else:
+                logger.warning(f"Exemplo fixo copiado filtrado de gaps_falsos_ignorados: {gap_falso}")
+        
+        resultado['gaps_falsos_ignorados'] = gaps_falsos_filtrados
         
         # Post-processing: Filter out placeholder gap names
         gaps_originais = resultado['gaps_identificados']

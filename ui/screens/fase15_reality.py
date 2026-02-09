@@ -61,6 +61,15 @@ IMPORTANTE SOBRE NOMENCLATURAS:
 - Inclua variações em português E inglês
 - Inclua o nível (Jr, Pleno, Sr) quando relevante
 
+INSTRUÇÕES PARA ANÁLISE SALARIAL:
+- Analise a SENIORIDADE REAL do candidato com base no CV (anos de experiência, cargos ocupados, empresas)
+- Considere o CARGO-ALVO específico, não uma faixa genérica do mercado
+- Considere a LOCALIDADE e se aceita remoto
+- A faixa salarial deve refletir o perfil REAL do candidato (não range genérico de Jr a Sr)
+- Se o candidato tem 10+ anos de experiência e cargos de gerência/direção, a faixa deve refletir senioridade alta
+- Use dados realistas do mercado brasileiro atual (2024-2025) para o cargo E senioridade específicos
+- NUNCA dê faixas genéricas que misturam Jr com Sr — seja ESPECÍFICO para o perfil
+
 IMPORTANTE: Seja ESPECÍFICO e REALISTA. Base-se APENAS no CV fornecido e nas expectativas reais do mercado para {cargo} em {local}.
 
 ⚠️ NÃO inclua seção "Estratégia" no final. Termine após o "Nível de Desafio" do Veredito do Headhunter.
@@ -98,7 +107,7 @@ FORMATO EXATO OBRIGATÓRIO:
 
 **Pretensão Informada:** {pretensao} mensal
 
-**Faixa Salarial Geral:** [mínimo] a [máximo]
+**Faixa Salarial (para este perfil/senioridade):** [mínimo] a [máximo]
 
 **Veredito:** [Abaixo/Na Média/Acima]
 
