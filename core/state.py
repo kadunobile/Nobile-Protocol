@@ -22,7 +22,10 @@ def inicializar_session_state():
         'linkedin_about': "",
         'dados_coletados': {},
         'reality_check_resultado': None,
-        'reality_ats_resultado': None
+        'reality_ats_resultado': None,
+        # Autenticação
+        'authenticated': False,
+        'user': None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:

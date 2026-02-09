@@ -1,84 +1,41 @@
-import os
 import streamlit as st
-from core.utils import inicializar_cliente_openai
 
 def fase_0_intro():
     st.markdown("# 🎯 Protocolo Nóbile")
     st.markdown("### Engenharia de Carreira & Inteligência de Mercado via IA")
     st.markdown("---")
-
+    
+    # Hero section — 3 cards compactos
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("#### 🛡️ Blindagem ATS")
+        st.caption("Otimize palavras-chave para passar pelos filtros automáticos de recrutamento.")
+    
+    with col2:
+        st.markdown("#### ⚖️ Reality Check")
+        st.caption("Análise fria: gaps, pontos fortes e fit real com o mercado.")
+    
+    with col3:
+        st.markdown("#### ✍️ Reescrita Estratégica")
+        st.caption("Transforme tarefas em conquistas de impacto com storytelling.")
+    
+    st.markdown("---")
+    
+    # Como funciona — versão ultra-compacta
+    st.markdown("### ⚙️ Como Funciona")
     st.markdown("""
-**Bem-vindo à sua nova vantagem competitiva.**
-
-O Protocolo Nóbile não é apenas um "corretor de currículos". É uma plataforma de **Engenharia de Carreira** que utiliza Inteligência Artificial avançada para transformar seu histórico profissional em uma ferramenta de venda de alto valor.
-
-Aqui, não apenas reescrevemos, mas analisamos e entregamos o melhor pacote de melhorias possíveis, somado a suas experiências.
-
----
-
-### 🚀 O Que Você Vai Conquistar Aqui:
-
-* **🛡️ Blindagem contra Robôs (ATS Score):**
-    * *O que é:* A maioria dos currículos são descartados por "robôs recrutadores" antes de um humano ler.
-    * *O que fazemos:* Otimizamos suas palavras-chave para garantir que você passe pelo filtro digital.
-
-* **⚖️ Reality Check (Raio-X de Mercado):**
-    * *O que é:* Uma análise fria e direta. Seu perfil realmente bate com a vaga?
-    * *O que fazemos:* Identificamos seus "Gaps" (o que falta) e seus pontos fortes para a negociação salarial.
-
-* **✍️ Reescrita Estratégica (Storytelling):**
-    * *O que é:* Suas experiências contadas como uma história de valor, não apenas uma lista de tarefas.
-    * *O que fazemos:* Transformamos listas de tarefas ("Fazia relatórios") em conquistas de impacto ("Aumentei a eficiência em 20%").
-
-* **🗣️ Treinador de Entrevista:**
-    * *O que é:* Preparação personalizada para entrevistas baseada no perfil da vaga e cultura da empresa.
-    * *O que fazemos:* Simulações reais com feedbacks táticos sobre sua performance e como se posicionar melhor.
-
----
-
-### ⚙️ Como Funciona o Protocolo:
-
-1. **📥 O Upload (Input):** Você cola seu CV atual (texto) e a descrição da vaga que deseja.
-2. **🧠 O Diagnóstico:** Nossa IA assume o papel de um Headhunter Sênior e analisa sua compatibilidade.
-3. **🛠️ A Engenharia:** Através de um chat interativo, refinamos cada linha do seu perfil até atingir a Alta Performance.
-4. **💎 A Entrega:** Você sai com um CV pronto, carta de apresentação e roteiro de entrevista.
-
----
-
-### 🎯 Para Quem é o Protocolo Nóbile?
-
-Do **Estagiário ao C-Level**. A lógica de mercado é a mesma: **Quem comunica melhor seu valor, ganha mais.**
-
-* Serve para: Transição de Carreira, Busca de Promoção, Recolocação e Aumento Salarial.
-
----
-
-### ⚠️ Requisitos para o Sucesso:
-
-* Tenha seu CV em texto (PDFs podem ser copiados).
-* Reserve 20 minutos de foco total (Carreira se constrói com atenção).
-* Esteja aberto a feedbacks duros e realistas.
-
-**👉 Comece agora clicando no botão abaixo.**
+1. **📥 Upload** — Envie seu CV (PDF do LinkedIn recomendado)
+2. **🧠 Diagnóstico** — IA analisa compatibilidade com o cargo
+3. **🛠️ Otimização** — Refinamos cada seção do seu perfil
+4. **💎 Entrega** — CV otimizado + LinkedIn + Carta de Apresentação
     """)
-
+    
+    st.info("⏱️ **Tempo estimado:** 20 minutos | Do Estagiário ao C-Level")
+    
     st.markdown("---")
-
-    api_key = os.getenv("OPENAI_API_KEY")
-
-    if api_key:
-        if not st.session_state.openai_client:
-            st.session_state.openai_client = inicializar_cliente_openai(api_key)
-        st.success("✅ Sistema configurado e pronto!")
-    else:
-        st.warning("⚠️ Configure sua API Key no arquivo config.py")
-        key_input = st.text_input("Ou insira manualmente:", type="password")
-        if key_input:
-            st.session_state.openai_client = inicializar_cliente_openai(key_input)
-            st.success("✅ API Key configurada!")
-
-    st.markdown("---")
-
+    
+    # Botão CTA — sem API key (já autenticado pelo login)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button("🚀 INICIAR DIAGNÓSTICO", use_container_width=True, type="primary"):
@@ -86,4 +43,5 @@ Do **Estagiário ao C-Level**. A lógica de mercado é a mesma: **Quem comunica 
                 st.session_state.fase = 'FASE_0_UPLOAD'
                 st.rerun()
             else:
-                st.error("⚠️ Configure a API Key primeiro!")
+                st.error("⚠️ Erro de configuração. Contate o administrador.")
+

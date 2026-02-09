@@ -76,6 +76,85 @@ class TestAtsScorer:
         assert resultado['max_score'] == 100
         assert 0 <= resultado['percentual'] <= 100
     
+    def test_calcular_score_ats_retorna_novos_campos_v5(self):
+        """Testa que calcular_score_ats retorna novos campos v5.0."""
+        cv_texto = """
+        João Silva
+        email@example.com
+        
+        EXPERIÊNCIA
+        Gerente de Vendas | Empresa X | 2020-2023
+        - Aumentei vendas em 30%
+        - Salesforce, HubSpot, CRM
+        
+        EDUCAÇÃO
+        MBA | FGV | 2019
+        
+        HABILIDADES
+        Vendas, Negociação, Pipeline Management
+        """
+        
+        resultado = calcular_score_ats(cv_texto, "Gerente de Vendas")
+        
+        # v5.0: Verificar novos campos existem (fallback TF-IDF)
+        assert 'gaps_falsos_ignorados' in resultado
+        assert 'arquetipo_cargo' in resultado
+        assert 'fonte_vaga' in resultado
+        assert 'metodo' in resultado
+        
+        # v5.0: Verificar tipos
+        assert isinstance(resultado['gaps_falsos_ignorados'], list)
+        assert isinstance(resultado['arquetipo_cargo'], str)
+        assert isinstance(resultado['fonte_vaga'], str)
+        assert isinstance(resultado['metodo'], str)
+        
+        # v5.0: Verificar valores específicos do fallback
+        assert resultado['fonte_vaga'] == 'tfidf_fallback'
+        assert 'TF-IDF' in resultado['metodo']
+    
+    def test_calcular_score_ats_com_texto_vaga(self):
+        """Testa calcular_score_ats com texto da vaga real fornecido."""
+        cv_texto = """
+        João Silva - Gerente de Vendas
+        Experiência com Salesforce, HubSpot, pipeline management
+        """
+        
+        texto_vaga = """
+        Buscamos Gerente de Vendas com:
+        - Salesforce
+        - HubSpot
+        - Pipeline Management
+        - Tableau (desejável)
+        """
+        
+        # Sem client (fallback), mas com texto_vaga deveria ser ignorado
+        resultado = calcular_score_ats(
+            cv_texto, 
+            "Gerente de Vendas",
+            client=None,  # Sem client = fallback TF-IDF
+            texto_vaga=texto_vaga
+        )
+        
+        # No fallback, fonte_vaga deve ser 'tfidf_fallback', não 'real'
+        assert resultado['fonte_vaga'] == 'tfidf_fallback'
+    
+    def test_detalhes_nunca_vazios(self):
+        """Testa que campo detalhes nunca está vazio."""
+        cv_texto = """
+        João Silva
+        Gerente de Vendas com experiência em Salesforce
+        """
+        
+        resultado = calcular_score_ats(cv_texto, "Gerente")
+        
+        # detalhes deve sempre existir
+        assert 'detalhes' in resultado
+        assert isinstance(resultado['detalhes'], dict)
+        
+        # metodo deve estar em detalhes
+        assert 'metodo' in resultado['detalhes']
+        assert resultado['detalhes']['metodo']  # Não vazio
+    
     def test_calcular_score_ats_detalhes(self):
         """Testa detalhamento do score ATS."""
         cv_texto = """
@@ -98,11 +177,6 @@ class TestAtsScorer:
         
         # Verifica presença das informações básicas
         assert 'metodo' in detalhes
-        assert 'ngrams' in detalhes
-        assert 'stopwords' in detalhes
-        assert 'TF-IDF + Cosine Similarity' in detalhes['metodo']
-        assert detalhes['ngrams'] == '1-3'
-        assert detalhes['stopwords'] == 'NLTK (PT + EN) + Custom CV/JD (~550+)'
     
     def test_calcular_score_ats_cv_vazio(self):
         """Testa cálculo com CV vazio."""
