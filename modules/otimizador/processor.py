@@ -39,7 +39,11 @@ def processar_modulo_otimizador(prompt):
         return prompt_etapa1_coleta_focada()
     
     if etapa == 'AGUARDANDO_DADOS_COLETA':
-        if any(word in prompt.lower() for word in ['continuar', 'pronto', 'concluído', 'concluido', 'finalizado']):
+        # Palavras de skip: permite usuário pular/avançar sem preencher
+        if any(word in prompt.lower() for word in ['continuar', 'pronto', 'concluído', 'concluido', 'finalizado',
+                                                     'não tenho', 'nao tenho', 'pular', 'skip', 
+                                                     'próxima', 'proxima', 'próximo', 'proximo', 
+                                                     'não sei', 'nao sei']):
             # Salvar dados coletados
             st.session_state.dados_coletados = {'raw_response': prompt}
             st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'

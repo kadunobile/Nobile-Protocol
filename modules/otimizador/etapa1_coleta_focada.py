@@ -32,74 +32,39 @@ def prompt_etapa1_coleta_focada():
 
 ---
 
-**INSTRUÇÕES:**
+**INSTRUÇÕES PARA O ASSISTENTE:**
 
-Para CADA experiência profissional relevante identificada no diagnóstico, faça apenas 3 perguntas essenciais.
+Você vai agora coletar dados adicionais do candidato, **uma experiência por vez**, para otimizar o CV.
 
-**MODELO DE COLETA (para cada experiência):**
+Para CADA experiência profissional relevante identificada no diagnóstico:
 
----
+1. **Leia a experiência atual** no CV
+2. **Identifique o que falta ou pode melhorar** (resultados quantificáveis, métricas, contexto sobre gaps)
+3. **Faça 2-3 perguntas diretas** no chat para o candidato preencher as informações
 
-### 🏢 EXPERIÊNCIA: [Empresa - Cargo - Período]
-
-**Contexto:** [Breve descrição do que o candidato fazia]
-
-**Gap(s) a resolver:** [Lista dos gaps que esta experiência vai abordar]
+**FORMATO DE COLETA (conversacional):**
 
 ---
 
-**❓ PERGUNTA 1: Resultado Quantificável**
+### 🏢 [Nome da Empresa] - [Cargo] - [Período]
 
-Qual foi o principal resultado mensurável que você alcançou nesta posição?  
-(Ex: "Aumentei vendas em 30%", "Reduzi custos em R$ 50k", "Gerenciei equipe de 15 pessoas")
+**O que está no CV agora:**
+[Breve resumo do que consta no CV atual para essa experiência]
 
-_[Campo para resposta do usuário]_
+**Gap(s) a resolver:**
+[Lista dos gaps que esta experiência vai abordar]
 
----
+**Perguntas:**
 
-**❓ PERGUNTA 2: Métrica/Indicador**
+1. Qual foi o principal resultado mensurável que você alcançou nesta posição? (Ex: "Aumentei vendas em 30%", "Reduzi custos em R$ 50k", "Gerenciei equipe de 15 pessoas")
 
-Qual métrica ou indicador você usava para medir esse resultado?  
-(Ex: "Revenue mensal", "NPS", "Tempo de entrega", "Taxa de conversão")
+2. Qual métrica ou indicador você usava para medir esse resultado? (Ex: "Revenue mensal", "NPS", "Tempo de entrega", "Taxa de conversão")
 
-_[Campo para resposta do usuário]_
-
----
-
-**❓ PERGUNTA 3: Contexto do Gap**
-
-Como essa conquista demonstra que você tem a competência do gap identificado?  
-(Ex: "Isso mostra minha capacidade de liderança porque...", "Evidencia domínio de Python pois...")
-
-_[Campo para resposta do usuário]_
+3. Como essa conquista demonstra que você tem a competência necessária para o cargo-alvo? (Ex: "Isso mostra minha capacidade de liderança porque...", "Evidencia domínio de Python pois...")
 
 ---
 
-[Repita este bloco para cada experiência relevante - máximo 3-4 experiências]
+⏸️ **Aguardando suas respostas.** Digite as respostas no chat, ou responda **"não tenho"**, **"pular"** ou **"próxima"** se quiser avançar sem preencher esta experiência.
 
----
-
-### ✅ RESUMO DA COLETA
-
-Total de experiências a otimizar: [X]
-
-Você terá que responder: [X × 3 = Y perguntas]
-
----
-
-⏸️ **Preencha as respostas abaixo no formato:**
-
-**Experiência 1 - [Empresa]:**
-- Resultado: [sua resposta]
-- Métrica: [sua resposta]
-- Contexto: [sua resposta]
-
-**Experiência 2 - [Empresa]:**
-- Resultado: [sua resposta]
-- Métrica: [sua resposta]
-- Contexto: [sua resposta]
-
-(etc)
-
-**Após preencher todos os dados, responda "CONTINUAR" para validação.**
+Após coletar dados de todas as experiências relevantes (máximo 3-4), pediremos aprovação antes de reescrever o CV.
 """
