@@ -542,10 +542,10 @@ def fase_15_reality_check():
                 st.error("⚠️ CV não encontrado. Faça upload novamente.")
                 st.session_state.fase = 'FASE_0_UPLOAD'
                 st.rerun()
+                return
 
             st.session_state.mensagens = []
             st.session_state.modulo_ativo = None
             st.session_state.etapa_modulo = None
             st.session_state.fase = 'FASE_BRIDGE_OTIMIZACAO'
-            forcar_topo()
             st.rerun()
