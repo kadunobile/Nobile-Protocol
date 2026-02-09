@@ -15,8 +15,8 @@ class TestNovoFluxoOtimizacao:
     """Testes para o novo fluxo de otimização."""
     
     @patch('streamlit.session_state')
-    def test_etapa0_diagnostico_gera_prompt(self, mock_session_state):
-        """Testa se etapa0 gera prompt de diagnóstico corretamente."""
+    def test_etapa0_diagnostico_gera_prompt_introducao(self, mock_session_state):
+        """Testa se etapa0 gera prompt de diagnóstico introdutório corretamente."""
         from modules.otimizador.etapa0_diagnostico import prompt_etapa0_diagnostico
         
         # Mock session state
@@ -30,16 +30,46 @@ class TestNovoFluxoOtimizacao:
         assert result is not None
         assert 'DIAGNÓSTICO' in result.upper()
         assert 'Gerente de Vendas' in result
-        assert 'gaps' in result.lower()
+        assert 'gaps' in result.lower() or 'gap' in result.lower()
+        # Deve mostrar introdução com lista de gaps
+        assert '2' in result  # Quantidade de gaps
     
     @patch('streamlit.session_state')
-    def test_etapa1_coleta_focada_gera_prompt(self, mock_session_state):
-        """Testa se etapa1 coleta focada gera prompt corretamente."""
+    def test_etapa0_diagnostico_gap_individual(self, mock_session_state):
+        """Testa se etapa0 pergunta sobre gap individual corretamente."""
+        from modules.otimizador.etapa0_diagnostico import prompt_etapa0_diagnostico_gap_individual
+        
+        # Mock session state
+        mock_session_state.perfil = {'cargo_alvo': 'Gerente de Vendas'}
+        mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
+        mock_session_state.gaps_alvo = ['Falta métrica de vendas', 'Falta gestão de equipe']
+        
+        # Testar primeiro gap
+        result = prompt_etapa0_diagnostico_gap_individual(0)
+        
+        assert result is not None
+        assert 'Falta métrica de vendas' in result
+        assert 'experiência' in result.lower()
+        assert '1/2' in result  # Indica gap 1 de 2
+        
+        # Testar segundo gap
+        result2 = prompt_etapa0_diagnostico_gap_individual(1)
+        
+        assert result2 is not None
+        assert 'Falta gestão de equipe' in result2
+        assert '2/2' in result2  # Indica gap 2 de 2
+    
+    @patch('streamlit.session_state')
+    def test_etapa1_coleta_focada_gera_prompt_contextual(self, mock_session_state):
+        """Testa se etapa1 coleta focada gera prompt com instruções contextuais."""
         from modules.otimizador.etapa1_coleta_focada import prompt_etapa1_coleta_focada
         
         # Mock session state
         mock_session_state.perfil = {'cargo_alvo': 'Analista de Dados'}
         mock_session_state.cv_texto = 'CV com experiência em análise'
+        mock_session_state.gaps_respostas = {
+            'Python': {'tem_experiencia': True, 'resposta': 'Usei na empresa X'}
+        }
         mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
         
         result = prompt_etapa1_coleta_focada()
@@ -47,7 +77,10 @@ class TestNovoFluxoOtimizacao:
         assert result is not None
         assert 'COLETA FOCADA' in result.upper()
         assert 'Analista de Dados' in result
-        assert '3 perguntas' in result.lower() or 'pergunta' in result.lower()
+        assert 'headhunter' in result.lower()
+        assert 'contextual' in result.lower() or 'específica' in result.lower()
+        # Deve incluir instruções sobre perguntas específicas ao cargo
+        assert 'métrica' in result.lower() or 'kpi' in result.lower()
     
     @patch('streamlit.session_state')
     def test_checkpoint_validacao_gera_prompt(self, mock_session_state):
@@ -190,14 +223,14 @@ class TestProcessorNovoFluxo:
     """Testes para o processador com novo fluxo."""
     
     @patch('streamlit.session_state')
-    def test_processor_etapa0_diagnostico(self, mock_session_state):
-        """Testa transição para ETAPA_0_DIAGNOSTICO."""
+    def test_processor_etapa0_diagnostico_introducao(self, mock_session_state):
+        """Testa transição para ETAPA_0_DIAGNOSTICO (introdução)."""
         from modules.otimizador.processor import processar_modulo_otimizador
         
         # Mock session state
         mock_session_state.perfil = {'cargo_alvo': 'Gerente'}
         mock_session_state.cv_texto = 'CV teste'
-        mock_session_state.gaps_alvo = []
+        mock_session_state.gaps_alvo = ['Gap 1', 'Gap 2']
         mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
         mock_session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO'
         
@@ -205,20 +238,102 @@ class TestProcessorNovoFluxo:
         
         assert result is not None
         assert 'DIAGNÓSTICO' in result.upper()
+        assert 'Gerente' in result
     
     @patch('streamlit.session_state')
-    def test_processor_aguardando_ok_diagnostico(self, mock_session_state):
-        """Testa transição de AGUARDANDO_OK_DIAGNOSTICO para ETAPA_1_COLETA_FOCADA."""
+    def test_processor_etapa0_gap_individual(self, mock_session_state):
+        """Testa transição para ETAPA_0_GAP_INDIVIDUAL."""
+        from modules.otimizador.processor import processar_modulo_otimizador
+        
+        # Mock session state
+        mock_session_state.perfil = {'cargo_alvo': 'Analista'}
+        mock_session_state.gaps_alvo = ['Python', 'SQL']
+        mock_session_state.gap_atual_index = 0
+        mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
+        mock_session_state.etapa_modulo = 'ETAPA_0_GAP_INDIVIDUAL'
+        
+        result = processar_modulo_otimizador("")
+        
+        assert result is not None
+        assert 'Python' in result
+        assert 'experiência' in result.lower()
+    
+    @patch('streamlit.session_state')
+    def test_processor_aguardando_resposta_gap_com_experiencia(self, mock_session_state):
+        """Testa processamento de resposta de gap com experiência."""
+        from modules.otimizador.processor import processar_modulo_otimizador
+        
+        # Mock session state
+        mock_session_state.perfil = {'cargo_alvo': 'Analista'}
+        mock_session_state.gaps_alvo = ['Python', 'SQL']
+        mock_session_state.gap_atual_index = 0
+        mock_session_state.gaps_respostas = {}
+        mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
+        mock_session_state.etapa_modulo = 'AGUARDANDO_RESPOSTA_GAP'
+        
+        result = processar_modulo_otimizador("Sim, usei Python na empresa X para análise de dados")
+        
+        # Deve salvar resposta e ir para próximo gap
+        assert mock_session_state.gaps_respostas.get('Python') is not None
+        assert mock_session_state.gaps_respostas['Python']['tem_experiencia'] is True
+        assert 'empresa X' in mock_session_state.gaps_respostas['Python']['resposta']
+    
+    @patch('streamlit.session_state')
+    def test_processor_aguardando_resposta_gap_sem_experiencia(self, mock_session_state):
+        """Testa processamento de resposta de gap sem experiência."""
+        from modules.otimizador.processor import processar_modulo_otimizador
+        
+        # Mock session state
+        mock_session_state.perfil = {'cargo_alvo': 'Analista'}
+        mock_session_state.gaps_alvo = ['Python', 'SQL']
+        mock_session_state.gap_atual_index = 0
+        mock_session_state.gaps_respostas = {}
+        mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
+        mock_session_state.etapa_modulo = 'AGUARDANDO_RESPOSTA_GAP'
+        
+        result = processar_modulo_otimizador("não tenho")
+        
+        # Deve marcar como sem experiência
+        assert mock_session_state.gaps_respostas.get('Python') is not None
+        assert mock_session_state.gaps_respostas['Python']['tem_experiencia'] is False
+    
+    @patch('streamlit.session_state')
+    def test_processor_gerar_resumo_diagnostico(self, mock_session_state):
+        """Testa geração de resumo após todos os gaps."""
+        from modules.otimizador.processor import gerar_resumo_diagnostico
+        
+        # Mock session state
+        mock_session_state.perfil = {'cargo_alvo': 'Analista'}
+        mock_session_state.gaps_respostas = {
+            'Python': {'tem_experiencia': True, 'resposta': 'Usei na empresa X'},
+            'SQL': {'tem_experiencia': False, 'resposta': None}
+        }
+        mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
+        
+        result = gerar_resumo_diagnostico()
+        
+        assert result is not None
+        assert 'RESUMO' in result.upper()
+        assert 'Python' in result
+        assert 'SQL' in result
+        assert mock_session_state.gaps_resolviveis_count == 1
+        assert mock_session_state.gaps_nao_resolviveis_count == 1
+    
+    @patch('streamlit.session_state')
+    def test_processor_aguardando_ok_diagnostico_avanca_coleta(self, mock_session_state):
+        """Testa que após resumo, avança para coleta focada."""
         from modules.otimizador.processor import processar_modulo_otimizador
         
         # Mock session state
         mock_session_state.perfil = {'cargo_alvo': 'Analista'}
         mock_session_state.cv_texto = 'CV teste'
+        mock_session_state.gaps_respostas = {}
         mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
         mock_session_state.etapa_modulo = 'AGUARDANDO_OK_DIAGNOSTICO'
         
-        result = processar_modulo_otimizador("ok")
+        result = processar_modulo_otimizador("")
         
+        # Deve retornar prompt de coleta focada
         assert result is not None
         assert 'COLETA' in result.upper()
 

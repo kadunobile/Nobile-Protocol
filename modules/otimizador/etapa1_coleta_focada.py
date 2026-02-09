@@ -1,8 +1,8 @@
 """
-Etapa 1: Coleta Focada - Apenas 3 perguntas por experiência relevante.
+Etapa 1: Coleta Focada - Perguntas contextuais por experiência.
 
-Esta etapa substitui o interrogatório pesado (25+ campos) por uma coleta
-simplificada e focada de apenas 3 perguntas essenciais por experiência.
+Esta etapa faz perguntas ESPECÍFICAS para cada experiência profissional,
+correlacionadas ao cargo desejado, como um headhunter faria.
 """
 
 import streamlit as st
@@ -10,21 +10,40 @@ import streamlit as st
 
 def prompt_etapa1_coleta_focada():
     """
-    Gera prompt para coleta focada de dados.
+    Gera prompt para coleta focada de dados com perguntas contextuais.
     
-    Ao invés de 25+ campos, pergunta apenas:
-    1. Resultado quantificável principal
-    2. Métrica/indicador usado
-    3. Como isso resolve o gap identificado
+    As perguntas devem ser específicas ao cargo desejado e à experiência,
+    não genéricas. Pensa como um headhunter que quer extrair:
+    - Métricas e resultados quantificáveis
+    - Ferramentas e tecnologias específicas do setor
+    - Impacto e volume de trabalho
+    - Nomenclatura adequada do cargo para ATS
     
     Returns:
         str: Prompt formatado para o GPT
     """
     cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
     cv_texto = st.session_state.get('cv_texto', '')
+    gaps_respostas = st.session_state.get('gaps_respostas', {})
     
     if not cv_texto:
         return """⚠️ **ERRO:** CV não encontrado na sessão."""
+    
+    # Preparar contexto dos gaps com experiência
+    gaps_com_contexto = []
+    for gap, info in gaps_respostas.items():
+        if info.get('tem_experiencia'):
+            gaps_com_contexto.append({
+                'gap': gap,
+                'contexto': info.get('resposta', '')
+            })
+    
+    gaps_contexto_texto = ""
+    if gaps_com_contexto:
+        gaps_contexto_texto = "\n".join([
+            f"- **{g['gap']}**: {g['contexto']}" 
+            for g in gaps_com_contexto
+        ])
     
     return f"""📝 **ETAPA 1: COLETA FOCADA DE DADOS**
 
@@ -32,39 +51,86 @@ def prompt_etapa1_coleta_focada():
 
 ---
 
-**INSTRUÇÕES PARA O ASSISTENTE:**
+### 📊 Contexto dos Gaps Mapeados
 
-Você vai agora coletar dados adicionais do candidato, **uma experiência por vez**, para otimizar o CV.
+Durante o diagnóstico, você indicou ter experiência com:
 
-Para CADA experiência profissional relevante identificada no diagnóstico:
-
-1. **Leia a experiência atual** no CV
-2. **Identifique o que falta ou pode melhorar** (resultados quantificáveis, métricas, contexto sobre gaps)
-3. **Faça 2-3 perguntas diretas** no chat para o candidato preencher as informações
-
-**FORMATO DE COLETA (conversacional):**
+{gaps_contexto_texto if gaps_contexto_texto else "- (Nenhum gap mapeado ainda)"}
 
 ---
 
-### 🏢 [Nome da Empresa] - [Cargo] - [Período]
+### 🎯 INSTRUÇÕES PARA O ASSISTENTE GPT
 
-**O que está no CV agora:**
-[Breve resumo do que consta no CV atual para essa experiência]
+Você é um **headhunter expert** especializado em otimização de CVs para o cargo de **{cargo}**.
 
-**Gap(s) a resolver:**
-[Lista dos gaps que esta experiência vai abordar]
+Sua missão: fazer perguntas CONTEXTUAIS e ESPECÍFICAS para cada experiência profissional no CV, extraindo dados que permitam:
 
-**Perguntas:**
+1. **Transformar tarefas passivas em conquistas ativas**
+   - ❌ Fraco: "Alimentação de planilhas"
+   - ✅ Forte: "Gestão de Dados Estratégicos com redução de 40% no tempo de processamento via Power BI"
 
-1. Qual foi o principal resultado mensurável que você alcançou nesta posição? (Ex: "Aumentei vendas em 30%", "Reduzi custos em R$ 50k", "Gerenciei equipe de 15 pessoas")
+2. **Incluir métricas e KPIs relevantes ao setor**
+   - Volume (quantas pessoas, projetos, vendas, processos)
+   - Impacto (% de melhoria, economia, crescimento)
+   - Ferramentas específicas (tecnologias, sistemas, metodologias)
 
-2. Qual métrica ou indicador você usava para medir esse resultado? (Ex: "Revenue mensal", "NPS", "Tempo de entrega", "Taxa de conversão")
+3. **Melhorar nomenclatura de cargos para ATS**
+   - Usar títulos que sistemas ATS reconhecem
+   - Correlacionar com "trigger words" do RH para este cargo
 
-3. Como essa conquista demonstra que você tem a competência necessária para o cargo-alvo? (Ex: "Isso mostra minha capacidade de liderança porque...", "Evidencia domínio de Python pois...")
+4. **Fazer perguntas que um headhunter faria**
+   - Não genéricas ("qual foi o resultado?")
+   - Específicas ao cargo e setor ("Na ARQUIVEI como RevOps, qual ferramenta de BI você usava para dashboards de receita recorrente?")
 
 ---
 
-⏸️ **Aguardando suas respostas.** Digite as respostas no chat, ou responda **"não tenho"**, **"pular"** ou **"próxima"** se quiser avançar sem preencher esta experiência.
+### 📋 FORMATO DE COLETA (conversacional)
 
-Após coletar dados de todas as experiências relevantes (máximo 3-4), pediremos aprovação antes de reescrever o CV.
+Para CADA experiência profissional no CV, faça o seguinte:
+
+1. **Mostre o que está no CV atual** para essa experiência (empresa, cargo, período, descrição)
+
+2. **Analise o que falta ou está fraco** em relação ao cargo-alvo **{cargo}**
+   - Faltam métricas?
+   - Faltam ferramentas específicas?
+   - O cargo poderia ter nomenclatura melhor para ATS?
+   - A descrição está passiva ou ativa?
+
+3. **Faça 2-4 perguntas ESPECÍFICAS** ao candidato, correlacionadas ao cargo **{cargo}**
+   - Pergunte sobre volume, impacto, ferramentas, resultados
+   - Pense em trigger words que RH procura neste cargo
+   - Seja direto e objetivo
+
+4. **Sugira melhoria de nomenclatura** se o cargo atual for genérico
+
+---
+
+### 💡 EXEMPLOS DE PERGUNTAS CONTEXTUAIS (não genéricas):
+
+**Cargo Alvo: Gerente de Revenue Operations**
+- "Na ARQUIVEI como RevOps Manager, qual ferramenta de BI você usava para gerar dashboards de receita? (Tableau, Power BI, Looker?)"
+- "Qual era o volume de receita recorrente (ARR) que você gerenciava?"
+- "Você implementou alguma automação? Se sim, qual foi o impacto em tempo/eficiência?"
+
+**Cargo Alvo: Product Manager**
+- "Quantos produtos/features você lançou durante esse período?"
+- "Qual metodologia ágil você usava? (Scrum, Kanban, outro?)"
+- "Qual foi o impacto mensurável nos KPIs do produto? (adoção, retenção, revenue)"
+
+**Cargo Alvo: Engenheiro de Dados**
+- "Qual stack de tecnologias você usava? (Python, Spark, Airflow, DBT?)"
+- "Qual era o volume de dados processado? (GB/TB por dia?)"
+- "Você otimizou algum pipeline? Qual foi a melhoria em performance?"
+
+---
+
+**CV DO CANDIDATO:**
+
+{cv_texto}
+
+---
+
+⏭️ **COMECE AGORA:** Identifique a primeira experiência profissional relevante no CV e faça as perguntas contextuais.
+
+⏸️ **Aguardando suas perguntas para a primeira experiência...**
 """

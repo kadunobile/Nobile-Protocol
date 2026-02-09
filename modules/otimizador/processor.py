@@ -7,7 +7,7 @@ from modules.otimizador.etapa5_validacao import prompt_etapa5
 from modules.otimizador.etapa6_arquivo import prompt_etapa6
 from modules.otimizador.etapa7_exportacao import prompt_etapa7
 # Novas etapas do fluxo otimizado
-from modules.otimizador.etapa0_diagnostico import prompt_etapa0_diagnostico
+from modules.otimizador.etapa0_diagnostico import prompt_etapa0_diagnostico, prompt_etapa0_diagnostico_gap_individual
 from modules.otimizador.etapa1_coleta_focada import prompt_etapa1_coleta_focada
 from modules.otimizador.checkpoint_validacao import prompt_checkpoint_validacao
 from modules.otimizador.etapa2_reescrita_progressiva import prompt_etapa2_reescrita_progressiva, prompt_etapa2_reescrita_final
@@ -17,6 +17,67 @@ import streamlit as st
 # Configuration constants
 DEFAULT_MAX_EXPERIENCES = 3  # Default number of experiences to optimize
 
+# Keywords que indicam que o usuário não tem experiência com um gap
+NEGATIVE_RESPONSE_KEYWORDS = [
+    'não tenho', 'nao tenho', 'não', 'nao', 
+    'não sei', 'nao sei', 'nunca', 'jamais'
+]
+
+
+def gerar_resumo_diagnostico():
+    """
+    Gera resumo do diagnóstico após coletar respostas de todos os gaps.
+    
+    Returns:
+        str: Resumo formatado do diagnóstico
+    """
+    gaps_respostas = st.session_state.get('gaps_respostas', {})
+    cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+    
+    gaps_com_experiencia = {gap: info for gap, info in gaps_respostas.items() if info.get('tem_experiencia')}
+    gaps_sem_experiencia = {gap: info for gap, info in gaps_respostas.items() if not info.get('tem_experiencia')}
+    
+    resumo = f"""### 📋 RESUMO DO DIAGNÓSTICO
+
+**CARGO-ALVO:** {cargo}
+
+---
+
+"""
+    
+    if gaps_com_experiencia:
+        resumo += """#### ✅ Gaps que você TEM experiência:
+
+"""
+        for gap, info in gaps_com_experiencia.items():
+            resumo += f"""**{gap}**
+📝 Sua resposta: _{info['resposta']}_
+
+"""
+    
+    if gaps_sem_experiencia:
+        resumo += """
+#### ❌ Gaps que você NÃO tem experiência:
+
+"""
+        for gap in gaps_sem_experiencia.keys():
+            resumo += f"- {gap}\n"
+    
+    resumo += """
+---
+
+### 🎯 Próximos Passos
+
+Agora vamos coletar dados adicionais sobre suas experiências profissionais para otimizar seu CV e destacar as competências que você JÁ TEM!
+
+"""
+    
+    # Salvar contagem de gaps resolvidos para uso posterior
+    st.session_state.gaps_resolviveis_count = len(gaps_com_experiencia)
+    st.session_state.gaps_nao_resolviveis_count = len(gaps_sem_experiencia)
+    
+    return resumo
+
 
 def processar_modulo_otimizador(prompt):
     cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
@@ -24,15 +85,70 @@ def processar_modulo_otimizador(prompt):
     
     # ========== NOVO FLUXO OTIMIZADO ==========
     
-    # ETAPA 0: DIAGNÓSTICO
+    # ETAPA 0: DIAGNÓSTICO (introdução)
     if etapa == 'ETAPA_0_DIAGNOSTICO':
         return prompt_etapa0_diagnostico()
     
-    if etapa == 'AGUARDANDO_OK_DIAGNOSTICO':
-        if any(word in prompt.lower() for word in ['ok', 'continuar', 'sim', 'perfeito', 'aprovar', 'vamos']):
-            st.session_state.etapa_modulo = 'ETAPA_1_COLETA_FOCADA'
-            return prompt_etapa1_coleta_focada()
+    # ETAPA 0: PERGUNTAR SOBRE CADA GAP INDIVIDUALMENTE
+    if etapa == 'AGUARDANDO_INICIO_GAPS':
+        # Usuário leu a introdução, vamos começar com o primeiro gap
+        st.session_state.gap_atual_index = 0
+        st.session_state.etapa_modulo = 'ETAPA_0_GAP_INDIVIDUAL'
+        return prompt_etapa0_diagnostico_gap_individual(0)
+    
+    if etapa == 'ETAPA_0_GAP_INDIVIDUAL':
+        # Perguntar sobre o gap atual
+        gap_index = st.session_state.get('gap_atual_index', 0)
+        return prompt_etapa0_diagnostico_gap_individual(gap_index)
+    
+    if etapa == 'AGUARDANDO_RESPOSTA_GAP':
+        # Processar resposta do usuário sobre o gap atual
+        gap_index = st.session_state.get('gap_atual_index', 0)
+        gaps = st.session_state.get('gaps_alvo', [])
+        
+        if gap_index < len(gaps):
+            gap = gaps[gap_index]
+            
+            # Inicializar dicionário de respostas se não existir
+            if 'gaps_respostas' not in st.session_state:
+                st.session_state.gaps_respostas = {}
+            
+            # Verificar se usuário disse que não tem experiência
+            if any(word in prompt.lower() for word in NEGATIVE_RESPONSE_KEYWORDS):
+                # Usuário não tem experiência com este gap
+                st.session_state.gaps_respostas[gap] = {
+                    'tem_experiencia': False,
+                    'resposta': None
+                }
+            else:
+                # Usuário tem experiência - salvar resposta
+                st.session_state.gaps_respostas[gap] = {
+                    'tem_experiencia': True,
+                    'resposta': prompt
+                }
+            
+            # Avançar para o próximo gap
+            st.session_state.gap_atual_index = gap_index + 1
+            
+            # Verificar se há mais gaps
+            if st.session_state.gap_atual_index < len(gaps):
+                # Continuar com o próximo gap
+                st.session_state.etapa_modulo = 'ETAPA_0_GAP_INDIVIDUAL'
+                return prompt_etapa0_diagnostico_gap_individual(st.session_state.gap_atual_index)
+            else:
+                # Todos os gaps foram processados - ir para resumo
+                st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
+                return gerar_resumo_diagnostico()
+        
         return None
+    
+    if etapa == 'ETAPA_0_DIAGNOSTICO_RESUMO':
+        return gerar_resumo_diagnostico()
+    
+    if etapa == 'AGUARDANDO_OK_DIAGNOSTICO':
+        # Usuário confirmou o resumo - avançar para coleta
+        st.session_state.etapa_modulo = 'ETAPA_1_COLETA_FOCADA'
+        return prompt_etapa1_coleta_focada()
     
     # ETAPA 1: COLETA FOCADA
     if etapa == 'ETAPA_1_COLETA_FOCADA':
