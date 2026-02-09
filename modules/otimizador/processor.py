@@ -13,6 +13,9 @@ from modules.otimizador.checkpoint_validacao import prompt_checkpoint_validacao
 from modules.otimizador.etapa2_reescrita_progressiva import prompt_etapa2_reescrita_progressiva, prompt_etapa2_reescrita_final
 from modules.otimizador.etapa6_otimizacao_linkedin import prompt_etapa6_otimizacao_linkedin
 import streamlit as st
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Defensive import for cv_estruturado - provide fallbacks if module has issues
 try:
@@ -125,42 +128,48 @@ def processar_modulo_otimizador(prompt):
     
     if etapa == 'AGUARDANDO_RESPOSTA_GAP':
         # Processar resposta do usuário sobre o gap atual
-        gap_index = st.session_state.get('gap_atual_index', 0)
-        gaps = st.session_state.get('gaps_alvo', [])
-        
-        if gap_index < len(gaps):
-            gap = gaps[gap_index]
+        try:
+            gap_index = st.session_state.get('gap_atual_index', 0)
+            gaps = st.session_state.get('gaps_alvo', [])
             
-            # Inicializar dicionário de respostas se não existir
-            if 'gaps_respostas' not in st.session_state:
-                st.session_state.gaps_respostas = {}
-            
-            # Verificar se usuário disse que não tem experiência
-            if any(word in prompt.lower() for word in NEGATIVE_RESPONSE_KEYWORDS):
-                # Usuário não tem experiência com este gap
-                st.session_state.gaps_respostas[gap] = {
-                    'tem_experiencia': False,
-                    'resposta': None
-                }
-            else:
-                # Usuário tem experiência - salvar resposta
-                st.session_state.gaps_respostas[gap] = {
-                    'tem_experiencia': True,
-                    'resposta': prompt
-                }
-            
-            # Avançar para o próximo gap
-            st.session_state.gap_atual_index = gap_index + 1
-            
-            # Verificar se há mais gaps
-            if st.session_state.gap_atual_index < len(gaps):
-                # Continuar com o próximo gap
-                st.session_state.etapa_modulo = 'ETAPA_0_GAP_INDIVIDUAL'
-                return prompt_etapa0_diagnostico_gap_individual(st.session_state.gap_atual_index)
-            else:
-                # Todos os gaps foram processados - ir para resumo
-                st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
-                return gerar_resumo_diagnostico()
+            if gap_index < len(gaps):
+                gap = gaps[gap_index]
+                
+                # Inicializar dicionário de respostas se não existir
+                if 'gaps_respostas' not in st.session_state:
+                    st.session_state.gaps_respostas = {}
+                
+                # Verificar se usuário disse que não tem experiência
+                if any(word in prompt.lower() for word in NEGATIVE_RESPONSE_KEYWORDS):
+                    # Usuário não tem experiência com este gap
+                    st.session_state.gaps_respostas[gap] = {
+                        'tem_experiencia': False,
+                        'resposta': None
+                    }
+                else:
+                    # Usuário tem experiência - salvar resposta
+                    st.session_state.gaps_respostas[gap] = {
+                        'tem_experiencia': True,
+                        'resposta': prompt
+                    }
+                
+                # Avançar para o próximo gap
+                st.session_state.gap_atual_index = gap_index + 1
+                
+                # Verificar se há mais gaps
+                if st.session_state.gap_atual_index < len(gaps):
+                    # Continuar com o próximo gap
+                    st.session_state.etapa_modulo = 'ETAPA_0_GAP_INDIVIDUAL'
+                    return prompt_etapa0_diagnostico_gap_individual(st.session_state.gap_atual_index)
+                else:
+                    # Todos os gaps foram processados - ir para resumo
+                    st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
+                    return gerar_resumo_diagnostico()
+        except Exception as e:
+            logger.error(f"Erro ao processar resposta de gap: {e}", exc_info=True)
+            # Tentar recuperar indo para resumo
+            st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
+            return gerar_resumo_diagnostico()
         
         return None
     
@@ -204,40 +213,51 @@ def processar_modulo_otimizador(prompt):
         # CRITICAL FIX: Aceitar QUALQUER resposta do usuário como dados coletados
         # não apenas keywords específicas
         
-        # Inicializar histórico se não existir
-        if 'dados_coleta_historico' not in st.session_state:
-            st.session_state.dados_coleta_historico = []
-        if 'dados_coleta_count' not in st.session_state:
-            st.session_state.dados_coleta_count = 0
-        
-        # Verificar se usuário quer avançar explicitamente
-        palavras_avanco = ['continuar', 'pronto', 'concluído', 'concluido', 'finalizado',
-                          'próxima', 'proxima', 'próximo', 'proximo', 'avançar', 'avancar']
-        
-        if any(word in prompt.lower() for word in palavras_avanco):
-            # Usuário quer avançar - salvar dados e ir para validação
-            st.session_state.dados_coletados = {
-                'raw_response': prompt,
-                'historico': st.session_state.dados_coleta_historico,
-                'total_respostas': st.session_state.dados_coleta_count
-            }
-            # Salvar na estrutura de CV
-            salvar_dados_coleta(st.session_state.dados_coletados)
-            st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'
-            return prompt_checkpoint_validacao()
-        
-        # Se não for comando de avançar, SALVAR a resposta como dado coletado
-        # e permitir que o chat continue normalmente para mais perguntas
-        if len(prompt.strip()) > MIN_RESPONSE_LENGTH:  # Resposta com conteúdo substantivo
-            st.session_state.dados_coleta_historico.append(prompt)
-            st.session_state.dados_coleta_count += 1
+        try:
+            # Inicializar histórico se não existir
+            if 'dados_coleta_historico' not in st.session_state:
+                st.session_state.dados_coleta_historico = []
+            if 'dados_coleta_count' not in st.session_state:
+                st.session_state.dados_coleta_count = 0
             
-            # Salvar incrementalmente na estrutura
-            salvar_dados_coleta({'raw_response': prompt})
+            # Verificar se usuário quer avançar explicitamente
+            palavras_avanco = ['continuar', 'pronto', 'concluído', 'concluido', 'finalizado',
+                              'próxima', 'proxima', 'próximo', 'proximo', 'avançar', 'avancar']
             
-            # Se já coletou 3+ respostas, permitir avançar mas NÃO forçar
-            # O usuário ainda pode continuar respondendo ou digitar "continuar"
-            # Retornar None para que a LLM continue a conversação naturalmente
+            if any(word in prompt.lower() for word in palavras_avanco):
+                # Usuário quer avançar - salvar dados e ir para validação
+                st.session_state.dados_coletados = {
+                    'raw_response': prompt,
+                    'historico': st.session_state.dados_coleta_historico,
+                    'total_respostas': st.session_state.dados_coleta_count
+                }
+                # Salvar na estrutura de CV
+                try:
+                    salvar_dados_coleta(st.session_state.dados_coletados)
+                except Exception as e:
+                    logger.warning(f"Erro ao salvar dados coletados: {e}")
+                st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'
+                return prompt_checkpoint_validacao()
+            
+            # Se não for comando de avançar, SALVAR a resposta como dado coletado
+            # e permitir que o chat continue normalmente para mais perguntas
+            if len(prompt.strip()) > MIN_RESPONSE_LENGTH:  # Resposta com conteúdo substantivo
+                st.session_state.dados_coleta_historico.append(prompt)
+                st.session_state.dados_coleta_count += 1
+                
+                # Salvar incrementalmente na estrutura
+                try:
+                    salvar_dados_coleta({'raw_response': prompt})
+                except Exception as e:
+                    logger.warning(f"Erro ao salvar dados incrementais: {e}")
+                
+                # Se já coletou 3+ respostas, permitir avançar mas NÃO forçar
+                # O usuário ainda pode continuar respondendo ou digitar "continuar"
+                # Retornar None para que a LLM continue a conversação naturalmente
+        except Exception as e:
+            logger.error(f"Erro ao processar coleta de dados: {e}", exc_info=True)
+            # Tentar recuperar mantendo o fluxo
+            return None
         
         return None
     
