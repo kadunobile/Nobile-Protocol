@@ -211,13 +211,24 @@ def formatar_dados_salariais_para_prompt(dados: Optional[Dict]) -> str:
     teto = dados.get('teto', 0)
     fonte = dados.get('fonte', 'salario.com.br')
     
+    # Format numbers in Brazilian format (periods for thousands, comma for decimal)
+    def formatar_br(valor):
+        # Format with 2 decimals using , and .
+        texto = f"{valor:,.2f}"
+        # Swap: comma -> period (thousands), period -> comma (decimal)
+        return texto.replace(',', 'X').replace('.', ',').replace('X', '.')
+    
+    piso_br = formatar_br(piso)
+    media_br = formatar_br(media)
+    teto_br = formatar_br(teto)
+    
     return f"""
 DADOS SALARIAIS REAIS DO MERCADO (fonte: {fonte}):
-- Piso: R$ {piso:,.2f}
-- Média: R$ {media:,.2f}
-- Teto: R$ {teto:,.2f}
+- Piso: R$ {piso_br}
+- Média: R$ {media_br}
+- Teto: R$ {teto_br}
 
 Use ESTES dados como base para a análise salarial na tabela de percentis.
 NÃO invente outros valores - base sua análise nestes dados oficiais.
 Se os dados acima não estiverem disponíveis, informe "Dados salariais não disponíveis para este cargo" na seção de análise salarial.
-""".replace(',', 'X').replace('.', ',').replace('X', '.')  # Convert to BR format
+"""
