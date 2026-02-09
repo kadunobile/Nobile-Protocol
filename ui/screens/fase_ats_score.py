@@ -23,7 +23,10 @@ def fase_ats_score():
     - Recomendações de melhoria
     - Opções de navegação
     """
-    st.markdown("# 🤖 Análise ATS - Applicant Tracking System")
+    # Obter cargo alvo para o título
+    cargo = st.session_state.perfil.get('cargo_alvo', 'Cargo Geral')
+    
+    st.markdown(f"# 🤖 Análise de Compatibilidade ATS — {cargo}")
     st.markdown("---")
     
     st.info("""
@@ -48,9 +51,6 @@ def fase_ats_score():
             st.session_state.fase = 'FASE_0_UPLOAD'
             st.rerun()
         return
-    
-    # Obter cargo alvo
-    cargo = st.session_state.perfil.get('cargo_alvo', 'Cargo Geral')
     
     logger.info(f"Calculando score ATS para cargo: {cargo}")
     
@@ -162,22 +162,24 @@ def fase_ats_score():
         st.markdown("")
     
     if is_llm_analysis and resultado.get('gaps_identificados'):
-        st.markdown("### ❌ Skills Faltantes")
+        st.markdown(f"### ❌ Skills que FALTAM no seu CV (exigidas para {cargo})")
         gaps = resultado.get('gaps_identificados', [])
         if gaps:
             for termo in gaps[:10]:
                 st.markdown(f"<span style='background:#4a1a1a; color:#f87171; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block; margin:4px;'>❌ {termo}</span>", unsafe_allow_html=True)
         st.markdown("")
     
-    # ── Transparência: Skills NÃO consideradas gaps ──
-    if is_llm_analysis and resultado.get('gaps_falsos_ignorados'):
+    # ── Transparência: Skills NÃO consideradas gaps (SEMPRE VISÍVEL) ──
+    if is_llm_analysis:
         gaps_falsos = resultado.get('gaps_falsos_ignorados', [])
-        if gaps_falsos:
-            with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
+        with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
+            if gaps_falsos:
                 st.caption("Estas skills foram analisadas mas **descartadas** como gaps:")
                 for item in gaps_falsos[:8]:
                     st.markdown(f"- 🟡 {item}")
-            st.markdown("")
+            else:
+                st.caption(f"Nenhuma skill descartada como gap para este cargo.")
+        st.markdown("")
     
     st.markdown("---")
     
