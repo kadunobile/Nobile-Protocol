@@ -257,21 +257,41 @@ def _renderizar_ats(resultado_ats):
                 st.markdown(f"<span style='background:#1a472a; color:#4ade80; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block;'>✅ {termo}</span>", unsafe_allow_html=True)
         st.markdown("")
 
-    # ── Skills que faltam ──
+    # ── Skills que faltam (DETALHADO) ──
     if gaps:
+        perfil = st.session_state.get('perfil', {})
+        cargo = perfil.get('cargo_alvo', 'o cargo')
         st.markdown("**❌ Skills que FALTAM no seu CV (exigidas para o cargo):**")
-        cols_gaps = st.columns(min(len(gaps), 4))
+        st.markdown("")
         for i, termo in enumerate(gaps[:10]):
-            with cols_gaps[i % min(len(gaps), 4)]:
-                st.markdown(f"<span style='background:#4a1a1a; color:#f87171; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block;'>❌ {termo}</span>", unsafe_allow_html=True)
+            # Extrair nome do gap (pode ser string simples ou dict)
+            nome_gap = termo if isinstance(termo, str) else termo.get('nome', str(termo))
+            st.markdown(f"""
+<div style="background:#2a1a1a; border-left:3px solid #f87171; padding:10px 14px; border-radius:6px; margin:6px 0;">
+    <div style="color:#f87171; font-weight:bold; font-size:0.95rem;">❌ {nome_gap}</div>
+    <div style="color:#ccc; font-size:0.82rem; margin-top:4px;">
+        📌 Skill exigida para <strong>{cargo}</strong> — não encontrada no seu CV atual
+    </div>
+</div>
+""", unsafe_allow_html=True)
         st.markdown("")
     
-    # ── v5.0: Transparência - Skills NÃO consideradas gaps ──
+    # ── Transparência - Skills DESCARTADAS como gaps (VISÍVEL) ──
     if gaps_falsos:
-        with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
-            st.caption("Estas skills foram analisadas mas **descartadas** como gaps:")
-            for item in gaps_falsos[:8]:
-                st.markdown(f"- 🟡 {item}")
+        st.markdown("**🔍 Transparência — Skills analisadas e DESCARTADAS como gaps:**")
+        st.caption("Nosso algoritmo analisou estas skills mas seu CV já as cobre adequadamente:")
+        st.markdown("")
+        
+        # Renderizar como badges amarelos inline
+        badges_html = ""
+        for item in gaps_falsos[:8]:
+            nome = item if isinstance(item, str) else item.get('nome', str(item))
+            badges_html += (
+                f"<span style='background:#3a3a1a; color:#facc15; padding:5px 12px; "
+                f"border-radius:20px; font-size:0.85rem; display:inline-block; margin:4px;'>"
+                f"🟡 {nome}</span>"
+            )
+        st.markdown(badges_html, unsafe_allow_html=True)
         st.markdown("")
 
     # ── Plano de ação ──
