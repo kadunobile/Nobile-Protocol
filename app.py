@@ -1,6 +1,8 @@
 import streamlit as st
 from core.config import setup_environment
 from core.state import inicializar_session_state
+from core.auth import is_authenticated, render_login_page, get_api_key
+from core.utils import inicializar_cliente_openai
 from ui.sidebar import renderizar_sidebar
 from ui.screens.fase0_intro import fase_0_intro
 from ui.screens.fase0_upload import fase_0_upload
@@ -150,6 +152,17 @@ def inject_custom_css():
 def main():
     inject_custom_css()
     inicializar_session_state()
+    
+    # ── Autenticação ──
+    if not is_authenticated():
+        render_login_page()
+        return
+    
+    # ── Inicializar cliente OpenAI automaticamente ──
+    if not st.session_state.openai_client:
+        api_key = get_api_key()
+        if api_key:
+            st.session_state.openai_client = inicializar_cliente_openai(api_key)
 
     if st.session_state.fase not in ['FASE_0_INTRO', 'FASE_0_UPLOAD']:
         renderizar_sidebar()

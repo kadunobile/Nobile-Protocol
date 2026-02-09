@@ -1,10 +1,16 @@
 import streamlit as st
 from core.prompts import SYSTEM_PROMPT
 from core.utils import chamar_gpt
+from core.auth import logout
 
 def renderizar_sidebar():
     with st.sidebar:
         st.markdown("# 🎯 Protocolo Nóbile")
+        
+        # ── Usuário Logado ──
+        if st.session_state.get('user'):
+            st.caption(f"👤 {st.session_state.get('user')}")
+        
         st.markdown("---")
 
         if st.session_state.perfil.get('cargo_alvo'):
@@ -152,6 +158,12 @@ Etapa 2: Simulação STAR com 5 perguntas difíceis + respostas modelo"""}
             st.warning("⚠️ Complete o briefing para desbloquear")
 
         st.markdown("---")
+        
+        # ── Logout ──
+        if st.button("🚪 Sair", type="secondary", use_container_width=True):
+            logout()
+            st.rerun()
+        
         if st.button("🔄 Reiniciar Tudo", type="secondary", use_container_width=True):
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
