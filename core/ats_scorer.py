@@ -360,7 +360,7 @@ def _analisar_com_llm(
     if objetivo:
         system_prompt += f"\n**TIPO DE MOVIMENTAÇÃO: {objetivo}**\n\n"
         
-        if objetivo == "Promoção Interna" or "promoção" in objetivo.lower():
+        if objetivo == "Promoção Interna" or (objetivo and "promoção" in objetivo.lower()):
             system_prompt += (
                 "⚠️ ANÁLISE DE PROMOÇÃO:\n"
                 "- Score MAIS RIGOROSO: candidato busca nível hierárquico superior\n"
@@ -371,7 +371,7 @@ def _analisar_com_llm(
                 "gaps DEVEM incluir visão estratégica, transformação organizacional, board-level communication\n"
                 "- Peso MAIOR para competências de liderança e gestão estratégica\n\n"
             )
-        elif objetivo == "Transição de Carreira" or "transição" in objetivo.lower():
+        elif objetivo == "Transição de Carreira" or (objetivo and "transição" in objetivo.lower()):
             system_prompt += (
                 "⚠️ ANÁLISE DE TRANSIÇÃO:\n"
                 "- DESTAQUE transferable skills: habilidades que aplicam ao novo campo\n"
@@ -380,7 +380,7 @@ def _analisar_com_llm(
                 "- Identifique certificações/cursos que facilitam a transição\n"
                 "- Score: não penalize excessivamente a falta de experiência direta se há skills transferíveis\n\n"
             )
-        elif objetivo == "Trabalho Internacional" or "internacional" in objetivo.lower():
+        elif objetivo == "Trabalho Internacional" or (objetivo and "internacional" in objetivo.lower()):
             system_prompt += (
                 "⚠️ ANÁLISE INTERNACIONAL:\n"
                 "- Gaps DEVEM incluir requisitos internacionais:\n"
