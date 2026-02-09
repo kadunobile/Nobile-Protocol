@@ -9,6 +9,7 @@ import streamlit as st
 import logging
 from core.ats_scorer import calcular_score_ats
 from core.utils import forcar_topo
+from core.ats_constants import SKILL_DESCRIPTIONS
 
 logger = logging.getLogger(__name__)
 
@@ -108,23 +109,54 @@ def fase_bridge_otimizacao():
     with col_gap:
         st.markdown(f"### ❌ Skills que FALTAM (exigidas para {cargo})")
         if gaps:
+            # Criar lookup eficiente (lowercase)
+            skill_descriptions_lower = {k.lower(): v for k, v in SKILL_DESCRIPTIONS.items()}
+            
             for termo in gaps[:6]:
-                st.markdown(f"- ❌ **{termo}**")
+                # Extrair nome do gap (pode ser string simples ou dict)
+                nome_gap = termo if isinstance(termo, str) else termo.get('nome', str(termo))
+                
+                # Buscar descrição da skill (O(1) lookup)
+                descricao = skill_descriptions_lower.get(nome_gap.lower())
+                
+                # Renderizar com ou sem descrição
+                if descricao:
+                    st.markdown(f"""
+<div style="background:#2a1a1a; border-left:3px solid #f87171; padding:8px 12px; border-radius:6px; margin:4px 0;">
+    <div style="color:#f87171; font-weight:bold; font-size:0.9rem;">❌ {nome_gap}</div>
+    <div style="color:#888; font-size:0.75rem; margin-top:3px;">ℹ️ {descricao}</div>
+</div>
+""", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"- ❌ **{nome_gap}**")
         else:
             st.success("Nenhum gap crítico identificado!")
 
     # Salvar gaps para uso no otimizador
     st.session_state.gaps_alvo = gaps
 
+    st.markdown("")
+    
     # ── Seção de Transparência v5.0: Skills NÃO consideradas gaps (SEMPRE VISÍVEL) ──
     gaps_falsos = ats_resultado.get('gaps_falsos_ignorados', [])
-    with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
-        if gaps_falsos:
-            st.caption(f"Estas skills foram analisadas mas **descartadas** como gaps para {cargo}:")
-            for item in gaps_falsos[:8]:
-                st.markdown(f"- 🟡 {item}")
-        else:
-            st.caption(f"Nenhuma skill descartada como gap para este cargo.")
+    st.markdown("**🔍 Transparência — Skills analisadas e DESCARTADAS como gaps:**")
+    if gaps_falsos:
+        st.caption(f"Estas skills foram analisadas mas **descartadas** como gaps para {cargo}:")
+        st.markdown("")
+        
+        # Renderizar como badges amarelos inline (estilo consistente)
+        badges_html = ""
+        for item in gaps_falsos[:8]:
+            nome = item if isinstance(item, str) else item.get('nome', str(item))
+            badges_html += (
+                f"<span style='background:#3a3a1a; color:#facc15; padding:5px 12px; "
+                f"border-radius:20px; font-size:0.85rem; display:inline-block; margin:4px;'>"
+                f"🟡 {nome}</span>"
+            )
+        st.markdown(badges_html, unsafe_allow_html=True)
+    else:
+        st.caption(f"Nenhuma skill descartada como gap para este cargo.")
+    st.markdown("")
 
     # ── Arquétipo e Método v5.0 ──
     arquetipo = ats_resultado.get('arquetipo_cargo', 'N/A')

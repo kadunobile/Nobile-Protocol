@@ -1,6 +1,7 @@
 import streamlit as st
 from core.utils import scroll_topo
 from core.ats_scorer import calcular_score_ats, extrair_cargo_do_cv
+from core.ats_constants import SKILL_DESCRIPTIONS
 
 CARGO_FALLBACK = "Profissional"
 
@@ -15,7 +16,10 @@ def limpar_cache_ats():
 def fase_1_diagnostico():
     scroll_topo()
     
-    st.markdown("# 🔍 Diagnóstico do Perfil")
+    # ─── Extrair cargo para o título ───
+    cargo_atual = st.session_state.get('cargo_atual', CARGO_FALLBACK)
+    
+    st.markdown(f"# 🔍 Diagnóstico do Perfil — {cargo_atual}")
     st.markdown("---")
     
     # ─── Calcular ATS (apenas uma vez) ───
@@ -96,21 +100,56 @@ def fase_1_diagnostico():
         st.markdown(tags_html, unsafe_allow_html=True)
         st.markdown("")
     
-    # ─── Gaps ───
+    # ─── Gaps com Descrições ───
     gaps = resultado.get('gaps_identificados', [])
     if gaps:
-        st.markdown("### 🚫 Gaps Identificados")
+        st.markdown(f"### ❌ Skills que FALTAM no seu CV (exigidas para {cargo_atual})")
         st.markdown(
             "Termos importantes para o cargo que **não aparecem** no seu perfil:"
         )
-        tags_html = " ".join(
-            f'<span style="background: rgba(231,76,60,0.15); color: #e74c3c; '
-            f'padding: 4px 12px; border-radius: 20px; margin: 4px; '
-            f'display: inline-block; font-size: 0.9rem; text-transform: uppercase;">{termo}</span>'
-            for termo in gaps[:8]
-        )
-        st.markdown(tags_html, unsafe_allow_html=True)
         st.markdown("")
+        
+        # Criar lookup eficiente (lowercase)
+        skill_descriptions_lower = {k.lower(): v for k, v in SKILL_DESCRIPTIONS.items()}
+        
+        for termo in gaps[:8]:
+            # Extrair nome do gap (pode ser string simples ou dict)
+            nome_gap = termo if isinstance(termo, str) else termo.get('nome', str(termo))
+            
+            # Buscar descrição da skill (O(1) lookup)
+            descricao = skill_descriptions_lower.get(nome_gap.lower())
+            
+            st.markdown(f"""
+<div style="background:#2a1a1a; border-left:3px solid #e74c3c; padding:10px 14px; border-radius:6px; margin:6px 0;">
+    <div style="color:#e74c3c; font-weight:bold; font-size:0.95rem;">❌ {nome_gap}</div>
+    <div style="color:#ccc; font-size:0.82rem; margin-top:4px;">
+        📌 Skill exigida para <strong>{cargo_atual}</strong> — não encontrada no seu CV atual
+    </div>
+    {f'<div style="color:#888; font-size:0.8rem; margin-top:6px; padding-top:6px; border-top:1px solid #333;">ℹ️ <strong>O que é:</strong> {descricao}</div>' if descricao else ''}
+</div>
+""", unsafe_allow_html=True)
+        st.markdown("")
+    
+    # ─── Transparência: Skills NÃO consideradas gaps (SEMPRE VISÍVEL) ───
+    gaps_falsos = resultado.get('gaps_falsos_ignorados', [])
+    st.markdown("**🔍 Transparência — Skills analisadas e DESCARTADAS como gaps:**")
+    if gaps_falsos:
+        st.caption("Nosso algoritmo analisou estas skills mas seu CV já as cobre adequadamente:")
+        st.markdown("")
+        
+        # Renderizar como badges amarelos inline
+        badges_html = ""
+        for item in gaps_falsos[:8]:
+            nome = item if isinstance(item, str) else item.get('nome', str(item))
+            badges_html += (
+                f"<span style='background:#3a3a1a; color:#facc15; padding:5px 12px; "
+                f"border-radius:20px; font-size:0.85rem; display:inline-block; margin:4px;'>"
+                f"🟡 {nome}</span>"
+            )
+        st.markdown(badges_html, unsafe_allow_html=True)
+    else:
+        st.caption(f"Nenhuma skill descartada como gap para este cargo.")
+    st.markdown("")
     
     # ─── Plano de Ação ───
     plano = resultado.get('plano_acao', [])
