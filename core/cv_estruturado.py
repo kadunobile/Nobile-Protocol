@@ -209,16 +209,22 @@ def gerar_contexto_para_prompt() -> str:
     
     # Posicionamento
     pos = cv_est.get('posicionamento', {})
+    posicionamento_adicionado = False
     if pos.get('cargo_alvo'):
         contexto += f"**CARGO-ALVO:** {pos['cargo_alvo']}\n"
+        posicionamento_adicionado = True
     if pos.get('estrategia'):
         contexto += f"**ESTRATÉGIA:** {pos['estrategia']}\n"
+        posicionamento_adicionado = True
     if pos.get('senioridade_real'):
         contexto += f"**SENIORIDADE:** {pos['senioridade_real']}\n"
+        posicionamento_adicionado = True
     if pos.get('diferencial'):
         contexto += f"**DIFERENCIAL:** {pos['diferencial']}\n"
+        posicionamento_adicionado = True
     
-    contexto += "\n"
+    if posicionamento_adicionado:
+        contexto += "\n"
     
     # Gaps
     gaps = cv_est.get('gaps', {})
