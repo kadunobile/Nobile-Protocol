@@ -129,61 +129,86 @@ def fase_validacao_score_ats():
     st.markdown("---")
     st.markdown("## 📋 Breakdown por Categoria")
     
-    detalhes_inicial = score_inicial['detalhes']
-    detalhes_final = score_final['detalhes']
+    detalhes_inicial = score_inicial.get('detalhes', {})
+    detalhes_final = score_final.get('detalhes', {})
     
-    # Seções
-    with st.expander("📑 Seções do CV", expanded=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Antes", f"{detalhes_inicial['secoes']['encontradas']}/{detalhes_inicial['secoes']['total']}")
-        with col2:
-            delta = detalhes_final['secoes']['encontradas'] - detalhes_inicial['secoes']['encontradas']
-            st.metric("Depois", f"{detalhes_final['secoes']['encontradas']}/{detalhes_final['secoes']['total']}", delta=f"+{delta}" if delta > 0 else delta)
+    # Verificar se é análise LLM
+    is_llm_inicial = detalhes_inicial.get('metodo', '').startswith('LLM')
+    is_llm_final = detalhes_final.get('metodo', '').startswith('LLM')
     
-    # Keywords
-    with st.expander("🔑 Keywords Relevantes", expanded=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Antes", f"{detalhes_inicial['keywords']['encontradas']}/{detalhes_inicial['keywords']['total']}")
-        with col2:
-            delta = detalhes_final['keywords']['encontradas'] - detalhes_inicial['keywords']['encontradas']
-            st.metric("Depois", f"{detalhes_final['keywords']['encontradas']}/{detalhes_final['keywords']['total']}", delta=f"+{delta}" if delta > 0 else delta)
+    if is_llm_final or is_llm_inicial:
+        # Se pelo menos um é LLM, mostrar informação
+        st.info(
+            "✨ **Análise via LLM (Inteligência Artificial)**\n\n"
+            "A análise contextual não possui breakdown detalhado por categoria como o método TF-IDF. "
+            "A pontuação é baseada em análise semântica profunda que entende o contexto e "
+            "identifica habilidades específicas e gaps relevantes para o cargo."
+        )
+    else:
+        # Ambos são TF-IDF - mostrar breakdown detalhado
+        secoes_inicial = detalhes_inicial.get('secoes', {})
+        secoes_final = detalhes_final.get('secoes', {})
+        keywords_inicial = detalhes_inicial.get('keywords', {})
+        keywords_final = detalhes_final.get('keywords', {})
+        metricas_inicial = detalhes_inicial.get('metricas', {})
+        metricas_final = detalhes_final.get('metricas', {})
+        formatacao_inicial = detalhes_inicial.get('formatacao', {})
+        formatacao_final = detalhes_final.get('formatacao', {})
+        tamanho_inicial = detalhes_inicial.get('tamanho', {})
+        tamanho_final = detalhes_final.get('tamanho', {})
         
-        if delta > 0:
-            st.success(f"✅ {delta} novas keywords adicionadas!")
-    
-    # Métricas
-    with st.expander("📊 Métricas Quantificáveis", expanded=True):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Antes", f"{detalhes_inicial['metricas']['quantidade']} números")
-        with col2:
-            delta = detalhes_final['metricas']['quantidade'] - detalhes_inicial['metricas']['quantidade']
-            st.metric("Depois", f"{detalhes_final['metricas']['quantidade']} números", delta=f"+{delta}" if delta > 0 else delta)
+        # Seções
+        with st.expander("📑 Seções do CV", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Antes", f"{secoes_inicial.get('encontradas', 0)}/{secoes_inicial.get('total', 0)}")
+            with col2:
+                delta = secoes_final.get('encontradas', 0) - secoes_inicial.get('encontradas', 0)
+                st.metric("Depois", f"{secoes_final.get('encontradas', 0)}/{secoes_final.get('total', 0)}", delta=f"+{delta}" if delta > 0 else delta)
         
-        if delta > 0:
-            st.success(f"✅ {delta} novos dados quantificáveis adicionados!")
-    
-    # Formatação
-    with st.expander("✏️ Formatação"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Bullets (Antes)", detalhes_inicial['formatacao']['bullets'])
-            st.metric("Datas (Antes)", detalhes_inicial['formatacao']['datas'])
-        with col2:
-            st.metric("Bullets (Depois)", detalhes_final['formatacao']['bullets'])
-            st.metric("Datas (Depois)", detalhes_final['formatacao']['datas'])
-    
-    # Tamanho
-    with st.expander("📏 Tamanho do CV"):
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Antes", f"{detalhes_inicial['tamanho']['palavras']} palavras")
-        with col2:
-            delta = detalhes_final['tamanho']['palavras'] - detalhes_inicial['tamanho']['palavras']
-            st.metric("Depois", f"{detalhes_final['tamanho']['palavras']} palavras", delta=f"+{delta}" if delta > 0 else delta)
-        st.caption(f"Ideal: {detalhes_final['tamanho']['ideal']}")
+        # Keywords
+        with st.expander("🔑 Keywords Relevantes", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Antes", f"{keywords_inicial.get('encontradas', 0)}/{keywords_inicial.get('total', 0)}")
+            with col2:
+                delta = keywords_final.get('encontradas', 0) - keywords_inicial.get('encontradas', 0)
+                st.metric("Depois", f"{keywords_final.get('encontradas', 0)}/{keywords_final.get('total', 0)}", delta=f"+{delta}" if delta > 0 else delta)
+            
+            if delta > 0:
+                st.success(f"✅ {delta} novas keywords adicionadas!")
+        
+        # Métricas
+        with st.expander("📊 Métricas Quantificáveis", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Antes", f"{metricas_inicial.get('quantidade', 0)} números")
+            with col2:
+                delta = metricas_final.get('quantidade', 0) - metricas_inicial.get('quantidade', 0)
+                st.metric("Depois", f"{metricas_final.get('quantidade', 0)} números", delta=f"+{delta}" if delta > 0 else delta)
+            
+            if delta > 0:
+                st.success(f"✅ {delta} novos dados quantificáveis adicionados!")
+        
+        # Formatação
+        with st.expander("✏️ Formatação"):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Bullets (Antes)", formatacao_inicial.get('bullets', 0))
+                st.metric("Datas (Antes)", formatacao_inicial.get('datas', 0))
+            with col2:
+                st.metric("Bullets (Depois)", formatacao_final.get('bullets', 0))
+                st.metric("Datas (Depois)", formatacao_final.get('datas', 0))
+        
+        # Tamanho
+        with st.expander("📏 Tamanho do CV"):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Antes", f"{tamanho_inicial.get('palavras', 0)} palavras")
+            with col2:
+                delta = tamanho_final.get('palavras', 0) - tamanho_inicial.get('palavras', 0)
+                st.metric("Depois", f"{tamanho_final.get('palavras', 0)} palavras", delta=f"+{delta}" if delta > 0 else delta)
+            st.caption(f"Ideal: {tamanho_final.get('ideal', 'N/A')}")
     
     # Gaps resolvidos
     st.markdown("---")

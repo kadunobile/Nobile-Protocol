@@ -89,37 +89,65 @@ def fase_ats_score():
     
     detalhes = resultado['detalhes']
     
-    # 1. Seções Essenciais
-    st.markdown(f"**1. Seções Essenciais:** {detalhes['secoes']['score']:.1f}/20 pontos")
-    st.progress(detalhes['secoes']['score'] / 20)
-    st.caption(f"✅ Encontradas: {detalhes['secoes']['encontradas']}/{detalhes['secoes']['total']}")
-    st.markdown("")  # Espaço
+    # Verificar se é análise LLM (não tem breakdown detalhado)
+    is_llm_analysis = detalhes.get('metodo', '').startswith('LLM')
     
-    # 2. Palavras-Chave
-    st.markdown(f"**2. Palavras-Chave:** {detalhes['keywords']['score']:.1f}/30 pontos")
-    st.progress(detalhes['keywords']['score'] / 30)
-    st.caption(f"📍 Encontradas: {detalhes['keywords']['encontradas']}/{detalhes['keywords']['total']}")
-    if detalhes['keywords']['faltando']:
-        faltando_str = ', '.join(detalhes['keywords']['faltando'][:5])
-        st.caption(f"⚠️ Faltam: {faltando_str}")
-    st.markdown("")
-    
-    # 3. Métricas Quantificáveis
-    st.markdown(f"**3. Métricas Quantificáveis:** {detalhes['metricas']['score']:.1f}/20 pontos")
-    st.progress(detalhes['metricas']['score'] / 20)
-    st.caption(f"📊 Números encontrados: {detalhes['metricas']['quantidade']}")
-    st.markdown("")
-    
-    # 4. Formatação
-    st.markdown(f"**4. Formatação:** {detalhes['formatacao']['score']:.1f}/15 pontos")
-    st.progress(detalhes['formatacao']['score'] / 15)
-    st.caption(f"• Bullets: {detalhes['formatacao']['bullets']} | Datas: {detalhes['formatacao']['datas']}")
-    st.markdown("")
-    
-    # 5. Tamanho
-    st.markdown(f"**5. Tamanho:** {detalhes['tamanho']['score']:.1f}/15 pontos")
-    st.progress(detalhes['tamanho']['score'] / 15)
-    st.caption(f"📝 {detalhes['tamanho']['palavras']} palavras (ideal: {detalhes['tamanho']['ideal']})")
+    if is_llm_analysis:
+        # Para análise LLM, mostrar informação sobre o método
+        st.info(
+            f"✨ **Análise Contextual via {detalhes.get('modelo', 'LLM')}**\n\n"
+            "Esta análise usa inteligência artificial para entender o contexto do seu CV, "
+            "identificando habilidades específicas e gaps relevantes para o cargo.\n\n"
+            "Os pontos fortes e gaps identificados são baseados em análise semântica profunda, "
+            "não apenas em palavras-chave."
+        )
+        st.markdown("")
+    else:
+        # Análise TF-IDF - mostrar breakdown detalhado se disponível
+        secoes = detalhes.get('secoes', {})
+        keywords = detalhes.get('keywords', {})
+        metricas = detalhes.get('metricas', {})
+        formatacao = detalhes.get('formatacao', {})
+        tamanho = detalhes.get('tamanho', {})
+        
+        if secoes and keywords and metricas and formatacao and tamanho:
+            # 1. Seções Essenciais
+            st.markdown(f"**1. Seções Essenciais:** {secoes.get('score', 0):.1f}/20 pontos")
+            st.progress(secoes.get('score', 0) / 20)
+            st.caption(f"✅ Encontradas: {secoes.get('encontradas', 0)}/{secoes.get('total', 0)}")
+            st.markdown("")  # Espaço
+            
+            # 2. Palavras-Chave
+            st.markdown(f"**2. Palavras-Chave:** {keywords.get('score', 0):.1f}/30 pontos")
+            st.progress(keywords.get('score', 0) / 30)
+            st.caption(f"📍 Encontradas: {keywords.get('encontradas', 0)}/{keywords.get('total', 0)}")
+            if keywords.get('faltando', []):
+                faltando_str = ', '.join(keywords['faltando'][:5])
+                st.caption(f"⚠️ Faltam: {faltando_str}")
+            st.markdown("")
+            
+            # 3. Métricas Quantificáveis
+            st.markdown(f"**3. Métricas Quantificáveis:** {metricas.get('score', 0):.1f}/20 pontos")
+            st.progress(metricas.get('score', 0) / 20)
+            st.caption(f"📊 Números encontrados: {metricas.get('quantidade', 0)}")
+            st.markdown("")
+            
+            # 4. Formatação
+            st.markdown(f"**4. Formatação:** {formatacao.get('score', 0):.1f}/15 pontos")
+            st.progress(formatacao.get('score', 0) / 15)
+            st.caption(f"• Bullets: {formatacao.get('bullets', 0)} | Datas: {formatacao.get('datas', 0)}")
+            st.markdown("")
+            
+            # 5. Tamanho
+            st.markdown(f"**5. Tamanho:** {tamanho.get('score', 0):.1f}/15 pontos")
+            st.progress(tamanho.get('score', 0) / 15)
+            st.caption(f"📝 {tamanho.get('palavras', 0)} palavras (ideal: {tamanho.get('ideal', 'N/A')})")
+        else:
+            # Fallback se não houver breakdown detalhado
+            st.info(
+                f"**Método de Análise:** {detalhes.get('metodo', 'N/A')}\n\n"
+                "Análise simplificada sem breakdown detalhado disponível."
+            )
     
     st.markdown("---")
     
@@ -129,32 +157,46 @@ def fase_ats_score():
     if resultado['percentual'] < 80:
         recomendacoes = []
         
-        # Gerar recomendações específicas
-        if detalhes['secoes']['score'] < 15:
-            recomendacoes.append("• Adicione seções faltantes (Experiência, Educação, Habilidades, Contato)")
-        
-        if detalhes['keywords']['score'] < 20:
-            keywords_faltando = detalhes['keywords']['faltando'][:3]
-            if keywords_faltando:
-                recomendacoes.append(f"• Inclua keywords importantes: {', '.join(keywords_faltando)}")
-        
-        if detalhes['metricas']['quantidade'] < 5:
-            recomendacoes.append("• Adicione mais resultados quantificáveis (%, valores, números)")
-        
-        if detalhes['formatacao']['bullets'] < 5:
-            recomendacoes.append("• Use mais bullet points para destacar conquistas")
-        
-        if detalhes['tamanho']['palavras'] < 300:
-            recomendacoes.append("• CV muito curto. Expanda descrições de experiências")
-        elif detalhes['tamanho']['palavras'] > 800:
-            recomendacoes.append("• CV muito longo. Seja mais conciso e objetivo")
-        
-        # Exibir recomendações
-        if recomendacoes:
-            for rec in recomendacoes:
-                st.warning(rec)
+        # Para análise LLM, usar plano de ação
+        if is_llm_analysis:
+            if resultado.get('plano_acao'):
+                for acao in resultado['plano_acao']:
+                    st.warning(acao)
+            else:
+                st.info("✨ Seu CV está no caminho certo! Continue refinando.")
         else:
-            st.info("✨ Seu CV está no caminho certo! Continue refinando.")
+            # Gerar recomendações específicas baseadas em breakdown (TF-IDF)
+            secoes = detalhes.get('secoes', {})
+            keywords = detalhes.get('keywords', {})
+            metricas = detalhes.get('metricas', {})
+            formatacao = detalhes.get('formatacao', {})
+            tamanho = detalhes.get('tamanho', {})
+            
+            if secoes.get('score', 0) < 15:
+                recomendacoes.append("• Adicione seções faltantes (Experiência, Educação, Habilidades, Contato)")
+            
+            if keywords.get('score', 0) < 20:
+                keywords_faltando = keywords.get('faltando', [])[:3]
+                if keywords_faltando:
+                    recomendacoes.append(f"• Inclua keywords importantes: {', '.join(keywords_faltando)}")
+            
+            if metricas.get('quantidade', 0) < 5:
+                recomendacoes.append("• Adicione mais resultados quantificáveis (%, valores, números)")
+            
+            if formatacao.get('bullets', 0) < 5:
+                recomendacoes.append("• Use mais bullet points para destacar conquistas")
+            
+            if tamanho.get('palavras', 0) < 300:
+                recomendacoes.append("• CV muito curto. Expanda descrições de experiências")
+            elif tamanho.get('palavras', 0) > 800:
+                recomendacoes.append("• CV muito longo. Seja mais conciso e objetivo")
+            
+            # Exibir recomendações
+            if recomendacoes:
+                for rec in recomendacoes:
+                    st.warning(rec)
+            else:
+                st.info("✨ Seu CV está no caminho certo! Continue refinando.")
     else:
         st.success("✅ Seu CV está bem otimizado para ATS!")
         st.balloons()
