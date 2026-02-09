@@ -36,11 +36,13 @@ def fase_bridge_otimizacao():
 
     # ── Recuperar dados ATS do Reality Check (ou recalcular) ──
     ats_resultado = st.session_state.get('reality_ats_resultado')
+    
+    # Obter cargo para o título
+    cargo = st.session_state.get('perfil', {}).get('cargo_alvo', 'cargo desejado')
 
     if not ats_resultado:
         # Fallback: calcular se não veio do Reality Check
         with st.spinner("📊 Calculando Score ATS do seu CV atual..."):
-            cargo = st.session_state.get('perfil', {}).get('cargo_alvo', 'cargo desejado')
             perfil = st.session_state.get('perfil', {})
             ats_resultado = calcular_score_ats(
                 cv_texto=st.session_state.cv_texto,
@@ -59,7 +61,7 @@ def fase_bridge_otimizacao():
     plano = ats_resultado.get('plano_acao', [])
 
     # ── Score ATS Resumo ──
-    st.markdown("## 📊 Resumo do Seu Score ATS")
+    st.markdown(f"## 📊 Análise de Compatibilidade ATS — {cargo}")
 
     if score >= 70:
         cor = "#4ade80"
@@ -104,7 +106,7 @@ def fase_bridge_otimizacao():
             st.caption("Nenhum ponto forte identificado pelo ATS.")
 
     with col_gap:
-        st.markdown("### ❌ Skills Faltantes")
+        st.markdown(f"### ❌ Skills que FALTAM (exigidas para {cargo})")
         if gaps:
             for termo in gaps[:6]:
                 st.markdown(f"- ❌ **{termo}**")
@@ -114,13 +116,15 @@ def fase_bridge_otimizacao():
     # Salvar gaps para uso no otimizador
     st.session_state.gaps_alvo = gaps
 
-    # ── Seção de Transparência v5.0: Skills NÃO consideradas gaps ──
+    # ── Seção de Transparência v5.0: Skills NÃO consideradas gaps (SEMPRE VISÍVEL) ──
     gaps_falsos = ats_resultado.get('gaps_falsos_ignorados', [])
-    if gaps_falsos:
-        with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
-            st.caption("Estas skills foram analisadas mas **descartadas** como gaps por não serem padrão obrigatório para o cargo:")
+    with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
+        if gaps_falsos:
+            st.caption(f"Estas skills foram analisadas mas **descartadas** como gaps para {cargo}:")
             for item in gaps_falsos[:8]:
                 st.markdown(f"- 🟡 {item}")
+        else:
+            st.caption(f"Nenhuma skill descartada como gap para este cargo.")
 
     # ── Arquétipo e Método v5.0 ──
     arquetipo = ats_resultado.get('arquetipo_cargo', 'N/A')

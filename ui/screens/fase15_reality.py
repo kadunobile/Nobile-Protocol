@@ -299,7 +299,7 @@ def _renderizar_ats(resultado_ats):
     cargo = perfil.get('cargo_alvo', 'o cargo')
 
     st.markdown("---")
-    st.markdown(f"### 🤖 ANÁLISE ATS — {cargo.upper()}")
+    st.markdown(f"### 🤖 ANÁLISE DE COMPATIBILIDADE ATS — {cargo.upper()}")
     
     # v5.0: User-friendly label instead of technical metadata
     if arquetipo != 'N/A':
@@ -384,9 +384,9 @@ def _renderizar_ats(resultado_ats):
 """, unsafe_allow_html=True)
         st.markdown("")
     
-    # ── Transparência - Skills DESCARTADAS como gaps (VISÍVEL) ──
+    # ── Transparência - Skills DESCARTADAS como gaps (SEMPRE VISÍVEL) ──
+    st.markdown("**🔍 Transparência — Skills analisadas e DESCARTADAS como gaps:**")
     if gaps_falsos:
-        st.markdown("**🔍 Transparência — Skills analisadas e DESCARTADAS como gaps:**")
         st.caption("Nosso algoritmo analisou estas skills mas seu CV já as cobre adequadamente:")
         st.markdown("")
         
@@ -400,7 +400,9 @@ def _renderizar_ats(resultado_ats):
                 f"🟡 {nome}</span>"
             )
         st.markdown(badges_html, unsafe_allow_html=True)
-        st.markdown("")
+    else:
+        st.caption(f"Nenhuma skill descartada como gap para este cargo.")
+    st.markdown("")
 
     # ── Plano de ação ──
     if plano:
