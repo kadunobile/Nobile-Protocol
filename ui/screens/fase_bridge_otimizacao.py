@@ -119,16 +119,17 @@ def fase_bridge_otimizacao():
                 # Buscar descrição da skill (O(1) lookup)
                 descricao = skill_descriptions_lower.get(nome_gap.lower())
                 
-                # Renderizar com ou sem descrição
-                if descricao:
-                    st.markdown(f"""
+                # Fallback se skill não está no dicionário
+                if not descricao:
+                    descricao = "Competência relevante para o cargo — pesquise mais sobre esta skill para entender como aplicá-la."
+                
+                # Renderizar sempre com descrição
+                st.markdown(f"""
 <div style="background:#2a1a1a; border-left:3px solid #f87171; padding:8px 12px; border-radius:6px; margin:4px 0;">
     <div style="color:#f87171; font-weight:bold; font-size:0.9rem;">❌ {nome_gap}</div>
     <div style="color:#888; font-size:0.75rem; margin-top:3px;">ℹ️ {descricao}</div>
 </div>
 """, unsafe_allow_html=True)
-                else:
-                    st.markdown(f"- ❌ **{nome_gap}**")
         else:
             st.success("Nenhum gap crítico identificado!")
 
