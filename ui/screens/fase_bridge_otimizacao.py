@@ -111,6 +111,46 @@ def fase_bridge_otimizacao():
     # Salvar gaps para uso no otimizador
     st.session_state.gaps_alvo = gaps
 
+    # ── Seção de Transparência v5.0: Skills NÃO consideradas gaps ──
+    gaps_falsos = ats_resultado.get('gaps_falsos_ignorados', [])
+    if gaps_falsos:
+        with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
+            st.caption("Estas skills foram analisadas mas **descartadas** como gaps por não serem padrão obrigatório para o cargo:")
+            for item in gaps_falsos[:8]:
+                st.markdown(f"- 🟡 {item}")
+
+    # ── Arquétipo e Método v5.0 ──
+    arquetipo = ats_resultado.get('arquetipo_cargo', 'N/A')
+    metodo = ats_resultado.get('metodo', 'N/A')
+    fonte = ats_resultado.get('fonte_vaga', 'N/A')
+    
+    if arquetipo != 'N/A':
+        st.caption(f"🎯 **Arquétipo identificado:** {arquetipo} | **Fonte:** {fonte}")
+
+    st.markdown("---")
+
+    # ── Input Opcional: Texto da Vaga Real (v5.0) ──
+    with st.expander("📄 Tem a descrição da vaga? Cole aqui para análise SUPER precisa"):
+        st.caption("Se você tiver o texto completo da vaga, cole abaixo. O sistema vai **recalcular** o score usando APENAS os requisitos que estão na vaga real.")
+        texto_vaga_input = st.text_area(
+            "Descrição da vaga (opcional):", 
+            height=200,
+            placeholder="Cole aqui o texto da vaga..."
+        )
+        
+        if st.button("🔄 Recalcular Score com Vaga Real", disabled=not texto_vaga_input.strip()):
+            with st.spinner("📊 Recalculando score com vaga real..."):
+                cargo = st.session_state.get('perfil', {}).get('cargo_alvo', 'cargo desejado')
+                ats_resultado_novo = calcular_score_ats(
+                    cv_texto=st.session_state.cv_texto,
+                    cargo_alvo=cargo,
+                    client=st.session_state.get('openai_client'),
+                    texto_vaga=texto_vaga_input.strip()
+                )
+                st.session_state.reality_ats_resultado = ats_resultado_novo
+                st.success("✅ Score recalculado com a vaga real!")
+                st.rerun()
+
     st.markdown("---")
 
     # ── Plano de Ação ──

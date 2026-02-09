@@ -172,9 +172,22 @@ def _renderizar_ats(resultado_ats):
     pontos_fortes = resultado_ats.get('pontos_fortes', [])
     gaps = resultado_ats.get('gaps_identificados', [])
     plano = resultado_ats.get('plano_acao', [])
+    
+    # v5.0: novos campos
+    arquetipo = resultado_ats.get('arquetipo_cargo', 'N/A')
+    metodo = resultado_ats.get('metodo', 'N/A')
+    fonte_vaga = resultado_ats.get('fonte_vaga', 'N/A')
+    gaps_falsos = resultado_ats.get('gaps_falsos_ignorados', [])
 
     st.markdown("---")
     st.markdown("### 🤖 ANÁLISE ATS — SEU CV × SKILLS DO CARGO")
+    
+    # v5.0: Exibir método e arquétipo
+    if arquetipo != 'N/A':
+        st.caption(f"🎯 **Arquétipo:** {arquetipo} | **Método:** {metodo} | **Fonte:** {fonte_vaga}")
+    else:
+        st.caption(f"**Método:** {metodo}")
+    
     st.markdown("")
 
     # ── Score visual ──
@@ -195,7 +208,7 @@ def _renderizar_ats(resultado_ats):
 <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 2px solid {cor}; border-radius: 12px; padding: 20px; text-align: center; margin: 10px 0;">
     <div style="font-size: 3rem; font-weight: bold; color: {cor};">{score}/100</div>
     <div style="font-size: 1.1rem; color: #e0e0e0;">{emoji} {nivel} — Compatibilidade ATS</div>
-    <div style="font-size: 0.85rem; color: #888; margin-top: 8px;">TF-IDF + Cosine Similarity | CV × Job Description gerada para o cargo</div>
+    <div style="font-size: 0.85rem; color: #888; margin-top: 8px;">{metodo}</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -217,6 +230,14 @@ def _renderizar_ats(resultado_ats):
         for i, termo in enumerate(gaps[:10]):
             with cols_gaps[i % min(len(gaps), 4)]:
                 st.markdown(f"<span style='background:#4a1a1a; color:#f87171; padding:4px 10px; border-radius:20px; font-size:0.85rem;'>❌ {termo}</span>", unsafe_allow_html=True)
+        st.markdown("")
+    
+    # ── v5.0: Transparência - Skills NÃO consideradas gaps ──
+    if gaps_falsos:
+        with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
+            st.caption("Estas skills foram analisadas mas **descartadas** como gaps:")
+            for item in gaps_falsos[:8]:
+                st.markdown(f"- 🟡 {item}")
         st.markdown("")
 
     # ── Plano de ação ──
