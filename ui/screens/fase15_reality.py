@@ -8,6 +8,85 @@ logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────
+# VALIDAÇÃO DE SALÁRIO
+# ─────────────────────────────────────────────
+
+def _validar_plausibilidade_salario(pretensao_str, cargo, senioridade):
+    """
+    Valida se o valor salarial informado está dentro de uma faixa plausível.
+    
+    Returns:
+        dict com 'plausivel': bool, 'mensagem': str, 'faixa_sugerida': str
+    """
+    # Extrair valor numérico da pretensão
+    try:
+        # Remove R$, pontos e vírgulas, converte para float
+        valor_limpo = pretensao_str.replace('R$', '').replace('.', '').replace(',', '.').strip()
+        valor = float(valor_limpo)
+    except (ValueError, AttributeError):
+        return {'plausivel': True, 'mensagem': '', 'faixa_sugerida': ''}
+    
+    # Heurísticas simples baseadas em senioridade e mercado brasileiro 2024-2025
+    # Valores em R$ mensal bruto CLT
+    faixas_plausibilidade = {
+        'Júnior': (2000, 8000),
+        'Junior': (2000, 8000),
+        'Pleno': (5000, 15000),
+        'Sênior': (10000, 30000),
+        'Senior': (10000, 30000),
+        'Especialista': (12000, 35000),
+        'Coordenação': (8000, 20000),
+        'Coordenador': (8000, 20000),
+        'Gerência': (12000, 35000),
+        'Gerente': (12000, 35000),
+        'Direção': (20000, 80000),
+        'Diretor': (20000, 80000),
+        'C-Level': (30000, 150000),
+    }
+    
+    # Tentar identificar a faixa baseada na senioridade
+    faixa = None
+    for key, range_vals in faixas_plausibilidade.items():
+        if key.lower() in senioridade.lower() or key.lower() in cargo.lower():
+            faixa = range_vals
+            break
+    
+    # Se não encontrou uma faixa específica, usar range amplo genérico
+    if not faixa:
+        faixa = (2000, 80000)
+    
+    minimo, maximo = faixa
+    
+    # Verificar se está muito abaixo (< 50% do mínimo) ou muito acima (> 200% do máximo)
+    if valor < minimo * 0.5:
+        return {
+            'plausivel': False,
+            'mensagem': f'⚠️ Valor informado (R$ {valor:,.2f}) está **muito abaixo** da faixa típica. Faixa esperada: R$ {minimo:,.2f} - R$ {maximo:,.2f}',
+            'faixa_sugerida': f'R$ {minimo:,.2f} - R$ {maximo:,.2f}'
+        }
+    elif valor > maximo * 2:
+        return {
+            'plausivel': False,
+            'mensagem': f'⚠️ Valor informado (R$ {valor:,.2f}) está **muito acima** da faixa típica. Faixa esperada: R$ {minimo:,.2f} - R$ {maximo:,.2f}',
+            'faixa_sugerida': f'R$ {minimo:,.2f} - R$ {maximo:,.2f}'
+        }
+    elif valor < minimo:
+        return {
+            'plausivel': True,
+            'mensagem': f'ℹ️ Valor informado (R$ {valor:,.2f}) está um pouco abaixo da faixa típica (R$ {minimo:,.2f} - R$ {maximo:,.2f}). Confirme se está correto.',
+            'faixa_sugerida': f'R$ {minimo:,.2f} - R$ {maximo:,.2f}'
+        }
+    elif valor > maximo:
+        return {
+            'plausivel': True,
+            'mensagem': f'ℹ️ Valor informado (R$ {valor:,.2f}) está um pouco acima da faixa típica (R$ {minimo:,.2f} - R$ {maximo:,.2f}). Confirme se está correto.',
+            'faixa_sugerida': f'R$ {minimo:,.2f} - R$ {maximo:,.2f}'
+        }
+    
+    return {'plausivel': True, 'mensagem': '', 'faixa_sugerida': ''}
+
+
+# ─────────────────────────────────────────────
 # GERAÇÃO DO REALITY CHECK (com cache)
 # ─────────────────────────────────────────────
 
@@ -215,8 +294,12 @@ def _renderizar_ats(resultado_ats):
     fonte_vaga = resultado_ats.get('fonte_vaga', 'N/A')
     gaps_falsos = resultado_ats.get('gaps_falsos_ignorados', [])
 
+    # Recuperar cargo-alvo do perfil
+    perfil = st.session_state.get('perfil', {})
+    cargo = perfil.get('cargo_alvo', 'o cargo')
+
     st.markdown("---")
-    st.markdown("### 🤖 ANÁLISE ATS — SEU CV × SKILLS DO CARGO")
+    st.markdown(f"### 🤖 ANÁLISE ATS — {cargo.upper()}")
     
     # v5.0: User-friendly label instead of technical metadata
     if arquetipo != 'N/A':
@@ -242,7 +325,7 @@ def _renderizar_ats(resultado_ats):
 <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 2px solid {cor}; border-radius: 12px; padding: 20px; text-align: center; margin: 10px 0;">
     <div style="font-size: 3rem; font-weight: bold; color: {cor};">{score}/100</div>
     <div style="font-size: 1.1rem; color: #e0e0e0;">{emoji} {nivel} — Compatibilidade ATS</div>
-    <div style="font-size: 0.85rem; color: #888; margin-top: 8px;">Análise de Compatibilidade ATS</div>
+    <div style="font-size: 0.85rem; color: #888; margin-top: 8px;">Cargo-alvo: {cargo}</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -259,19 +342,44 @@ def _renderizar_ats(resultado_ats):
 
     # ── Skills que faltam (DETALHADO) ──
     if gaps:
-        perfil = st.session_state.get('perfil', {})
-        cargo = perfil.get('cargo_alvo', 'o cargo')
+        # Mapeamento de descrições de skills conhecidas
+        SKILL_DESCRIPTIONS = {
+            'Outreach': 'Plataforma de sales engagement para sequências de e-mails, ligações e follow-ups automatizados',
+            'Outreach.io': 'Plataforma de sales engagement para sequências de e-mails, ligações e follow-ups automatizados',
+            'Gong': 'Plataforma de análise de conversas e vendas que grava e analisa interações com clientes',
+            'Gong.io': 'Plataforma de análise de conversas e vendas que grava e analisa interações com clientes',
+            'Salesforce': 'CRM líder de mercado para gestão de relacionamento com clientes e pipeline de vendas',
+            'HubSpot': 'Plataforma de marketing, vendas e CRM para gestão integrada do funil comercial',
+            'LinkedIn Sales Navigator': 'Ferramenta de prospecção avançada do LinkedIn para identificação de leads',
+            'Salesloft': 'Plataforma de sales engagement similar ao Outreach para automação de vendas',
+            'ZoomInfo': 'Base de dados B2B para prospecção e enriquecimento de leads',
+            'Apollo': 'Plataforma de prospecção e engajamento de vendas com base de dados integrada',
+            'Apollo.io': 'Plataforma de prospecção e engajamento de vendas com base de dados integrada',
+            'Chorus': 'Plataforma de análise de conversas similar ao Gong',
+            'Drift': 'Plataforma de conversational marketing e chatbots para engajamento',
+            'Intercom': 'Plataforma de mensagens e suporte ao cliente para engajamento',
+        }
+        
         st.markdown("**❌ Skills que FALTAM no seu CV (exigidas para o cargo):**")
         st.markdown("")
         for i, termo in enumerate(gaps[:10]):
             # Extrair nome do gap (pode ser string simples ou dict)
             nome_gap = termo if isinstance(termo, str) else termo.get('nome', str(termo))
+            
+            # Buscar descrição da skill (case-insensitive)
+            descricao = None
+            for skill_key, skill_desc in SKILL_DESCRIPTIONS.items():
+                if skill_key.lower() == nome_gap.lower():
+                    descricao = skill_desc
+                    break
+            
             st.markdown(f"""
 <div style="background:#2a1a1a; border-left:3px solid #f87171; padding:10px 14px; border-radius:6px; margin:6px 0;">
     <div style="color:#f87171; font-weight:bold; font-size:0.95rem;">❌ {nome_gap}</div>
     <div style="color:#ccc; font-size:0.82rem; margin-top:4px;">
         📌 Skill exigida para <strong>{cargo}</strong> — não encontrada no seu CV atual
     </div>
+    {f'<div style="color:#888; font-size:0.8rem; margin-top:6px; padding-top:6px; border-top:1px solid #333;">ℹ️ <strong>O que é:</strong> {descricao}</div>' if descricao else ''}
 </div>
 """, unsafe_allow_html=True)
         st.markdown("")
@@ -388,6 +496,37 @@ def fase_15_reality_check():
 
     # Exibir resultado do Reality Check
     st.markdown(reality)
+
+    # ── Validação de Plausibilidade Salarial ──
+    perfil = st.session_state.get('perfil', {})
+    pretensao = perfil.get('pretensao_salarial', '')
+    cargo = perfil.get('cargo_alvo', '')
+    senioridade = perfil.get('senioridade', 'Não identificada')
+    
+    if pretensao and pretensao != 'Não informada':
+        validacao = _validar_plausibilidade_salario(pretensao, cargo, senioridade)
+        
+        if not validacao['plausivel']:
+            st.markdown("---")
+            st.warning(f"""
+### 💰 Validação de Pretensão Salarial
+
+{validacao['mensagem']}
+
+**Deseja ajustar?** Volte ao briefing para corrigir ou confirme que o valor está correto para prosseguir.
+""")
+            col_a, col_b = st.columns(2)
+            with col_a:
+                if st.button("🔙 Voltar e Ajustar Salário", use_container_width=True):
+                    st.session_state.fase = 'FASE_1_BRIEFING'
+                    st.rerun()
+            with col_b:
+                if st.button("✅ Confirmar Valor Informado", use_container_width=True):
+                    st.session_state.salario_confirmado = True
+                    st.rerun()
+        elif validacao['mensagem']:
+            # Aviso informativo (não bloqueante)
+            st.info(f"💡 **Validação Salarial:** {validacao['mensagem']}")
 
     # ── 2) Análise ATS (TF-IDF real) ──
     resultado_ats = _executar_analise_ats()
