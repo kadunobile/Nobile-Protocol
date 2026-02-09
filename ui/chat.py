@@ -80,8 +80,40 @@ def fase_chat():
                     if resp:
                         st.markdown(resp)
                         st.session_state.mensagens.append({"role": "assistant", "content": resp})
-                        # Move to next state - wait for OK
-                        st.session_state.etapa_modulo = 'AGUARDANDO_OK_DIAGNOSTICO'
+                        # Move to next state - wait to start asking gaps
+                        st.session_state.etapa_modulo = 'AGUARDANDO_INICIO_GAPS'
+            st.rerun()
+    
+    # Auto-trigger primeiro gap individual
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_0_GAP_INDIVIDUAL' and
+        not st.session_state.get('etapa_0_gap_triggered')):
+        
+        st.session_state.etapa_0_gap_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            with st.chat_message("assistant"):
+                st.markdown(prompt_otimizador)
+                st.session_state.mensagens.append({"role": "assistant", "content": prompt_otimizador})
+                # Move to next state - wait for gap response
+                st.session_state.etapa_modulo = 'AGUARDANDO_RESPOSTA_GAP'
+            st.rerun()
+    
+    # Auto-trigger resumo do diagnóstico
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_0_DIAGNOSTICO_RESUMO' and
+        not st.session_state.get('etapa_0_resumo_triggered')):
+        
+        st.session_state.etapa_0_resumo_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            with st.chat_message("assistant"):
+                st.markdown(prompt_otimizador)
+                st.session_state.mensagens.append({"role": "assistant", "content": prompt_otimizador})
+                # Move to next state - wait for OK to continue
+                st.session_state.etapa_modulo = 'AGUARDANDO_OK_DIAGNOSTICO'
             st.rerun()
     
     # Auto-trigger ETAPA_1_COLETA_FOCADA
@@ -134,6 +166,31 @@ def fase_chat():
                         st.session_state.etapa_modulo = 'AGUARDANDO_ESCOLHA_HEADLINE'
             st.rerun()
 
+    # ===== RENDERIZAR BOTÕES DE CONTINUAÇÃO =====
+    # Botão para iniciar perguntas de gaps após introdução do diagnóstico
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'AGUARDANDO_INICIO_GAPS'):
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("✅ Começar a responder sobre os gaps", use_container_width=True, type="primary", key="btn_iniciar_gaps"):
+                # Simular que o usuário disse "ok" para iniciar
+                st.session_state.etapa_0_gap_triggered = False
+                st.session_state.etapa_modulo = 'ETAPA_0_GAP_INDIVIDUAL'
+                st.session_state.gap_atual_index = 0
+                st.rerun()
+    
+    # Botão para continuar após resumo do diagnóstico
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'AGUARDANDO_OK_DIAGNOSTICO'):
+        
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            if st.button("✅ Continuar para Coleta de Dados", use_container_width=True, type="primary", key="btn_continuar_diagnostico"):
+                # Avançar para próxima etapa
+                st.session_state.etapa_1_coleta_focada_triggered = False
+                st.session_state.etapa_modulo = 'ETAPA_1_COLETA_FOCADA'
+                st.rerun()
 
     prompt = st.chat_input("Digite sua pergunta ou resposta...")
 
