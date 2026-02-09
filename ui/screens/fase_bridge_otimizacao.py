@@ -10,6 +10,7 @@ import logging
 from core.ats_scorer import calcular_score_ats
 from core.utils import forcar_topo
 from core.ats_constants import SKILL_DESCRIPTIONS
+from core.prompts import SYSTEM_PROMPT
 
 logger = logging.getLogger(__name__)
 
@@ -235,7 +236,14 @@ def fase_bridge_otimizacao():
             
             st.session_state.modulo_ativo = 'OTIMIZADOR'
             st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO'
-            st.session_state.mensagens = []
+            
+            # Reconstruir mensagens com system prompt (não limpar completamente)
+            cargo = st.session_state.get('perfil', {}).get('cargo_alvo', 'cargo desejado')
+            cv_texto = st.session_state.get('cv_texto', '')
+            st.session_state.mensagens = [
+                {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {cv_texto}\n\nCARGO-ALVO: {cargo}"}
+            ]
+            
             st.session_state.fase = 'CHAT'
             st.session_state.force_scroll_top = True
             st.rerun()
