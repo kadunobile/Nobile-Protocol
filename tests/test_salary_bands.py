@@ -83,7 +83,7 @@ class TestObterBandaSalarial:
     
     def test_obtem_banda_coordenador_compras_pequena(self):
         """Test band for Coordenador de Compras in small companies."""
-        banda = obter_banda_salarial("Coordenador de Compras", porte='pequena')
+        banda = obter_banda_salarial("Coordenador de Compras", categoria='pequena')
         
         assert banda['min'] == 12000
         assert banda['max'] == 15000
@@ -93,7 +93,7 @@ class TestObterBandaSalarial:
     
     def test_obtem_banda_coordenador_compras_grande(self):
         """Test band for Coordenador de Compras in large companies."""
-        banda = obter_banda_salarial("Coordenador de Compras", porte='grande')
+        banda = obter_banda_salarial("Coordenador de Compras", categoria='grande')
         
         assert banda['min'] == 16000
         assert banda['max'] == 20000
@@ -103,7 +103,7 @@ class TestObterBandaSalarial:
     
     def test_obtem_banda_coordenador_compras_sp(self):
         """Test band for Coordenador de Compras in SP/capitals."""
-        banda = obter_banda_salarial("Coordenador de Compras", regiao='sp_capitais')
+        banda = obter_banda_salarial("Coordenador de Compras", categoria='sp_capitais')
         
         assert banda['min'] == 15000
         assert banda['max'] == 19000
@@ -124,7 +124,7 @@ class TestObterBandaSalarial:
     
     def test_obtem_banda_gerente_revops_media(self):
         """Test band for Gerente de RevOps in medium companies."""
-        banda = obter_banda_salarial("Gerente de RevOps", porte='media')
+        banda = obter_banda_salarial("Gerente de RevOps", categoria='media')
         
         assert banda['min'] == 18000
         assert banda['max'] == 24000
@@ -134,7 +134,7 @@ class TestObterBandaSalarial:
     
     def test_obtem_banda_gerente_revops_multi(self):
         """Test band for Gerente de RevOps in multinationals."""
-        banda = obter_banda_salarial("Gerente de RevOps", porte='multi')
+        banda = obter_banda_salarial("Gerente de RevOps", categoria='multi')
         
         assert banda['min'] == 20000
         assert banda['max'] == 28000
@@ -210,7 +210,8 @@ class TestValidarSalarioBanda:
         assert resultado['dentro_banda'] is False
         assert resultado['nivel'] == 'acima'
         assert "acima da média de mercado" in resultado['mensagem']
-        assert "14,000.00 - R$ 18,000.00" in resultado['mensagem']
+        # Brazilian currency format uses periods for thousands
+        assert "R$ 14.000,00 - R$ 18.000,00" in resultado['mensagem']
     
     def test_valida_salario_muito_acima(self):
         """Test salary well above band (>20%)."""
@@ -318,7 +319,7 @@ class TestFormatarBandaDisplay:
     
     def test_formata_banda_com_decimais(self):
         """Test formatting uses period for thousands separator."""
-        banda = obter_banda_salarial("Gerente de RevOps", porte='multi')
+        banda = obter_banda_salarial("Gerente de RevOps", categoria='multi')
         texto = formatar_banda_display(banda)
         
         # Should have periods as thousands separator (BR format)

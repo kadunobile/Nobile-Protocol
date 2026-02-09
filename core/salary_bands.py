@@ -24,22 +24,6 @@ SALARY_BANDS = {
         'multi': {'min': 16000, 'max': 20000, 'median': 18000},
         'sp_capitais': {'min': 15000, 'max': 19000, 'median': 17000},
     },
-    'coordenador(a) de compras': {
-        'default': {'min': 14000, 'max': 18000, 'median': 16000},
-        'pequena': {'min': 12000, 'max': 15000, 'median': 13500},
-        'media': {'min': 14000, 'max': 18000, 'median': 16000},
-        'grande': {'min': 16000, 'max': 20000, 'median': 18000},
-        'multi': {'min': 16000, 'max': 20000, 'median': 18000},
-        'sp_capitais': {'min': 15000, 'max': 19000, 'median': 17000},
-    },
-    'coordenadora de compras': {
-        'default': {'min': 14000, 'max': 18000, 'median': 16000},
-        'pequena': {'min': 12000, 'max': 15000, 'median': 13500},
-        'media': {'min': 14000, 'max': 18000, 'median': 16000},
-        'grande': {'min': 16000, 'max': 20000, 'median': 18000},
-        'multi': {'min': 16000, 'max': 20000, 'median': 18000},
-        'sp_capitais': {'min': 15000, 'max': 19000, 'median': 17000},
-    },
     'gerente de revops': {
         'default': {'min': 18000, 'max': 24000, 'median': 21000},
         'pequena': {'min': 16000, 'max': 20000, 'median': 18000},
@@ -63,16 +47,25 @@ FALLBACK_BAND = {
 def normalizar_cargo(cargo: str) -> str:
     """
     Normalize cargo name for lookup in salary bands.
+    Handles gender variations (coordenador/coordenadora).
     
     Args:
         cargo: Raw cargo name from user input
         
     Returns:
-        Normalized cargo name (lowercase, stripped)
+        Normalized cargo name (lowercase, stripped, gender-neutral)
     """
     if not cargo:
         return ''
-    return cargo.strip().lower()
+    
+    cargo_norm = cargo.strip().lower()
+    
+    # Normalize gender variants to base form
+    # coordenador(a) or coordenadora -> coordenador
+    cargo_norm = cargo_norm.replace('coordenador(a)', 'coordenador')
+    cargo_norm = cargo_norm.replace('coordenadora', 'coordenador')
+    
+    return cargo_norm
 
 
 def detectar_porte_regiao(localizacao: str = '', perfil: Dict = None) -> str:
@@ -106,14 +99,13 @@ def detectar_porte_regiao(localizacao: str = '', perfil: Dict = None) -> str:
     return 'default'
 
 
-def obter_banda_salarial(cargo: str, porte: str = 'default', regiao: str = 'default') -> Dict:
+def obter_banda_salarial(cargo: str, categoria: str = 'default') -> Dict:
     """
-    Get salary band (min/max/median) for a specific cargo and porte/região.
+    Get salary band (min/max/median) for a specific cargo and category.
     
     Args:
         cargo: Target cargo name (will be normalized)
-        porte: Company size category ('pequena', 'media', 'grande', 'multi', or 'default')
-        regiao: Region category ('sp_capitais' or 'default')
+        categoria: Category ('pequena', 'media', 'grande', 'multi', 'sp_capitais', or 'default')
         
     Returns:
         Dict with 'min', 'max', 'median', 'cargo', 'category', 'is_fallback'
@@ -124,19 +116,8 @@ def obter_banda_salarial(cargo: str, porte: str = 'default', regiao: str = 'defa
     if cargo_norm in SALARY_BANDS:
         bands = SALARY_BANDS[cargo_norm]
         
-        # Priority: specific porte/regiao parameter > default
-        # If regiao is explicitly sp_capitais, use it
-        # Otherwise prefer porte, then regiao, then default
-        if regiao in bands and regiao != 'default':
-            category_key = regiao
-        elif porte in bands and porte != 'default':
-            category_key = porte
-        elif regiao in bands:
-            category_key = regiao
-        elif porte in bands:
-            category_key = porte
-        else:
-            category_key = 'default'
+        # Use categoria if available, otherwise default
+        category_key = categoria if categoria in bands else 'default'
         
         if category_key in bands:
             band = bands[category_key].copy()
@@ -153,6 +134,24 @@ def obter_banda_salarial(cargo: str, porte: str = 'default', regiao: str = 'defa
     return band
 
 
+def _formatar_valor_br(valor: float) -> str:
+    """
+    Format a numeric value as Brazilian currency (R$ x.xxx,xx).
+    
+    Args:
+        valor: Numeric value to format
+        
+    Returns:
+        Formatted string like "R$ 15.000,00"
+    """
+    # Format with 2 decimals and thousands separator
+    formatted = f"R$ {valor:,.2f}"
+    # Convert to BR format: swap comma and period
+    # First replace comma with a temp marker, then period with comma, then marker with period
+    formatted = formatted.replace(',', '|TEMP|').replace('.', ',').replace('|TEMP|', '.')
+    return formatted
+
+
 def validar_salario_banda(
     pretensao_str: str,
     cargo: str,
@@ -161,6 +160,8 @@ def validar_salario_banda(
 ) -> Dict:
     """
     Validate if salary is within reasonable market band and generate warning if needed.
+    
+    Uses Brazilian salary format parsing (handles both R$ 25.000,00 and 25000).
     
     Args:
         pretensao_str: Salary string (e.g., "R$ 25.000,00" or "25000")
@@ -176,9 +177,18 @@ def validar_salario_banda(
         - 'mensagem': str warning message (empty if OK)
         - 'nivel': str ('ok', 'acima', 'muito_acima', 'invalido')
     """
-    # Parse salary value
+    # Parse salary value using proper Brazilian format handling
     try:
-        valor_limpo = pretensao_str.replace('R$', '').replace('.', '').replace(',', '.').strip()
+        # Remove R$ and whitespace
+        valor_limpo = pretensao_str.replace('R$', '').strip()
+        
+        # Check if it's Brazilian format (has period for thousands and comma for decimal)
+        # or simple format (just numbers)
+        if ',' in valor_limpo:
+            # Brazilian format: R$ 25.000,00 -> remove periods, replace comma with period
+            valor_limpo = valor_limpo.replace('.', '').replace(',', '.')
+        # else: already in standard format (25000 or 25000.50)
+        
         valor = float(valor_limpo)
     except (ValueError, AttributeError):
         return {
@@ -190,8 +200,8 @@ def validar_salario_banda(
         }
     
     # Get appropriate salary band
-    porte_regiao = detectar_porte_regiao(localizacao, perfil)
-    banda = obter_banda_salarial(cargo, porte=porte_regiao)
+    categoria = detectar_porte_regiao(localizacao, perfil)
+    banda = obter_banda_salarial(cargo, categoria=categoria)
     
     # Check if salary is within band
     minimo = banda['min']
@@ -213,9 +223,10 @@ def validar_salario_banda(
         categoria_texto = _formatar_categoria(banda['category'])
         mensagem = (
             f"⚠️ **Valor informado está acima da média de mercado**\n\n"
-            f"Valor informado: **R$ {valor:,.2f}**\n\n"
+            f"Valor informado: **{_formatar_valor_br(valor)}**\n\n"
             f"Faixa típica para {cargo} ({categoria_texto}): "
-            f"**R$ {minimo:,.2f} - R$ {maximo:,.2f}** (mediana ~R$ {mediana:,.2f})\n\n"
+            f"**{_formatar_valor_br(minimo)} - {_formatar_valor_br(maximo)}** "
+            f"(mediana ~{_formatar_valor_br(mediana)})\n\n"
             f"Considere ajustar sua pretensão para alinhar com o mercado."
         )
         if banda['is_fallback']:
@@ -233,9 +244,10 @@ def validar_salario_banda(
         categoria_texto = _formatar_categoria(banda['category'])
         mensagem = (
             f"🚨 **Valor informado está muito acima da média de mercado**\n\n"
-            f"Valor informado: **R$ {valor:,.2f}**\n\n"
+            f"Valor informado: **{_formatar_valor_br(valor)}**\n\n"
             f"Faixa típica para {cargo} ({categoria_texto}): "
-            f"**R$ {minimo:,.2f} - R$ {maximo:,.2f}** (mediana ~R$ {mediana:,.2f})\n\n"
+            f"**{_formatar_valor_br(minimo)} - {_formatar_valor_br(maximo)}** "
+            f"(mediana ~{_formatar_valor_br(mediana)})\n\n"
             f"Este valor pode dificultar significativamente sua recolocação. "
             f"Recomendamos revisar sua pretensão salarial."
         )
@@ -275,7 +287,7 @@ def _formatar_categoria(category: str) -> str:
 
 def formatar_banda_display(banda: Dict) -> str:
     """
-    Format salary band for display in UI (PT-BR).
+    Format salary band for display in UI (PT-BR with Brazilian currency format).
     
     Args:
         banda: Salary band dict from obter_banda_salarial()
@@ -287,7 +299,9 @@ def formatar_banda_display(banda: Dict) -> str:
     maximo = banda['max']
     mediana = banda['median']
     
+    # Format with Brazilian number format (period for thousands)
     texto = f"R$ {minimo:,.0f} - R$ {maximo:,.0f} (mediana ~R$ {mediana:,.0f})"
+    # Convert to BR format: swap comma with period for thousands separator
     texto = texto.replace(',', '.')
     
     if banda.get('is_fallback'):

@@ -525,12 +525,13 @@ def fase_15_reality_check():
             st.markdown("### 💰 Faixa Salarial de Mercado")
             
             banda_texto = formatar_banda_display(banda)
-            categoria_emoji = "🏢" if not banda.get('is_fallback') else "📊"
+            # Emoji indicates data source: real data (🏢) or estimated (📊)
+            fonte_banda_emoji = "🏢" if not banda.get('is_fallback') else "📊"
             
             st.info(f"""
 **Cargo:** {cargo}
 
-{categoria_emoji} **Faixa de mercado:** {banda_texto}
+{fonte_banda_emoji} **Faixa de mercado:** {banda_texto}
 
 *Valores CLT, mercado brasileiro, sem bônus (2024-2025).*
 """)
