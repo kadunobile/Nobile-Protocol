@@ -13,6 +13,12 @@ from modules.otimizador.checkpoint_validacao import prompt_checkpoint_validacao
 from modules.otimizador.etapa2_reescrita_progressiva import prompt_etapa2_reescrita_progressiva, prompt_etapa2_reescrita_final
 from modules.otimizador.etapa6_otimizacao_linkedin import prompt_etapa6_otimizacao_linkedin
 import streamlit as st
+from core.cv_estruturado import (
+    inicializar_cv_estruturado, 
+    salvar_dados_coleta, 
+    atualizar_posicionamento,
+    atualizar_gaps
+)
 
 # Configuration constants
 DEFAULT_MAX_EXPERIENCES = 3  # Default number of experiences to optimize
@@ -152,18 +158,70 @@ def processar_modulo_otimizador(prompt):
     
     # ETAPA 1: COLETA FOCADA
     if etapa == 'ETAPA_1_COLETA_FOCADA':
+        # Inicializar estrutura de CV e contador de respostas se não existir
+        if 'cv_estruturado' not in st.session_state:
+            st.session_state.cv_estruturado = inicializar_cv_estruturado()
+            # Atualizar posicionamento com cargo alvo
+            cargo = st.session_state.perfil.get('cargo_alvo', '')
+            if cargo:
+                atualizar_posicionamento(cargo_alvo=cargo)
+            # Atualizar gaps identificados
+            gaps_respostas = st.session_state.get('gaps_respostas', {})
+            if gaps_respostas:
+                resolvidos = [gap for gap, info in gaps_respostas.items() if info.get('tem_experiencia')]
+                nao_resolvidos = [gap for gap, info in gaps_respostas.items() if not info.get('tem_experiencia')]
+                atualizar_gaps(
+                    identificados=list(gaps_respostas.keys()),
+                    resolvidos=resolvidos,
+                    nao_resolvidos=nao_resolvidos
+                )
+        
+        if 'dados_coleta_count' not in st.session_state:
+            st.session_state.dados_coleta_count = 0
+        if 'dados_coleta_historico' not in st.session_state:
+            st.session_state.dados_coleta_historico = []
+        
         return prompt_etapa1_coleta_focada()
     
     if etapa == 'AGUARDANDO_DADOS_COLETA':
-        # Palavras de skip: permite usuário pular/avançar sem preencher
-        if any(word in prompt.lower() for word in ['continuar', 'pronto', 'concluído', 'concluido', 'finalizado',
-                                                     'não tenho', 'nao tenho', 'pular', 'skip', 
-                                                     'próxima', 'proxima', 'próximo', 'proximo', 
-                                                     'não sei', 'nao sei']):
-            # Salvar dados coletados
-            st.session_state.dados_coletados = {'raw_response': prompt}
+        # CRITICAL FIX: Aceitar QUALQUER resposta do usuário como dados coletados
+        # não apenas keywords específicas
+        
+        # Inicializar histórico se não existir
+        if 'dados_coleta_historico' not in st.session_state:
+            st.session_state.dados_coleta_historico = []
+        if 'dados_coleta_count' not in st.session_state:
+            st.session_state.dados_coleta_count = 0
+        
+        # Verificar se usuário quer avançar explicitamente
+        palavras_avanco = ['continuar', 'pronto', 'concluído', 'concluido', 'finalizado',
+                          'próxima', 'proxima', 'próximo', 'proximo', 'avançar', 'avancar']
+        
+        if any(word in prompt.lower() for word in palavras_avanco):
+            # Usuário quer avançar - salvar dados e ir para validação
+            st.session_state.dados_coletados = {
+                'raw_response': prompt,
+                'historico': st.session_state.dados_coleta_historico,
+                'total_respostas': st.session_state.dados_coleta_count
+            }
+            # Salvar na estrutura de CV
+            salvar_dados_coleta(st.session_state.dados_coletados)
             st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'
             return prompt_checkpoint_validacao()
+        
+        # Se não for comando de avançar, SALVAR a resposta como dado coletado
+        # e permitir que o chat continue normalmente para mais perguntas
+        if len(prompt.strip()) > 10:  # Resposta com conteúdo substantivo
+            st.session_state.dados_coleta_historico.append(prompt)
+            st.session_state.dados_coleta_count += 1
+            
+            # Salvar incrementalmente na estrutura
+            salvar_dados_coleta({'raw_response': prompt})
+            
+            # Se já coletou 3+ respostas, permitir avançar mas NÃO forçar
+            # O usuário ainda pode continuar respondendo ou digitar "continuar"
+            # Retornar None para que a LLM continue a conversação naturalmente
+        
         return None
     
     # CHECKPOINT 1: VALIDAÇÃO
