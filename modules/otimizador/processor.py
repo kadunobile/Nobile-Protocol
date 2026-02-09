@@ -13,12 +13,25 @@ from modules.otimizador.checkpoint_validacao import prompt_checkpoint_validacao
 from modules.otimizador.etapa2_reescrita_progressiva import prompt_etapa2_reescrita_progressiva, prompt_etapa2_reescrita_final
 from modules.otimizador.etapa6_otimizacao_linkedin import prompt_etapa6_otimizacao_linkedin
 import streamlit as st
-from core.cv_estruturado import (
-    inicializar_cv_estruturado, 
-    salvar_dados_coleta, 
-    atualizar_posicionamento,
-    atualizar_gaps
-)
+
+# Defensive import for cv_estruturado - provide fallbacks if module has issues
+try:
+    from core.cv_estruturado import (
+        inicializar_cv_estruturado, 
+        salvar_dados_coleta, 
+        atualizar_posicionamento,
+        atualizar_gaps
+    )
+except ImportError:
+    # Fallback functions if cv_estruturado not available
+    def inicializar_cv_estruturado():
+        return {}
+    def salvar_dados_coleta(dados):
+        pass
+    def atualizar_posicionamento(**kwargs):
+        pass
+    def atualizar_gaps(**kwargs):
+        pass
 
 # Configuration constants
 DEFAULT_MAX_EXPERIENCES = 3  # Default number of experiences to optimize
@@ -39,7 +52,8 @@ def gerar_resumo_diagnostico():
         str: Resumo formatado do diagnóstico
     """
     gaps_respostas = st.session_state.get('gaps_respostas', {})
-    cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+    perfil = st.session_state.get('perfil', {})
+    cargo = perfil.get('cargo_alvo', 'cargo desejado')
     
     gaps_com_experiencia = {gap: info for gap, info in gaps_respostas.items() if info.get('tem_experiencia')}
     gaps_sem_experiencia = {gap: info for gap, info in gaps_respostas.items() if not info.get('tem_experiencia')}
@@ -87,7 +101,8 @@ Agora vamos coletar dados adicionais sobre suas experiências profissionais para
 
 
 def processar_modulo_otimizador(prompt):
-    cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+    perfil = st.session_state.get('perfil', {})
+    cargo = perfil.get('cargo_alvo', 'cargo desejado')
     etapa = st.session_state.get('etapa_modulo')
     
     # ========== NOVO FLUXO OTIMIZADO ==========
@@ -163,7 +178,8 @@ def processar_modulo_otimizador(prompt):
         if 'cv_estruturado' not in st.session_state:
             st.session_state.cv_estruturado = inicializar_cv_estruturado()
             # Atualizar posicionamento com cargo alvo
-            cargo = st.session_state.perfil.get('cargo_alvo', '')
+            perfil = st.session_state.get('perfil', {})
+            cargo = perfil.get('cargo_alvo', '')
             if cargo:
                 atualizar_posicionamento(cargo_alvo=cargo)
             # Atualizar gaps identificados

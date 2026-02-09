@@ -40,7 +40,11 @@ def fase_chat():
         not st.session_state.get('etapa_1_triggered')):
         
         st.session_state.etapa_1_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_1_SEO): {e}")
+            prompt_otimizador = None
         
         if prompt_otimizador:
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
@@ -65,7 +69,11 @@ def fase_chat():
         not st.session_state.get('etapa_0_diagnostico_triggered')):
         
         st.session_state.etapa_0_diagnostico_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_0_DIAGNOSTICO): {e}")
+            prompt_otimizador = None
         
         if prompt_otimizador:
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
