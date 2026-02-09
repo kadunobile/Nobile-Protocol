@@ -1,12 +1,12 @@
 """
-Sistema de Pontuação ATS (Applicant Tracking System) - v3.2.
+Sistema de Pontuação ATS (Applicant Tracking System) - v4.0.
 
-Usa TF-IDF + Cosine Similarity com stopwords NLTK (PT/EN) + termos customizados
-para calcular compatibilidade entre CV e Job Description gerada por IA.
+v4.0: Análise contextual via LLM (GPT-4o) com fallback TF-IDF.
+- Quando OpenAI client disponível: análise semântica inteligente
+- Quando offline: TF-IDF + Cosine Similarity (v3.2)
 
-v3.2 melhorias:
-- Substituição da lista manual de stopwords por NLTK (base robusta de ~400 termos PT + EN)
-- Combinação com termos customizados de CV/JD (~150 termos) = ~550+ stopwords total
+v3.2 (fallback):
+- TF-IDF + Cosine Similarity com stopwords NLTK (PT/EN) + termos customizados
 - Prompt da JD focado em termos técnicos, ferramentas e siglas
 - Filtro de n-grams genéricos nos gaps e pontos fortes
 
@@ -14,6 +14,7 @@ Retorna: Score + Pontos Fortes + Gaps + Plano de Ação.
 """
 
 import re
+import json
 import logging
 from typing import Dict, Optional, List
 
@@ -271,6 +272,124 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
     }
 
 
+def _analisar_com_llm(client, cv_texto: str, cargo_alvo: str) -> Optional[Dict]:
+    """
+    Analisa CV usando LLM (GPT-4o) para análise contextual inteligente.
+    
+    Substitui a análise TF-IDF quando o client OpenAI está disponível.
+    A LLM entende contexto, sinônimos e variações, gerando gaps e pontos fortes
+    mais relevantes e específicos.
+    
+    Args:
+        client: Cliente OpenAI inicializado
+        cv_texto: Texto completo do CV
+        cargo_alvo: Cargo para o qual está se candidatando
+        
+    Returns:
+        Dict com score, pontos_fortes, gaps_identificados, plano_acao ou None em caso de erro
+    """
+    logger.info(f"Analisando CV com LLM para cargo: {cargo_alvo}")
+    
+    # Prompt engineering baseado nas regras de ouro do problema
+    msgs = [
+        {"role": "system", "content": (
+            "Você é um Especialista Sênior em ATS (Applicant Tracking System) e Recrutamento Tech.\n\n"
+            "Sua missão é analisar o CV do candidato em comparação com as expectativas REAIS do cargo informado.\n\n"
+            "REGRAS DE OURO:\n\n"
+            "1. **Pontos Fortes**: Liste APENAS Hard Skills, Ferramentas (Software), Metodologias específicas e "
+            "Métricas de Negócio que o candidato REALMENTE demonstra no CV.\n"
+            "   - ✅ INCLUIR: Salesforce, HubSpot, Power BI, Tableau, SQL, Python, Scrum, OKRs, pipeline management, B2B SaaS, métricas específicas\n"
+            "   - ❌ NÃO INCLUIR: termos genéricos como 'gestão', 'vendas', 'liderança', 'comunicação', 'dados'\n\n"
+            "2. **Gaps**: Liste APENAS Hard Skills, Ferramentas e Certificações que são padrão OBRIGATÓRIO "
+            "para o cargo no mercado real.\n"
+            "   - ✅ INCLUIR: Ferramentas específicas faltantes (Tableau, Looker, Marketo), certificações relevantes (PMP, AWS), SQL avançado, ABM\n"
+            "   - ❌ NÃO INCLUIR: stopwords ('TÉCNICOS', 'PREVISÃO', 'DESEMPENHO', 'INTEGRAÇÃO'), verbos genéricos, "
+            "erros de tradução, fragmentos sem contexto ('RATE', 'RATE TAXA', 'BI' isolado), n-grams genéricos\n\n"
+            "3. **Considere Sinônimos e Variações**:\n"
+            "   - 'BI' = 'Power BI' = 'Business Intelligence'\n"
+            "   - 'automação de marketing' pode cobrir 'Marketing Automation'\n"
+            "   - Avalie contextualmente — se o CV menciona algo relacionado, não marque como gap\n\n"
+            "4. **Score (0-100)**: Avalie considerando:\n"
+            "   - Presença de ferramentas específicas: 40%\n"
+            "   - Métricas quantificáveis: 20%\n"
+            "   - Alinhamento de experiência com o cargo: 20%\n"
+            "   - Formatação ATS-friendly: 10%\n"
+            "   - Keywords estratégicas: 10%\n\n"
+            "5. **Plano de Ação**: Dê 2-3 recomendações práticas e específicas, começando com emoji relevante "
+            "(🔍, ⚠️, 🏆, ❌, 🔶 dependendo do score).\n\n"
+            "RESPONDA APENAS COM UM JSON VÁLIDO (sem markdown, sem explicações extras):\n"
+            "```json\n"
+            "{\n"
+            '    "score": 65.0,\n'
+            '    "pontos_fortes": ["Salesforce", "HubSpot", "Power BI", "pipeline management", "B2B SaaS"],\n'
+            '    "gaps_identificados": ["Tableau", "Looker", "SQL avançado", "Marketo", "ABM"],\n'
+            '    "plano_acao": ["🔍 Palavras-chave ausentes...", "⚠️ Boa base, mas..."]\n'
+            "}\n"
+            "```"
+        )},
+        {"role": "user", "content": (
+            f"CARGO ALVO: {cargo_alvo}\n\n"
+            f"CV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"  # Limitar a 8000 chars para não estourar tokens
+            f"Analise este CV para o cargo '{cargo_alvo}' e retorne o JSON conforme as regras."
+        )}
+    ]
+    
+    # Chamar LLM com máxima consistência
+    resposta = chamar_gpt(client, msgs, temperature=0.2, seed=42)
+    
+    if not resposta:
+        logger.warning("Falha ao obter resposta da LLM")
+        return None
+    
+    # Parse do JSON da resposta
+    try:
+        # A resposta pode vir com blocos ```json ou JSON puro
+        resposta_limpa = resposta.strip()
+        
+        # Remover blocos markdown se existirem
+        if resposta_limpa.startswith("```json"):
+            resposta_limpa = resposta_limpa.split("```json", 1)[1]
+            resposta_limpa = resposta_limpa.rsplit("```", 1)[0]
+        elif resposta_limpa.startswith("```"):
+            resposta_limpa = resposta_limpa.split("```", 1)[1]
+            resposta_limpa = resposta_limpa.rsplit("```", 1)[0]
+        
+        resposta_limpa = resposta_limpa.strip()
+        
+        # Parse do JSON
+        resultado = json.loads(resposta_limpa)
+        
+        # Validar estrutura esperada
+        if not all(k in resultado for k in ['score', 'pontos_fortes', 'gaps_identificados', 'plano_acao']):
+            logger.error("Resposta LLM não contém todas as chaves esperadas")
+            return None
+        
+        # Validar tipos
+        if not isinstance(resultado['score'], (int, float)):
+            logger.error("Score não é numérico")
+            return None
+        if not isinstance(resultado['pontos_fortes'], list):
+            logger.error("pontos_fortes não é lista")
+            return None
+        if not isinstance(resultado['gaps_identificados'], list):
+            logger.error("gaps_identificados não é lista")
+            return None
+        if not isinstance(resultado['plano_acao'], list):
+            logger.error("plano_acao não é lista")
+            return None
+        
+        logger.info(f"Análise LLM concluída com sucesso. Score: {resultado['score']}")
+        return resultado
+        
+    except json.JSONDecodeError as e:
+        logger.error(f"Erro ao fazer parse do JSON da LLM: {e}")
+        logger.debug(f"Resposta recebida: {resposta[:500]}")
+        return None
+    except Exception as e:
+        logger.error(f"Erro inesperado ao processar resposta da LLM: {e}", exc_info=True)
+        return None
+
+
 def buscar_variacoes_cargo(client, cargo: str) -> List[str]:
     """
     Usa IA para encontrar variações REAIS de mercado de um cargo.
@@ -384,10 +503,12 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
     """
     Calcula Score ATS completo com análise de gaps técnicos.
     
+    v4.0: Usa LLM quando client disponível, senão fallback para TF-IDF.
+    
     Args:
         cv_texto: Texto completo do CV
         cargo_alvo: Cargo para gerar a Job Description
-        client: Cliente OpenAI (opcional, mas recomendado)
+        client: Cliente OpenAI (opcional, mas recomendado para análise LLM)
         
     Returns:
         Dict com score_total, percentual, nivel, pontos_fortes,
@@ -395,6 +516,46 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
     """
     logger.info(f"Calculando score ATS para cargo: {cargo_alvo}")
     
+    # ─── TENTATIVA 1: Análise LLM (v4.0) ───
+    if client:
+        logger.info("Client OpenAI disponível - usando análise LLM (v4.0)")
+        analise_llm = _analisar_com_llm(client, cv_texto, cargo_alvo)
+        
+        if analise_llm:
+            # Usar resultado da LLM
+            score = analise_llm['score']
+            nivel = classificar_score(score)
+            
+            logger.info(f"Análise LLM bem-sucedida. Score: {score}/100 ({nivel})")
+            
+            return {
+                'score_total': score,
+                'max_score': 100,
+                'percentual': score,
+                'nivel': nivel,
+                'cargo_avaliado': cargo_alvo,
+                'pontos_fortes': analise_llm['pontos_fortes'],
+                'gaps_identificados': analise_llm['gaps_identificados'],
+                'plano_acao': analise_llm['plano_acao'],
+                'jd_gerada': True,
+                'detalhes': {
+                    'metodo': 'LLM Contextual Analysis (v4.0)',
+                    'modelo': 'GPT-4o',
+                    'fallback': False,
+                    # Compatibilidade com UI existente - campos vazios mas presentes
+                    'secoes': {'score': 0, 'encontradas': 0, 'total': 0},
+                    'keywords': {'score': 0, 'encontradas': 0, 'total': 0, 'faltando': []},
+                    'metricas': {'score': 0, 'quantidade': 0},
+                    'formatacao': {'score': 0, 'bullets': 0, 'datas': 0},
+                    'tamanho': {'score': 0, 'palavras': 0, 'ideal': 'N/A'},
+                }
+            }
+        else:
+            logger.warning("Análise LLM falhou - caindo para fallback TF-IDF")
+    else:
+        logger.info("Client OpenAI não disponível - usando fallback TF-IDF (v3.2)")
+    
+    # ─── FALLBACK: Análise TF-IDF (v3.2) ───
     job_description = None
     if client:
         job_description = gerar_job_description(client, cargo_alvo)
@@ -425,9 +586,10 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
         'plano_acao': analise['plano_acao'],
         'jd_gerada': job_description is not None,
         'detalhes': {
-            'metodo': 'TF-IDF + Cosine Similarity (v3.2)',
+            'metodo': 'TF-IDF + Cosine Similarity (v3.2 - Fallback)',
             'ngrams': '1-3',
             'stopwords': 'NLTK (PT + EN) + Custom CV/JD (~550+)',
+            'fallback': True,
         }
     }
     
