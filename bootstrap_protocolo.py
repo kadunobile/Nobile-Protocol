@@ -721,11 +721,21 @@ FORMATO EXATO OBRIGATÓRIO:
 
 **Pretensão Informada:** R$ {pretensao} mensal
 
-**Faixa Salarial Geral:** R$ [mínimo] a R$ [máximo]
+**Faixa Salarial CLT (para este perfil/senioridade em {local}):**
 
-**Veredito:** [Abaixo/Na Média/Acima]
+| Percentil | Valor Mensal | Contexto |
+|-----------|-------------|----------|
+| P25 (Início de faixa) | R$ X.XXX | Empresas menores, interior ou candidatos em transição |
+| P50 (Mediana) | R$ X.XXX | Mercado geral para este nível em {local} |
+| P75 (Top de faixa) | R$ X.XXX | Multinacionais, grandes empresas, perfis disputados |
 
-[Contexto]
+**Equivalente PJ estimado:** R$ X.XXX a R$ X.XXX/mês (sem benefícios CLT, ~30-40% acima do CLT)
+
+**Veredito:** [Abaixo do P25 / Entre P25-P50 / Na Mediana (P50) / Entre P50-P75 / Acima do P75]
+
+**Contexto Regional:** [Explicação de 2-3 linhas sobre o mercado para esse cargo específico na região informada, considerando se aceita remoto, diferenças entre capitais e interior, e como a região se compara à média nacional]
+
+*Referências: Dados baseados em pesquisas salariais de mercado (Robert Half, Michael Page, Glassdoor, Catho, Gupy Trends) para {cargo} nível {senioridade} em {local}, período 2024-2025.*
 
 ---
 
