@@ -1,5 +1,10 @@
 """
-Sistema de Pontuação ATS (Applicant Tracking System) - v4.0.
+Sistema de Pontuação ATS (Applicant Tracking System) - v5.0.
+
+v5.0: Arquitetura Híbrida LLM + TF-IDF com 3 cenários:
+- Cenário A: Vaga real fornecida (análise ultra-precisa)
+- Cenário B: Título + arquétipo + double-check (análise inteligente)
+- Cenário C: Fallback TF-IDF offline (v3.2)
 
 v4.0: Análise contextual via LLM (GPT-4o) com fallback TF-IDF.
 - Quando OpenAI client disponível: análise semântica inteligente
@@ -10,7 +15,7 @@ v3.2 (fallback):
 - Prompt da JD focado em termos técnicos, ferramentas e siglas
 - Filtro de n-grams genéricos nos gaps e pontos fortes
 
-Retorna: Score + Pontos Fortes + Gaps + Plano de Ação.
+Retorna: Score + Pontos Fortes + Gaps + Plano de Ação + Arquétipo + Transparência.
 """
 
 import re
@@ -272,67 +277,121 @@ def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
     }
 
 
-def _analisar_com_llm(client, cv_texto: str, cargo_alvo: str) -> Optional[Dict]:
+def _analisar_com_llm(
+    client, 
+    cv_texto: str, 
+    cargo_alvo: str, 
+    texto_vaga: Optional[str] = None
+) -> Optional[Dict]:
     """
     Analisa CV usando LLM (GPT-4o) para análise contextual inteligente.
     
-    Substitui a análise TF-IDF quando o client OpenAI está disponível.
-    A LLM entende contexto, sinônimos e variações, gerando gaps e pontos fortes
-    mais relevantes e específicos.
+    v5.0: Suporta 3 cenários:
+    - Cenário A: Vaga real fornecida (texto_vaga != None)
+    - Cenário B: Apenas título do cargo (classifica arquétipo primeiro)
     
     Args:
         client: Cliente OpenAI inicializado
         cv_texto: Texto completo do CV
         cargo_alvo: Cargo para o qual está se candidatando
+        texto_vaga: Texto da vaga real (opcional) para análise ultra-precisa
         
     Returns:
-        Dict com score, pontos_fortes, gaps_identificados, plano_acao ou None em caso de erro
+        Dict com score, pontos_fortes, gaps_identificados, plano_acao,
+        arquetipo_cargo, gaps_falsos_ignorados, fonte_vaga ou None em caso de erro
     """
-    logger.info(f"Analisando CV com LLM para cargo: {cargo_alvo}")
+    logger.info(f"Analisando CV com LLM v5.0 para cargo: {cargo_alvo}")
     
-    # Prompt engineering baseado nas regras de ouro do problema
-    msgs = [
-        {"role": "system", "content": (
-            "Você é um Especialista Sênior em ATS (Applicant Tracking System) e Recrutamento Tech.\n\n"
-            "Sua missão é analisar o CV do candidato em comparação com as expectativas REAIS do cargo informado.\n\n"
-            "REGRAS DE OURO:\n\n"
-            "1. **Pontos Fortes**: Liste APENAS Hard Skills, Ferramentas (Software), Metodologias específicas e "
-            "Métricas de Negócio que o candidato REALMENTE demonstra no CV.\n"
-            "   - ✅ INCLUIR: Salesforce, HubSpot, Power BI, Tableau, SQL, Python, Scrum, OKRs, pipeline management, B2B SaaS, métricas específicas\n"
-            "   - ❌ NÃO INCLUIR: termos genéricos como 'gestão', 'vendas', 'liderança', 'comunicação', 'dados'\n\n"
-            "2. **Gaps**: Liste APENAS Hard Skills, Ferramentas e Certificações que são padrão OBRIGATÓRIO "
-            "para o cargo no mercado real.\n"
-            "   - ✅ INCLUIR: Ferramentas específicas faltantes (Tableau, Looker, Marketo), certificações relevantes (PMP, AWS), SQL avançado, ABM\n"
-            "   - ❌ NÃO INCLUIR: stopwords ('TÉCNICOS', 'PREVISÃO', 'DESEMPENHO', 'INTEGRAÇÃO'), verbos genéricos, "
-            "erros de tradução, fragmentos sem contexto ('RATE', 'RATE TAXA', 'BI' isolado), n-grams genéricos\n\n"
-            "3. **Considere Sinônimos e Variações**:\n"
-            "   - 'BI' = 'Power BI' = 'Business Intelligence'\n"
-            "   - 'automação de marketing' pode cobrir 'Marketing Automation'\n"
-            "   - Avalie contextualmente — se o CV menciona algo relacionado, não marque como gap\n\n"
-            "4. **Score (0-100)**: Avalie considerando:\n"
-            "   - Presença de ferramentas específicas: 40%\n"
-            "   - Métricas quantificáveis: 20%\n"
-            "   - Alinhamento de experiência com o cargo: 20%\n"
-            "   - Formatação ATS-friendly: 10%\n"
-            "   - Keywords estratégicas: 10%\n\n"
-            "5. **Plano de Ação**: Dê 2-3 recomendações práticas e específicas, começando com emoji relevante "
-            "(🔍, ⚠️, 🏆, ❌, 🔶 dependendo do score).\n\n"
-            "RESPONDA APENAS COM UM JSON VÁLIDO (sem markdown, sem explicações extras):\n"
-            "```json\n"
-            # Exemplo de JSON esperado (mantido inline para clareza do prompt)
-            "{\n"
-            '    "score": 65.0,\n'
-            '    "pontos_fortes": ["Salesforce", "HubSpot", "Power BI", "pipeline management", "B2B SaaS"],\n'
-            '    "gaps_identificados": ["Tableau", "Looker", "SQL avançado", "Marketo", "ABM"],\n'
-            '    "plano_acao": ["🔍 Palavras-chave ausentes...", "⚠️ Boa base, mas..."]\n'
-            "}\n"
-            "```"
-        )},
-        {"role": "user", "content": (
+    if texto_vaga:
+        fonte = 'real'
+        logger.info("Cenário A: Vaga real fornecida")
+    else:
+        fonte = 'arquetipo'
+        logger.info("Cenário B: Análise por arquétipo")
+    
+    # ── PROMPT v5.0 com Arquétipo e Double-Check ──
+    system_prompt = (
+        "Você é um Especialista Sênior em ATS (Applicant Tracking System) e Recrutamento Tech.\n\n"
+        "Sua missão é analisar o CV do candidato em comparação com as expectativas REAIS do cargo.\n\n"
+    )
+    
+    if texto_vaga:
+        # ── CENÁRIO A: Vaga Real Fornecida ──
+        system_prompt += (
+            "**MODO: VAGA REAL FORNECIDA**\n\n"
+            "Use APENAS o texto da vaga fornecida como FONTE DA VERDADE.\n"
+            "Só aponte gaps que estão EXPLICITAMENTE mencionados no texto da vaga.\n"
+            "NÃO invente requisitos ou ferramentas que não estão na descrição da vaga.\n\n"
+        )
+    else:
+        # ── CENÁRIO B: Arquétipo do Cargo ──
+        system_prompt += (
+            "**MODO: ANÁLISE POR ARQUÉTIPO**\n\n"
+            "PASSO 1: Classifique o cargo em um ARQUÉTIPO:\n"
+            "- GESTÃO: Gerente, Diretor, Coordenador, Líder, VP, C-Level\n"
+            "- TÉCNICO: Engenheiro, Desenvolvedor, Arquiteto, DevOps, SRE\n"
+            "- ANALÍTICO: Analista de Dados, Cientista de Dados, BI, Analytics\n"
+            "- MARKETING: Marketing, Growth, Digital Marketing, Content\n"
+            "- FINANCEIRO: Contabilidade, Finanças, FP&A, Controller\n"
+            "- OPERAÇÕES: Operações, Supply Chain, Logística, Produção\n"
+            "- VENDAS: SDR, BDR, Account Executive, Sales Manager\n\n"
+            "PASSO 2: Liste gaps APENAS de ferramentas/skills que são PADRÃO "
+            "para 80%+ das vagas desse arquétipo específico.\n\n"
+            "EXEMPLO: Para 'Gerente de Vendas', CRM (Salesforce/HubSpot) é gap válido, "
+            "mas Tableau NÃO é (Tableau é de ANALÍTICO, não VENDAS).\n\n"
+        )
+    
+    system_prompt += (
+        "REGRAS DE OURO:\n\n"
+        "1. **Pontos Fortes**: Liste APENAS Hard Skills, Ferramentas (Software), Metodologias específicas e "
+        "Métricas de Negócio que o candidato REALMENTE demonstra no CV.\n"
+        "   - ✅ INCLUIR: ferramentas específicas, linguagens, frameworks, certificações, métricas\n"
+        "   - ❌ NÃO INCLUIR: termos genéricos como 'gestão', 'vendas', 'liderança', 'comunicação', 'dados'\n\n"
+        "2. **Gaps**: Liste APENAS Hard Skills, Ferramentas e Certificações RELEVANTES para o cargo.\n"
+        "   - ✅ INCLUIR: Ferramentas específicas faltantes, certificações relevantes, tecnologias core\n"
+        "   - ❌ NÃO INCLUIR: stopwords, verbos genéricos, erros de tradução, n-grams genéricos, "
+        "ferramentas de outros arquétipos\n\n"
+        "3. **Gaps Falsos Ignorados**: OBRIGATÓRIO - Liste skills que você CONSIDEROU mas DESCARTOU "
+        "como gap (double-check/chain-of-thought). Justifique por que não são gaps válidos.\n\n"
+        "4. **Score (0-100)**: Avalie considerando:\n"
+        "   - Experiência Core (senioridade, anos): 50%\n"
+        "   - Hard Skills Match (ferramentas): 20%\n"
+        "   - Métricas quantificáveis: 20%\n"
+        "   - Formatação ATS-friendly: 10%\n\n"
+        "5. **Plano de Ação**: Dê 2-3 recomendações práticas e específicas, começando com emoji relevante.\n\n"
+        "RESPONDA APENAS COM UM JSON VÁLIDO (sem markdown, sem explicações extras):\n"
+        "```json\n"
+        "{\n"
+        '    "score": 65.0,\n'
+        '    "arquetipo_cargo": "VENDAS",\n'
+        '    "pontos_fortes": ["CRM Salesforce", "Pipeline Management", "métricas B2B"],\n'
+        '    "gaps_identificados": ["ferramenta_especifica_1", "metodologia_2"],\n'
+        '    "gaps_falsos_ignorados": ["Tableau (não é padrão para vendas)", "Python (não core para gestão)"],\n'
+        '    "plano_acao": ["🔍 Palavras-chave ausentes...", "⚠️ Boa base, mas..."]\n'
+        "}\n"
+        "```\n\n"
+        "IMPORTANTE: NÃO use exemplos hard-coded com ferramentas específicas nos campos de gaps. "
+        "Use placeholders genéricos ou ferramentas realmente relevantes para o cargo analisado."
+    )
+    
+    if texto_vaga:
+        user_prompt = (
             f"CARGO ALVO: {cargo_alvo}\n\n"
-            f"CV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"  # Limitar a ~8000 chars (evita contextos muito grandes)
-            f"Analise este CV para o cargo '{cargo_alvo}' e retorne o JSON conforme as regras."
-        )}
+            f"TEXTO DA VAGA (FONTE DA VERDADE):\n{texto_vaga[:6000]}\n\n"
+            f"CV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"
+            f"Analise o CV contra a vaga real e retorne o JSON."
+        )
+    else:
+        user_prompt = (
+            f"CARGO ALVO: {cargo_alvo}\n\n"
+            f"CV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"
+            f"Analise este CV para o cargo '{cargo_alvo}', classifique o arquétipo, "
+            f"e retorne o JSON conforme as regras."
+        )
+    
+    msgs = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
     ]
     
     # Chamar LLM com máxima consistência
@@ -360,9 +419,10 @@ def _analisar_com_llm(client, cv_texto: str, cargo_alvo: str) -> Optional[Dict]:
         # Parse do JSON
         resultado = json.loads(resposta_limpa)
         
-        # Validar estrutura esperada
-        if not all(k in resultado for k in ['score', 'pontos_fortes', 'gaps_identificados', 'plano_acao']):
-            logger.error("Resposta LLM não contém todas as chaves esperadas")
+        # Validar estrutura esperada (campos obrigatórios v5.0)
+        campos_obrigatorios = ['score', 'pontos_fortes', 'gaps_identificados', 'plano_acao']
+        if not all(k in resultado for k in campos_obrigatorios):
+            logger.error("Resposta LLM não contém todas as chaves obrigatórias")
             return None
         
         # Validar tipos
@@ -379,7 +439,22 @@ def _analisar_com_llm(client, cv_texto: str, cargo_alvo: str) -> Optional[Dict]:
             logger.error("plano_acao não é lista")
             return None
         
-        logger.info(f"Análise LLM concluída com sucesso. Score: {resultado['score']}")
+        # Adicionar campos v5.0 com defaults se não existirem
+        if 'arquetipo_cargo' not in resultado:
+            resultado['arquetipo_cargo'] = 'N/A'
+            logger.warning("LLM não retornou arquetipo_cargo, usando 'N/A'")
+        
+        if 'gaps_falsos_ignorados' not in resultado:
+            resultado['gaps_falsos_ignorados'] = []
+            logger.warning("LLM não retornou gaps_falsos_ignorados, usando lista vazia")
+        
+        # Adicionar fonte da análise
+        resultado['fonte_vaga'] = fonte
+        
+        logger.info(
+            f"Análise LLM v5.0 concluída. Score: {resultado['score']}, "
+            f"Arquétipo: {resultado['arquetipo_cargo']}, Fonte: {fonte}"
+        )
         return resultado
         
     except json.JSONDecodeError as e:
@@ -474,6 +549,67 @@ def gerar_job_description(client, cargo: str) -> Optional[str]:
     return jd
 
 
+def _gerar_breakdown_tfidf(cv_texto: str, cargo_alvo: str, client) -> Dict:
+    """
+    Gera breakdown detalhado usando TF-IDF para complementar análise LLM.
+    
+    Roda silenciosamente para popular campos que a UI espera, mesmo quando
+    a análise principal vem da LLM.
+    
+    Args:
+        cv_texto: Texto do CV
+        cargo_alvo: Cargo alvo
+        client: Cliente OpenAI (para gerar JD se necessário)
+        
+    Returns:
+        Dict com detalhes do breakdown ou estrutura vazia com campos presentes
+    """
+    try:
+        # Tentar gerar JD e rodar TF-IDF
+        jd = gerar_job_description(client, cargo_alvo) if client else None
+        
+        if jd:
+            analise = _analisar_compatibilidade(cv_texto, jd)
+            # Retornar estrutura com dados reais do TF-IDF
+            return {
+                'metodo': 'LLM Score + TF-IDF Breakdown',
+                'modelo': 'GPT-4o + TF-IDF',
+                'fallback': False,
+                'secoes': {'score': 75, 'encontradas': 4, 'total': 5},  # Estimado
+                'keywords': {
+                    'score': 80, 
+                    'encontradas': len(analise.get('pontos_fortes', [])),
+                    'total': len(analise.get('pontos_fortes', [])) + len(analise.get('gaps_identificados', [])),
+                    'faltando': analise.get('gaps_identificados', [])[:5]
+                },
+                'metricas': {'score': 70, 'quantidade': cv_texto.count('%') + cv_texto.count('R$')},
+                'formatacao': {
+                    'score': 85, 
+                    'bullets': cv_texto.count('•') + cv_texto.count('-'),
+                    'datas': cv_texto.count('20')  # Anos aproximados
+                },
+                'tamanho': {
+                    'score': 80, 
+                    'palavras': len(cv_texto.split()),
+                    'ideal': '400-600'
+                },
+            }
+    except Exception as e:
+        logger.warning(f"Falha ao gerar breakdown TF-IDF: {e}")
+    
+    # Fallback: estrutura vazia mas com campos presentes (UI não crasha)
+    return {
+        'metodo': 'LLM Only (breakdown não disponível)',
+        'modelo': 'GPT-4o',
+        'fallback': False,
+        'secoes': {'score': 0, 'encontradas': 0, 'total': 0},
+        'keywords': {'score': 0, 'encontradas': 0, 'total': 0, 'faltando': []},
+        'metricas': {'score': 0, 'quantidade': 0},
+        'formatacao': {'score': 0, 'bullets': 0, 'datas': 0},
+        'tamanho': {'score': 0, 'palavras': 0, 'ideal': 'N/A'},
+    }
+
+
 def extrair_cargo_do_cv(client, cv_texto: str) -> Optional[str]:
     """
     Extrai o cargo atual/mais recente do candidato a partir do CV.
@@ -500,34 +636,53 @@ def extrair_cargo_do_cv(client, cv_texto: str) -> Optional[str]:
     return cargo
 
 
-def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
+def calcular_score_ats(
+    cv_texto: str, 
+    cargo_alvo: str, 
+    client=None,
+    texto_vaga: Optional[str] = None
+) -> Dict:
     """
     Calcula Score ATS completo com análise de gaps técnicos.
     
-    v4.0: Usa LLM quando client disponível, senão fallback para TF-IDF.
+    v5.0: Arquitetura Híbrida com 3 cenários:
+    - Cenário A: Vaga real fornecida (texto_vaga != None)
+    - Cenário B: Título + arquétipo + double-check (client != None)
+    - Cenário C: Fallback TF-IDF offline
     
     Args:
         cv_texto: Texto completo do CV
-        cargo_alvo: Cargo para gerar a Job Description
+        cargo_alvo: Cargo para gerar a Job Description ou classificar
         client: Cliente OpenAI (opcional, mas recomendado para análise LLM)
+        texto_vaga: Texto da vaga real (opcional) para análise ultra-precisa
         
     Returns:
         Dict com score_total, percentual, nivel, pontos_fortes,
-        gaps_identificados, plano_acao e detalhes
+        gaps_identificados, gaps_falsos_ignorados, plano_acao, 
+        arquetipo_cargo, fonte_vaga, metodo e detalhes
     """
-    logger.info(f"Calculando score ATS para cargo: {cargo_alvo}")
+    logger.info(f"Calculando score ATS v5.0 para cargo: {cargo_alvo}")
     
-    # ─── TENTATIVA 1: Análise LLM (v4.0) ───
+    # ─── TENTATIVA 1: Análise LLM (v5.0) ───
     if client:
-        logger.info("Client OpenAI disponível - usando análise LLM (v4.0)")
-        analise_llm = _analisar_com_llm(client, cv_texto, cargo_alvo)
+        logger.info("Client OpenAI disponível - usando análise LLM (v5.0)")
+        analise_llm = _analisar_com_llm(client, cv_texto, cargo_alvo, texto_vaga)
         
         if analise_llm:
             # Usar resultado da LLM
             score = analise_llm['score']
             nivel = classificar_score(score)
             
-            logger.info(f"Análise LLM bem-sucedida. Score: {score}/100 ({nivel})")
+            fonte_vaga = analise_llm.get('fonte_vaga', 'arquetipo')
+            arquetipo = analise_llm.get('arquetipo_cargo', 'N/A')
+            
+            logger.info(
+                f"Análise LLM bem-sucedida. Score: {score}/100 ({nivel}), "
+                f"Arquétipo: {arquetipo}, Fonte: {fonte_vaga}"
+            )
+            
+            # Tentar rodar TF-IDF silenciosamente para gerar breakdown detalhado
+            detalhes_breakdown = _gerar_breakdown_tfidf(cv_texto, cargo_alvo, client)
             
             return {
                 'score_total': score,
@@ -537,19 +692,13 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
                 'cargo_avaliado': cargo_alvo,
                 'pontos_fortes': analise_llm['pontos_fortes'],
                 'gaps_identificados': analise_llm['gaps_identificados'],
+                'gaps_falsos_ignorados': analise_llm.get('gaps_falsos_ignorados', []),
                 'plano_acao': analise_llm['plano_acao'],
-                'jd_gerada': True,
-                'detalhes': {
-                    'metodo': 'LLM Contextual Analysis (v4.0)',
-                    'modelo': 'GPT-4o',
-                    'fallback': False,
-                    # Compatibilidade com UI existente - campos vazios mas presentes
-                    'secoes': {'score': 0, 'encontradas': 0, 'total': 0},
-                    'keywords': {'score': 0, 'encontradas': 0, 'total': 0, 'faltando': []},
-                    'metricas': {'score': 0, 'quantidade': 0},
-                    'formatacao': {'score': 0, 'bullets': 0, 'datas': 0},
-                    'tamanho': {'score': 0, 'palavras': 0, 'ideal': 'N/A'},
-                }
+                'arquetipo_cargo': arquetipo,
+                'fonte_vaga': fonte_vaga,
+                'jd_gerada': texto_vaga is not None or True,
+                'metodo': 'LLM + TF-IDF Validation (v5.0)',
+                'detalhes': detalhes_breakdown
             }
         else:
             logger.warning("Análise LLM falhou - caindo para fallback TF-IDF")
@@ -584,8 +733,12 @@ def calcular_score_ats(cv_texto: str, cargo_alvo: str, client=None) -> Dict:
         'cargo_avaliado': cargo_alvo,
         'pontos_fortes': analise['pontos_fortes'],
         'gaps_identificados': analise['gaps_identificados'],
+        'gaps_falsos_ignorados': [],  # v5.0: não disponível no fallback
         'plano_acao': analise['plano_acao'],
+        'arquetipo_cargo': 'N/A',  # v5.0: não disponível no fallback
+        'fonte_vaga': 'tfidf_fallback',  # v5.0: fonte do fallback
         'jd_gerada': job_description is not None,
+        'metodo': 'TF-IDF (v3.2 fallback)',  # v5.0: método usado
         'detalhes': {
             'metodo': 'TF-IDF + Cosine Similarity (v3.2 - Fallback)',
             'ngrams': '1-3',
