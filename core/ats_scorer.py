@@ -457,17 +457,15 @@ def _analisar_com_llm(
         gaps_falsos_originais = resultado['gaps_falsos_ignorados']
         gaps_falsos_filtrados = []
         
-        # Exemplos fixos que eram usados anteriormente e devem ser filtrados
-        exemplos_fixos = [
-            "Tableau (não é padrão para vendas)",
-            "Python (não core para gestão)",
+        # Exemplos fixos que eram usados anteriormente e devem ser filtrados (lowercase para comparação)
+        exemplos_fixos_lower = [
             "tableau (não é padrão para vendas)",
             "python (não core para gestão)"
         ]
         
         for gap_falso in gaps_falsos_originais:
-            # Filtrar se for exatamente um dos exemplos fixos
-            if gap_falso.strip() not in exemplos_fixos:
+            # Filtrar se for exatamente um dos exemplos fixos (case-insensitive)
+            if gap_falso.strip().lower() not in exemplos_fixos_lower:
                 gaps_falsos_filtrados.append(gap_falso)
             else:
                 logger.warning(f"Exemplo fixo copiado filtrado de gaps_falsos_ignorados: {gap_falso}")

@@ -46,7 +46,7 @@ Para CADA experiência profissional relevante identificada no diagnóstico:
 
 ---
 
-### 🏢 EXPERIÊNCIA 1: [Empresa - Cargo - Período]
+### 🏢 [Nome da Empresa] - [Cargo] - [Período]
 
 **O que está no CV agora:**
 [Breve resumo do que consta no CV atual para essa experiência]
@@ -64,7 +64,7 @@ Para CADA experiência profissional relevante identificada no diagnóstico:
 
 ---
 
-⏸️ **Aguardando suas respostas para a Experiência 1.** Digite as respostas no chat, ou responda **"não tenho"**, **"pular"** ou **"próxima"** se quiser avançar sem preencher esta experiência.
+⏸️ **Aguardando suas respostas.** Digite as respostas no chat, ou responda **"não tenho"**, **"pular"** ou **"próxima"** se quiser avançar sem preencher esta experiência.
 
 Após coletar dados de todas as experiências relevantes (máximo 3-4), pediremos aprovação antes de reescrever o CV.
 """
