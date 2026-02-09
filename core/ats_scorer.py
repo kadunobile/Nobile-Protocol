@@ -365,13 +365,15 @@ def _analisar_com_llm(
         '    "score": 65.0,\n'
         '    "arquetipo_cargo": "VENDAS",\n'
         '    "pontos_fortes": ["CRM Salesforce", "Pipeline Management", "métricas B2B"],\n'
-        '    "gaps_identificados": ["ferramenta_especifica_1", "metodologia_2"],\n'
+        '    "gaps_identificados": ["<nome_ferramenta_especifica>", "<nome_metodologia_real>"],\n'
         '    "gaps_falsos_ignorados": ["Tableau (não é padrão para vendas)", "Python (não core para gestão)"],\n'
         '    "plano_acao": ["🔍 Palavras-chave ausentes...", "⚠️ Boa base, mas..."]\n'
         "}\n"
         "```\n\n"
-        "IMPORTANTE: NÃO use exemplos hard-coded com ferramentas específicas nos campos de gaps. "
-        "Use placeholders genéricos ou ferramentas realmente relevantes para o cargo analisado."
+        "⚠️ REGRA CRÍTICA: NUNCA use os valores de exemplo acima. "
+        "Substitua TODOS os valores de exemplo (incluindo os entre < >) por ferramentas, "
+        "metodologias e skills REAIS e específicas para o cargo sendo analisado. "
+        "Os exemplos são apenas para ilustrar o formato JSON esperado."
     )
     
     if texto_vaga:
@@ -447,6 +449,32 @@ def _analisar_com_llm(
         if 'gaps_falsos_ignorados' not in resultado:
             resultado['gaps_falsos_ignorados'] = []
             logger.warning("LLM não retornou gaps_falsos_ignorados, usando lista vazia")
+        
+        # Post-processing: Filter out placeholder gap names
+        gaps_originais = resultado['gaps_identificados']
+        placeholder_patterns = [
+            'ferramenta_especifica', 'metodologia_', '<nome_', 
+            'exemplo_', 'placeholder', 'ferramenta_1', 'ferramenta_2',
+            'metodologia_1', 'metodologia_2', 'skill_'
+        ]
+        
+        gaps_filtrados = []
+        for gap in gaps_originais:
+            gap_lower = gap.lower()
+            # Check if gap contains any placeholder pattern
+            is_placeholder = any(pattern in gap_lower for pattern in placeholder_patterns)
+            if not is_placeholder:
+                gaps_filtrados.append(gap)
+            else:
+                logger.warning(f"Removido gap placeholder detectado: {gap}")
+        
+        resultado['gaps_identificados'] = gaps_filtrados
+        
+        if len(gaps_filtrados) < len(gaps_originais):
+            logger.info(
+                f"Post-processing: {len(gaps_originais) - len(gaps_filtrados)} "
+                f"gaps placeholders removidos"
+            )
         
         # Adicionar fonte da análise
         resultado['fonte_vaga'] = fonte

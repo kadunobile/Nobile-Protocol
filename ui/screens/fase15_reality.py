@@ -116,7 +116,7 @@ FORMATO EXATO OBRIGATÓRIO:
     reality = chamar_gpt(
         st.session_state.openai_client,
         msgs,
-        temperature=0.3,
+        temperature=0.1,
         seed=42
     )
 
@@ -182,11 +182,9 @@ def _renderizar_ats(resultado_ats):
     st.markdown("---")
     st.markdown("### 🤖 ANÁLISE ATS — SEU CV × SKILLS DO CARGO")
     
-    # v5.0: Exibir método e arquétipo
+    # v5.0: User-friendly label instead of technical metadata
     if arquetipo != 'N/A':
-        st.caption(f"🎯 **Arquétipo:** {arquetipo} | **Método:** {metodo} | **Fonte:** {fonte_vaga}")
-    else:
-        st.caption(f"**Método:** {metodo}")
+        st.caption(f"✨ Análise Inteligente para perfil de {arquetipo}")
     
     st.markdown("")
 
@@ -208,7 +206,7 @@ def _renderizar_ats(resultado_ats):
 <div style="background: linear-gradient(135deg, #1a1a2e, #16213e); border: 2px solid {cor}; border-radius: 12px; padding: 20px; text-align: center; margin: 10px 0;">
     <div style="font-size: 3rem; font-weight: bold; color: {cor};">{score}/100</div>
     <div style="font-size: 1.1rem; color: #e0e0e0;">{emoji} {nivel} — Compatibilidade ATS</div>
-    <div style="font-size: 0.85rem; color: #888; margin-top: 8px;">{metodo}</div>
+    <div style="font-size: 0.85rem; color: #888; margin-top: 8px;">Análise de Compatibilidade ATS</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -220,7 +218,7 @@ def _renderizar_ats(resultado_ats):
         cols_fortes = st.columns(min(len(pontos_fortes), 4))
         for i, termo in enumerate(pontos_fortes[:8]):
             with cols_fortes[i % min(len(pontos_fortes), 4)]:
-                st.markdown(f"<span style='background:#1a472a; color:#4ade80; padding:4px 10px; border-radius:20px; font-size:0.85rem;'>✅ {termo}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='background:#1a472a; color:#4ade80; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block;'>✅ {termo}</span>", unsafe_allow_html=True)
         st.markdown("")
 
     # ── Skills que faltam ──
@@ -229,7 +227,7 @@ def _renderizar_ats(resultado_ats):
         cols_gaps = st.columns(min(len(gaps), 4))
         for i, termo in enumerate(gaps[:10]):
             with cols_gaps[i % min(len(gaps), 4)]:
-                st.markdown(f"<span style='background:#4a1a1a; color:#f87171; padding:4px 10px; border-radius:20px; font-size:0.85rem;'>❌ {termo}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span style='background:#4a1a1a; color:#f87171; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block;'>❌ {termo}</span>", unsafe_allow_html=True)
         st.markdown("")
     
     # ── v5.0: Transparência - Skills NÃO consideradas gaps ──

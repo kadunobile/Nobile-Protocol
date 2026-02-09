@@ -151,6 +151,36 @@ def fase_ats_score():
     
     st.markdown("---")
     
+    # ===== SKILLS ENCONTRADAS E GAPS (v5.0) =====
+    # Display skills only for LLM analysis that has these fields
+    if is_llm_analysis and resultado.get('pontos_fortes'):
+        st.markdown("### ✅ Skills Encontradas no CV")
+        pontos_fortes = resultado.get('pontos_fortes', [])
+        if pontos_fortes:
+            for i, termo in enumerate(pontos_fortes[:8]):
+                st.markdown(f"<span style='background:#1a472a; color:#4ade80; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block; margin:4px;'>✅ {termo}</span>", unsafe_allow_html=True)
+        st.markdown("")
+    
+    if is_llm_analysis and resultado.get('gaps_identificados'):
+        st.markdown("### ❌ Skills Faltantes")
+        gaps = resultado.get('gaps_identificados', [])
+        if gaps:
+            for i, termo in enumerate(gaps[:10]):
+                st.markdown(f"<span style='background:#4a1a1a; color:#f87171; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block; margin:4px;'>❌ {termo}</span>", unsafe_allow_html=True)
+        st.markdown("")
+    
+    # ── Transparência: Skills NÃO consideradas gaps ──
+    if is_llm_analysis and resultado.get('gaps_falsos_ignorados'):
+        gaps_falsos = resultado.get('gaps_falsos_ignorados', [])
+        if gaps_falsos:
+            with st.expander("🔍 Transparência: Skills que NÃO foram consideradas gaps"):
+                st.caption("Estas skills foram analisadas mas **descartadas** como gaps:")
+                for item in gaps_falsos[:8]:
+                    st.markdown(f"- 🟡 {item}")
+            st.markdown("")
+    
+    st.markdown("---")
+    
     # ===== RECOMENDAÇÕES =====
     st.markdown("### 💡 Recomendações para Melhorar")
     
