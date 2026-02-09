@@ -19,6 +19,10 @@ logger = logging.getLogger(__name__)
 # Request timeout in seconds
 REQUEST_TIMEOUT = 10
 
+# Salary validation bounds for sanity checking (Brazilian market 2024-2025)
+MIN_SALARY_BR = 1000   # Minimum viable monthly salary in BRL (below minimum wage)
+MAX_SALARY_BR = 100000 # Maximum reasonable monthly salary for most positions
+
 
 def _normalizar_cargo_para_slug(cargo: str) -> str:
     """
@@ -157,11 +161,14 @@ def buscar_salario_real(cargo: str, cache_dict: Optional[Dict] = None) -> Option
             for elem in salario_elements[:10]:  # Limit to first 10 to avoid noise
                 texto = elem.get_text(strip=True)
                 valor = _extrair_valor_salario(texto)
-                if valor and 1000 <= valor <= 100000:  # Sanity check
+                if valor and MIN_SALARY_BR <= valor <= MAX_SALARY_BR:  # Sanity check using defined bounds
                     valores.append(valor)
             
             if len(valores) >= 3:
-                # Sort values and take percentiles as piso/media/teto
+                # Sort values and use simple min/median/max as approximation
+                # Note: This is a simplified percentile calculation. A more robust
+                # implementation would calculate true P25/P50/P75 percentiles.
+                # For now, we use first/middle/last as a reasonable approximation.
                 valores.sort()
                 resultado = {
                     'piso': valores[0],

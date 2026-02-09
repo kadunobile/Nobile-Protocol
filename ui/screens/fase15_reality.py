@@ -122,6 +122,10 @@ def _gerar_reality_check():
     senioridade = perfil.get('senioridade', 'Não identificada')
 
     # Fetch real salary data from salario.com.br
+    # Note: This performs an external HTTP request during page render.
+    # The request has a 10-second timeout and uses session_state caching
+    # to avoid repeated calls on Streamlit reruns. If the request fails,
+    # it gracefully falls back to None and GPT proceeds without salary data.
     dados_salariais = buscar_salario_real(cargo, cache_dict=st.session_state)
     dados_salariais_texto = formatar_dados_salariais_para_prompt(dados_salariais)
 
