@@ -35,6 +35,7 @@ def _gerar_reality_check():
     local = perfil.get('localizacao', 'Brasil')
     objetivo = perfil.get('objetivo', 'Recolocação')
     remoto = 'Sim' if perfil.get('remoto') else 'Não'
+    senioridade = perfil.get('senioridade', 'Não identificada')
 
     msgs = [
         {"role": "system", "content": SYSTEM_PROMPT + f"""
