@@ -319,6 +319,7 @@ def _analisar_com_llm(client, cv_texto: str, cargo_alvo: str) -> Optional[Dict]:
             "(🔍, ⚠️, 🏆, ❌, 🔶 dependendo do score).\n\n"
             "RESPONDA APENAS COM UM JSON VÁLIDO (sem markdown, sem explicações extras):\n"
             "```json\n"
+            # Exemplo de JSON esperado (mantido inline para clareza do prompt)
             "{\n"
             '    "score": 65.0,\n'
             '    "pontos_fortes": ["Salesforce", "HubSpot", "Power BI", "pipeline management", "B2B SaaS"],\n'
@@ -329,7 +330,7 @@ def _analisar_com_llm(client, cv_texto: str, cargo_alvo: str) -> Optional[Dict]:
         )},
         {"role": "user", "content": (
             f"CARGO ALVO: {cargo_alvo}\n\n"
-            f"CV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"  # Limitar a 8000 chars para não estourar tokens
+            f"CV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"  # Limitar a ~8000 chars (evita contextos muito grandes)
             f"Analise este CV para o cargo '{cargo_alvo}' e retorne o JSON conforme as regras."
         )}
     ]
