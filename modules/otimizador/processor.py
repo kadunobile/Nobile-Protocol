@@ -132,9 +132,10 @@ def processar_modulo_otimizador(prompt):
             gap_index = st.session_state.get('gap_atual_index', 0)
             gaps = st.session_state.get('gaps_alvo', [])
             
+            # Get gap early for error handling
+            gap = gaps[gap_index] if gap_index < len(gaps) else 'unknown'
+            
             if gap_index < len(gaps):
-                gap = gaps[gap_index]
-                
                 # Inicializar dicionário de respostas se não existir
                 if 'gaps_respostas' not in st.session_state:
                     st.session_state.gaps_respostas = {}
@@ -166,7 +167,8 @@ def processar_modulo_otimizador(prompt):
                     st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
                     return gerar_resumo_diagnostico()
         except Exception as e:
-            logger.error(f"Erro ao processar resposta de gap [índice {gap_index}, gap: {gap}]: {e}", exc_info=True)
+            gap_info = f"índice {gap_index}, gap: {gap}" if 'gap' in locals() and 'gap_index' in locals() else "índice desconhecido"
+            logger.error(f"Erro ao processar resposta de gap [{gap_info}]: {e}", exc_info=True)
             # Tentar recuperar indo para resumo
             st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
             return gerar_resumo_diagnostico()
