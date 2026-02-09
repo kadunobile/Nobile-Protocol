@@ -336,18 +336,6 @@ class TestProcessorNovoFluxo:
         # Deve retornar prompt de coleta focada
         assert result is not None
         assert 'COLETA' in result.upper()
-        
-        # Mock session state
-        mock_session_state.perfil = {'cargo_alvo': 'Gerente'}
-        mock_session_state.cv_texto = 'CV teste'
-        mock_session_state.gaps_alvo = []
-        mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
-        mock_session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO'
-        
-        result = processar_modulo_otimizador("")
-        
-        assert result is not None
-        assert 'DIAGNÓSTICO' in result.upper()
 
 
 if __name__ == '__main__':

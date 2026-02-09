@@ -17,6 +17,12 @@ import streamlit as st
 # Configuration constants
 DEFAULT_MAX_EXPERIENCES = 3  # Default number of experiences to optimize
 
+# Keywords que indicam que o usuário não tem experiência com um gap
+NEGATIVE_RESPONSE_KEYWORDS = [
+    'não tenho', 'nao tenho', 'não', 'nao', 
+    'não sei', 'nao sei', 'nunca', 'jamais'
+]
+
 
 def gerar_resumo_diagnostico():
     """
@@ -107,8 +113,8 @@ def processar_modulo_otimizador(prompt):
             if 'gaps_respostas' not in st.session_state:
                 st.session_state.gaps_respostas = {}
             
-            # Verificar se usuário disse "não tenho"
-            if any(word in prompt.lower() for word in ['não tenho', 'nao tenho', 'não', 'nao', 'não sei', 'nao sei']):
+            # Verificar se usuário disse que não tem experiência
+            if any(word in prompt.lower() for word in NEGATIVE_RESPONSE_KEYWORDS):
                 # Usuário não tem experiência com este gap
                 st.session_state.gaps_respostas[gap] = {
                     'tem_experiencia': False,
