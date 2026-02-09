@@ -281,7 +281,9 @@ def _analisar_com_llm(
     client, 
     cv_texto: str, 
     cargo_alvo: str, 
-    texto_vaga: Optional[str] = None
+    texto_vaga: Optional[str] = None,
+    objetivo: Optional[str] = None,
+    cargo_atual: Optional[str] = None
 ) -> Optional[Dict]:
     """
     Analisa CV usando LLM (GPT-4o) para análise contextual inteligente.
@@ -295,12 +297,14 @@ def _analisar_com_llm(
         cv_texto: Texto completo do CV
         cargo_alvo: Cargo para o qual está se candidatando
         texto_vaga: Texto da vaga real (opcional) para análise ultra-precisa
+        objetivo: Tipo de movimentação (Recolocação, Transição, Promoção Interna, Trabalho Internacional)
+        cargo_atual: Cargo atual do candidato (opcional)
         
     Returns:
         Dict com score, pontos_fortes, gaps_identificados, plano_acao,
         arquetipo_cargo, gaps_falsos_ignorados, fonte_vaga ou None em caso de erro
     """
-    logger.info(f"Analisando CV com LLM v5.0 para cargo: {cargo_alvo}")
+    logger.info(f"Analisando CV com LLM v5.0 para cargo: {cargo_alvo}, objetivo: {objetivo}")
     
     if texto_vaga:
         fonte = 'real'
@@ -335,11 +339,65 @@ def _analisar_com_llm(
             "- FINANCEIRO: Contabilidade, Finanças, FP&A, Controller\n"
             "- OPERAÇÕES: Operações, Supply Chain, Logística, Produção\n"
             "- VENDAS: SDR, BDR, Account Executive, Sales Manager\n\n"
-            "PASSO 2: Liste gaps APENAS de ferramentas/skills que são PADRÃO "
-            "para 80%+ das vagas desse arquétipo específico.\n\n"
-            "EXEMPLO: Para 'Gerente de Vendas', CRM (Salesforce/HubSpot) é gap válido, "
-            "mas Tableau NÃO é (Tableau é de ANALÍTICO, não VENDAS).\n\n"
+            "PASSO 2: Identifique o NÍVEL HIERÁRQUICO do cargo:\n"
+            "- INDIVIDUAL CONTRIBUTOR: Analista (Jr/Pl/Sr), Especialista, Engenheiro\n"
+            "- COORDENAÇÃO: Coordenador, Team Lead, Tech Lead\n"
+            "- GERÊNCIA: Gerente, Head, Manager\n"
+            "- DIREÇÃO: Diretor, VP, C-Level\n\n"
+            "PASSO 3: Ajuste gaps e score conforme o nível:\n"
+            "- COORDENAÇÃO+: DEVE incluir gaps de gestão (liderança de equipe, orçamento, gestão de stakeholders)\n"
+            "- GERÊNCIA+: DEVE incluir gaps estratégicos (planejamento estratégico, budget de departamento, P&L)\n"
+            "- DIREÇÃO: DEVE incluir gaps executivos (visão estratégica, transformação organizacional, board reporting)\n"
+            "- Score mais rigoroso para níveis de gestão: métricas de liderança têm peso MAIOR\n\n"
+            "PASSO 4: Liste gaps APENAS de ferramentas/skills que são PADRÃO "
+            "para 80%+ das vagas desse arquétipo E nível específicos.\n\n"
+            "EXEMPLO: Para 'Coordenador de Supply Chain', gaps válidos incluem: "
+            "ferramentas técnicas do arquétipo (SAP, WMS) + competências de coordenação "
+            "(gestão de equipe, indicadores de performance, gestão de fornecedores).\n\n"
         )
+    
+    # ── Ajuste conforme tipo de movimentação (objetivo) ──
+    if objetivo:
+        system_prompt += f"\n**TIPO DE MOVIMENTAÇÃO: {objetivo}**\n\n"
+        
+        if objetivo == "Promoção Interna" or (objetivo and "promoção" in objetivo.lower()):
+            system_prompt += (
+                "⚠️ ANÁLISE DE PROMOÇÃO:\n"
+                "- Score MAIS RIGOROSO: candidato busca nível hierárquico superior\n"
+                "- Gaps devem incluir competências do PRÓXIMO NÍVEL (não apenas do cargo alvo)\n"
+                "- Se cargo alvo é gerencial e candidato é individual contributor: "
+                "gaps DEVEM incluir liderança, gestão de pessoas, budget, stakeholders\n"
+                "- Se cargo alvo é direção e candidato é gerência: "
+                "gaps DEVEM incluir visão estratégica, transformação organizacional, board-level communication\n"
+                "- Peso MAIOR para competências de liderança e gestão estratégica\n\n"
+            )
+        elif objetivo == "Transição de Carreira" or (objetivo and "transição" in objetivo.lower()):
+            system_prompt += (
+                "⚠️ ANÁLISE DE TRANSIÇÃO:\n"
+                "- DESTAQUE transferable skills: habilidades que aplicam ao novo campo\n"
+                "- Gaps são mais NUMEROSOS (mudança de área), mas tom deve ser CONSTRUTIVO\n"
+                "- Mencione no plano_acao como experiências anteriores são VALIOSAS no novo contexto\n"
+                "- Identifique certificações/cursos que facilitam a transição\n"
+                "- Score: não penalize excessivamente a falta de experiência direta se há skills transferíveis\n\n"
+            )
+        elif objetivo == "Trabalho Internacional" or (objetivo and "internacional" in objetivo.lower()):
+            system_prompt += (
+                "⚠️ ANÁLISE INTERNACIONAL:\n"
+                "- Gaps DEVEM incluir requisitos internacionais:\n"
+                "  * Fluência em idiomas (principalmente inglês avançado/fluente)\n"
+                "  * Certificações globais relevantes (PMP, AWS, CFA, etc.)\n"
+                "  * Experiência com times distribuídos/multiculturais\n"
+                "  * Conhecimento de práticas internacionais da área\n"
+                "- Considere diferenças culturais e de mercado\n"
+                "- Mencione no plano_acao preparação específica para mercado global\n\n"
+            )
+        else:  # Recolocação ou outros
+            system_prompt += (
+                "⚠️ ANÁLISE DE RECOLOCAÇÃO:\n"
+                "- Score PADRÃO: avaliar compatibilidade atual do CV com o cargo\n"
+                "- Gaps devem refletir apenas skills técnicas faltantes para o cargo alvo\n"
+                "- Tom equilibrado entre realista e encorajador\n\n"
+            )
     
     system_prompt += (
         "REGRAS DE OURO:\n\n"
@@ -385,15 +443,27 @@ def _analisar_com_llm(
     
     if texto_vaga:
         user_prompt = (
-            f"CARGO ALVO: {cargo_alvo}\n\n"
-            f"TEXTO DA VAGA (FONTE DA VERDADE):\n{texto_vaga[:6000]}\n\n"
+            f"CARGO ALVO: {cargo_alvo}\n"
+        )
+        if cargo_atual:
+            user_prompt += f"CARGO ATUAL: {cargo_atual}\n"
+        if objetivo:
+            user_prompt += f"OBJETIVO: {objetivo}\n"
+        user_prompt += (
+            f"\nTEXTO DA VAGA (FONTE DA VERDADE):\n{texto_vaga[:6000]}\n\n"
             f"CV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"
             f"Analise o CV contra a vaga real e retorne o JSON."
         )
     else:
         user_prompt = (
-            f"CARGO ALVO: {cargo_alvo}\n\n"
-            f"CV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"
+            f"CARGO ALVO: {cargo_alvo}\n"
+        )
+        if cargo_atual:
+            user_prompt += f"CARGO ATUAL: {cargo_atual}\n"
+        if objetivo:
+            user_prompt += f"OBJETIVO: {objetivo}\n"
+        user_prompt += (
+            f"\nCV DO CANDIDATO:\n{cv_texto[:8000]}\n\n"
             f"Analise este CV para o cargo '{cargo_alvo}', classifique o arquétipo, "
             f"e retorne o JSON conforme as regras."
         )
@@ -403,8 +473,8 @@ def _analisar_com_llm(
         {"role": "user", "content": user_prompt}
     ]
     
-    # Chamar LLM com temperatura baixa para consistência, mas sem seed fixo para permitir variabilidade
-    resposta = chamar_gpt(client, msgs, temperature=0.2, seed=None)
+    # Chamar LLM com temperatura baixa e seed fixo para consistência e reprodutibilidade
+    resposta = chamar_gpt(client, msgs, temperature=0.2, seed=42)
     
     if not resposta:
         logger.warning("Falha ao obter resposta da LLM")
@@ -696,7 +766,9 @@ def calcular_score_ats(
     cv_texto: str, 
     cargo_alvo: str, 
     client=None,
-    texto_vaga: Optional[str] = None
+    texto_vaga: Optional[str] = None,
+    objetivo: Optional[str] = None,
+    cargo_atual: Optional[str] = None
 ) -> Dict:
     """
     Calcula Score ATS completo com análise de gaps técnicos.
@@ -711,18 +783,20 @@ def calcular_score_ats(
         cargo_alvo: Cargo para gerar a Job Description ou classificar
         client: Cliente OpenAI (opcional, mas recomendado para análise LLM)
         texto_vaga: Texto da vaga real (opcional) para análise ultra-precisa
+        objetivo: Tipo de movimentação (Recolocação, Transição, Promoção Interna, Trabalho Internacional)
+        cargo_atual: Cargo atual do candidato (opcional)
         
     Returns:
         Dict com score_total, percentual, nivel, pontos_fortes,
         gaps_identificados, gaps_falsos_ignorados, plano_acao, 
         arquetipo_cargo, fonte_vaga, metodo e detalhes
     """
-    logger.info(f"Calculando score ATS v5.0 para cargo: {cargo_alvo}")
+    logger.info(f"Calculando score ATS v5.0 para cargo: {cargo_alvo}, objetivo: {objetivo}")
     
     # ─── TENTATIVA 1: Análise LLM (v5.0) ───
     if client:
         logger.info("Client OpenAI disponível - usando análise LLM (v5.0)")
-        analise_llm = _analisar_com_llm(client, cv_texto, cargo_alvo, texto_vaga)
+        analise_llm = _analisar_com_llm(client, cv_texto, cargo_alvo, texto_vaga, objetivo, cargo_atual)
         
         if analise_llm:
             # Usar resultado da LLM

@@ -41,10 +41,13 @@ def fase_bridge_otimizacao():
         # Fallback: calcular se não veio do Reality Check
         with st.spinner("📊 Calculando Score ATS do seu CV atual..."):
             cargo = st.session_state.get('perfil', {}).get('cargo_alvo', 'cargo desejado')
+            perfil = st.session_state.get('perfil', {})
             ats_resultado = calcular_score_ats(
                 cv_texto=st.session_state.cv_texto,
                 cargo_alvo=cargo,
-                client=st.session_state.get('openai_client')
+                client=st.session_state.get('openai_client'),
+                objetivo=perfil.get('objetivo'),
+                cargo_atual=perfil.get('cargo_atual')
             )
             st.session_state.reality_ats_resultado = ats_resultado
             logger.info(f"ATS recalculado na Bridge: {ats_resultado.get('score_total')}/100")
@@ -141,11 +144,14 @@ def fase_bridge_otimizacao():
         if st.button("🔄 Recalcular Score com Vaga Real", disabled=not texto_vaga_input.strip()):
             with st.spinner("📊 Recalculando score com vaga real..."):
                 cargo = st.session_state.get('perfil', {}).get('cargo_alvo', 'cargo desejado')
+                perfil = st.session_state.get('perfil', {})
                 ats_resultado_novo = calcular_score_ats(
                     cv_texto=st.session_state.cv_texto,
                     cargo_alvo=cargo,
                     client=st.session_state.get('openai_client'),
-                    texto_vaga=texto_vaga_input.strip()
+                    texto_vaga=texto_vaga_input.strip(),
+                    objetivo=perfil.get('objetivo'),
+                    cargo_atual=perfil.get('cargo_atual')
                 )
                 st.session_state.reality_ats_resultado = ats_resultado_novo
                 st.success("✅ Score recalculado com a vaga real!")

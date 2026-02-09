@@ -70,6 +70,19 @@ INSTRUÇÕES PARA ANÁLISE SALARIAL:
 - Use dados realistas do mercado brasileiro atual (2024-2025) para o cargo E senioridade específicos
 - NUNCA dê faixas genéricas que misturam Jr com Sr — seja ESPECÍFICO para o perfil
 
+FORMATO OBRIGATÓRIO DA ANÁLISE SALARIAL:
+- Use PERCENTIS (P25, P50, P75) para dar contexto real ao candidato
+- P25 = Início de faixa (empresas menores, interior, candidatos em transição)
+- P50 = Mediana do mercado (mercado geral para este nível na região)
+- P75 = Top de faixa (multinacionais, grandes empresas, perfis disputados)
+- Diferencie CLT vs PJ: mostre que valores PJ são ~30-40% maiores (sem benefícios CLT)
+- Contexto por porte de empresa:
+  * Startups/PMEs: faixa menor (P25-P40), mas mais equity/flexibilidade
+  * Empresas médias: faixa mediana (P40-P60)
+  * Multinacionais/grandes: faixa maior (P60-P75), mais benefícios estruturados
+- Cite FONTES: Mencione que dados são baseados em pesquisas salariais como Robert Half, Michael Page, Glassdoor, Catho, Gupy Trends
+- Contexto regional explícito: São Paulo paga X% a mais que média nacional, capitais vs interior, remoto pode nivelar diferenças, etc.
+
 IMPORTANTE: Seja ESPECÍFICO e REALISTA. Base-se APENAS no CV fornecido e nas expectativas reais do mercado para {cargo} em {local}.
 
 ⚠️ NÃO inclua seção "Estratégia" no final. Termine após o "Nível de Desafio" do Veredito do Headhunter.
@@ -107,11 +120,21 @@ FORMATO EXATO OBRIGATÓRIO:
 
 **Pretensão Informada:** {pretensao} mensal
 
-**Faixa Salarial (para este perfil/senioridade):** [mínimo] a [máximo]
+**Faixa Salarial CLT (para este perfil/senioridade em {local}):**
 
-**Veredito:** [Abaixo/Na Média/Acima]
+| Percentil | Valor Mensal | Contexto |
+|-----------|-------------|----------|
+| P25 (Início de faixa) | R$ X.XXX | Empresas menores, interior ou candidatos em transição |
+| P50 (Mediana) | R$ X.XXX | Mercado geral para este nível em {local} |
+| P75 (Top de faixa) | R$ X.XXX | Multinacionais, grandes empresas, perfis disputados |
 
-[Contexto sobre o mercado para esse cargo em {local}]
+**Equivalente PJ estimado:** R$ X.XXX a R$ X.XXX/mês (sem benefícios CLT, ~30-40% acima do CLT)
+
+**Veredito:** [Abaixo do P25 / Entre P25-P50 / Na Mediana (P50) / Entre P50-P75 / Acima do P75]
+
+**Contexto Regional:** [Explicação de 2-3 linhas sobre o mercado para esse cargo específico na região informada, considerando se aceita remoto, diferenças entre capitais e interior, e como a região se compara à média nacional]
+
+*Referências: Dados baseados em pesquisas salariais de mercado (Robert Half, Michael Page, Glassdoor, Catho, Gupy Trends) para {cargo} nível {senioridade} em {local}, período 2024-2025.*
 
 ---
 
@@ -155,10 +178,13 @@ def _executar_analise_ats():
         return None
 
     with st.spinner("🤖 Calculando Score ATS — CV × Skills do Cargo..."):
+        perfil = st.session_state.get('perfil', {})
         resultado = calcular_score_ats(
             cv_texto=cv_texto,
             cargo_alvo=cargo,
-            client=st.session_state.openai_client
+            client=st.session_state.openai_client,
+            objetivo=perfil.get('objetivo'),
+            cargo_atual=perfil.get('cargo_atual')
         )
 
     if resultado:
