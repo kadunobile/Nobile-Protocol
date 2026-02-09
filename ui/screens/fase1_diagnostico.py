@@ -1,6 +1,7 @@
 import streamlit as st
 from core.utils import scroll_topo
 from core.ats_scorer import calcular_score_ats, extrair_cargo_do_cv
+from core.ats_constants import SKILL_DESCRIPTIONS
 
 CARGO_FALLBACK = "Profissional"
 
@@ -102,40 +103,21 @@ def fase_1_diagnostico():
     # ─── Gaps com Descrições ───
     gaps = resultado.get('gaps_identificados', [])
     if gaps:
-        # Mapeamento de descrições de skills conhecidas
-        SKILL_DESCRIPTIONS = {
-            'Outreach': 'Plataforma de sales engagement para sequências de e-mails, ligações e follow-ups automatizados',
-            'Outreach.io': 'Plataforma de sales engagement para sequências de e-mails, ligações e follow-ups automatizados',
-            'Gong': 'Plataforma de análise de conversas e vendas que grava e analisa interações com clientes',
-            'Gong.io': 'Plataforma de análise de conversas e vendas que grava e analisa interações com clientes',
-            'Salesforce': 'CRM líder de mercado para gestão de relacionamento com clientes e pipeline de vendas',
-            'HubSpot': 'Plataforma de marketing, vendas e CRM para gestão integrada do funil comercial',
-            'LinkedIn Sales Navigator': 'Ferramenta de prospecção avançada do LinkedIn para identificação de leads',
-            'Salesloft': 'Plataforma de sales engagement similar ao Outreach para automação de vendas',
-            'ZoomInfo': 'Base de dados B2B para prospecção e enriquecimento de leads',
-            'Apollo': 'Plataforma de prospecção e engajamento de vendas com base de dados integrada',
-            'Apollo.io': 'Plataforma de prospecção e engajamento de vendas com base de dados integrada',
-            'Chorus': 'Plataforma de análise de conversas similar ao Gong',
-            'Drift': 'Plataforma de conversational marketing e chatbots para engajamento',
-            'Intercom': 'Plataforma de mensagens e suporte ao cliente para engajamento',
-        }
-        
         st.markdown(f"### ❌ Skills que FALTAM no seu CV (exigidas para {cargo_atual})")
         st.markdown(
             "Termos importantes para o cargo que **não aparecem** no seu perfil:"
         )
         st.markdown("")
         
+        # Criar lookup eficiente (lowercase)
+        skill_descriptions_lower = {k.lower(): v for k, v in SKILL_DESCRIPTIONS.items()}
+        
         for termo in gaps[:8]:
             # Extrair nome do gap (pode ser string simples ou dict)
             nome_gap = termo if isinstance(termo, str) else termo.get('nome', str(termo))
             
-            # Buscar descrição da skill (case-insensitive)
-            descricao = None
-            for skill_key, skill_desc in SKILL_DESCRIPTIONS.items():
-                if skill_key.lower() == nome_gap.lower():
-                    descricao = skill_desc
-                    break
+            # Buscar descrição da skill (O(1) lookup)
+            descricao = skill_descriptions_lower.get(nome_gap.lower())
             
             st.markdown(f"""
 <div style="background:#2a1a1a; border-left:3px solid #e74c3c; padding:10px 14px; border-radius:6px; margin:6px 0;">

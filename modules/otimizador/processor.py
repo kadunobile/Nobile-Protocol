@@ -166,7 +166,7 @@ def processar_modulo_otimizador(prompt):
                     st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
                     return gerar_resumo_diagnostico()
         except Exception as e:
-            logger.error(f"Erro ao processar resposta de gap: {e}", exc_info=True)
+            logger.error(f"Erro ao processar resposta de gap [índice {gap_index}, gap: {gap}]: {e}", exc_info=True)
             # Tentar recuperar indo para resumo
             st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
             return gerar_resumo_diagnostico()
@@ -255,7 +255,8 @@ def processar_modulo_otimizador(prompt):
                 # O usuário ainda pode continuar respondendo ou digitar "continuar"
                 # Retornar None para que a LLM continue a conversação naturalmente
         except Exception as e:
-            logger.error(f"Erro ao processar coleta de dados: {e}", exc_info=True)
+            current_count = st.session_state.get('dados_coleta_count', 0)
+            logger.error(f"Erro ao processar coleta de dados (respostas coletadas: {current_count}): {e}", exc_info=True)
             # Tentar recuperar mantendo o fluxo
             return None
         
