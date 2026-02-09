@@ -58,6 +58,90 @@ class TestPlaceholderFiltering:
         # Skills reais devem permanecer
         assert "HubSpot" in gaps
         assert "Python" in gaps
+    
+    @patch('core.ats_scorer.chamar_gpt')
+    def test_exemplos_parafraseados_filtrados_gaps_falsos(self, mock_chamar_gpt):
+        """
+        Testa que exemplos parafraseados (SQL, Python, Tableau) são removidos 
+        dos gaps_falsos_ignorados, mesmo que não sejam cópias literais.
+        """
+        # Mock resposta da LLM com exemplos parafraseados
+        resposta_com_parafrase = json.dumps({
+            "score": 75.0,
+            "arquetipo_cargo": "GESTÃO",
+            "pontos_fortes": ["Gestão de Equipes", "P&L Management"],
+            "gaps_identificados": ["Power BI", "SAP"],
+            "gaps_falsos_ignorados": [
+                "SQL (não mencionado, mas pode ser usado indiretamente nas ferramentas de dados)",
+                "Python (não é essencial para o nível de gestão, mas pode ser útil para análise de dados)",
+                "Tableau (não é padrão para este cargo)",
+                "SAP APO (candidato usa outro ERP compatível)"
+            ],
+            "plano_acao": ["✅ Continue desenvolvendo"]
+        })
+        
+        mock_chamar_gpt.return_value = resposta_com_parafrase
+        mock_client = Mock()
+        
+        resultado = _analisar_com_llm(
+            mock_client, 
+            "CV Head of Pricing", 
+            "Head of Pricing"
+        )
+        
+        # Verificar que exemplos parafraseados foram filtrados
+        assert resultado is not None
+        gaps_falsos = resultado['gaps_falsos_ignorados']
+        
+        # Extrair nomes de skills (primeira palavra antes do parêntese)
+        def extract_skill_name(gap_falso):
+            """Extrai o nome da skill do gap falso."""
+            words = gap_falso.lower().split('(')[0].strip().split()
+            return words[0] if words else ''
+        
+        skill_names = [extract_skill_name(gf) for gf in gaps_falsos]
+        
+        # Exemplos parafraseados devem ter sido removidos (SQL, Python, Tableau)
+        assert 'sql' not in skill_names
+        assert 'python' not in skill_names
+        assert 'tableau' not in skill_names
+        
+        # Gaps falsos reais devem permanecer
+        assert "SAP APO (candidato usa outro ERP compatível)" in gaps_falsos
+        
+        # Deve ter exatamente 1 item (apenas o gap falso real)
+        assert len(gaps_falsos) == 1
+    
+    @patch('core.ats_scorer.chamar_gpt')
+    def test_gaps_falsos_reais_mantidos(self, mock_chamar_gpt):
+        """
+        Testa que gaps falsos reais e específicos para o cargo não são removidos.
+        """
+        resposta_gaps_reais = json.dumps({
+            "score": 80.0,
+            "arquetipo_cargo": "VENDAS",
+            "pontos_fortes": ["Salesforce", "Gestão de Pipeline"],
+            "gaps_identificados": ["HubSpot Marketing"],
+            "gaps_falsos_ignorados": [
+                "Outreach (candidato já usa ferramenta similar de sales engagement)",
+                "ZoomInfo (não é obrigatório, apenas nice-to-have)"
+            ],
+            "plano_acao": ["✅ Forte candidato"]
+        })
+        
+        mock_chamar_gpt.return_value = resposta_gaps_reais
+        mock_client = Mock()
+        
+        resultado = _analisar_com_llm(
+            mock_client, 
+            "CV Gerente de Vendas", 
+            "Gerente de Vendas B2B"
+        )
+        
+        # Todos os gaps falsos devem estar presentes pois são reais
+        assert len(resultado['gaps_falsos_ignorados']) == 2
+        assert any('outreach' in gf.lower() for gf in resultado['gaps_falsos_ignorados'])
+        assert any('zoominfo' in gf.lower() for gf in resultado['gaps_falsos_ignorados'])
         
     @patch('core.ats_scorer.chamar_gpt')
     def test_todos_gaps_validos_mantidos(self, mock_chamar_gpt):
