@@ -3,16 +3,20 @@ import logging
 from core.prompts import SYSTEM_PROMPT
 from core.utils import chamar_gpt, scroll_topo, forcar_topo
 from core.ats_scorer import calcular_score_ats, classificar_score
+from core.salary_bands import validar_salario_banda, formatar_banda_display
 
 logger = logging.getLogger(__name__)
 
 
 # ─────────────────────────────────────────────
-# VALIDAÇÃO DE SALÁRIO
+# VALIDAÇÃO DE SALÁRIO COM SALARY BANDS
 # ─────────────────────────────────────────────
 
 def _validar_plausibilidade_salario(pretensao_str, cargo, senioridade):
     """
+    DEPRECATED: Legacy function kept for compatibility.
+    Use validar_salario_banda from core.salary_bands instead.
+    
     Valida se o valor salarial informado está dentro de uma faixa plausível.
     
     Returns:
@@ -499,36 +503,59 @@ def fase_15_reality_check():
     # Exibir resultado do Reality Check
     st.markdown(reality)
 
-    # ── Validação de Plausibilidade Salarial ──
+    # ── Validação de Salário com Salary Bands ──
+    st.markdown("---")
     perfil = st.session_state.get('perfil', {})
     pretensao = perfil.get('pretensao_salarial', '')
     cargo = perfil.get('cargo_alvo', '')
-    senioridade = perfil.get('senioridade', 'Não identificada')
+    localizacao = perfil.get('localizacao', '')
     
     if pretensao and pretensao != 'Não informada':
-        validacao = _validar_plausibilidade_salario(pretensao, cargo, senioridade)
+        # Validar salary usando novo sistema de bandas
+        validacao = validar_salario_banda(
+            pretensao_str=pretensao,
+            cargo=cargo,
+            localizacao=localizacao,
+            perfil=perfil
+        )
         
-        if not validacao['plausivel']:
-            st.markdown("---")
-            st.warning(f"""
-### 💰 Validação de Pretensão Salarial
+        # Sempre mostrar faixa de mercado
+        banda = validacao.get('banda')
+        if banda:
+            st.markdown("### 💰 Faixa Salarial de Mercado")
+            
+            banda_texto = formatar_banda_display(banda)
+            # Emoji indicates data source: real data (🏢) or estimated (📊)
+            fonte_banda_emoji = "🏢" if not banda.get('is_fallback') else "📊"
+            
+            st.info(f"""
+**Cargo:** {cargo}
 
-{validacao['mensagem']}
+{fonte_banda_emoji} **Faixa de mercado:** {banda_texto}
 
-**Deseja ajustar?** Volte ao briefing para corrigir ou confirme que o valor está correto para prosseguir.
+*Valores CLT, mercado brasileiro, sem bônus (2024-2025).*
 """)
-            col_a, col_b = st.columns(2)
-            with col_a:
-                if st.button("🔙 Voltar e Ajustar Salário", use_container_width=True):
-                    st.session_state.fase = 'FASE_1_BRIEFING'
-                    st.rerun()
-            with col_b:
-                if st.button("✅ Confirmar Valor Informado", use_container_width=True):
-                    st.session_state.salario_confirmado = True
-                    st.rerun()
-        elif validacao['mensagem']:
-            # Aviso informativo (não bloqueante)
-            st.info(f"💡 **Validação Salarial:** {validacao['mensagem']}")
+        
+        # Mostrar warning se salary acima da banda
+        if validacao['nivel'] in ['acima', 'muito_acima']:
+            st.markdown("---")
+            
+            if validacao['nivel'] == 'muito_acima':
+                st.warning(validacao['mensagem'])
+            else:
+                st.info(validacao['mensagem'])
+            
+            # Opção de ajustar (apenas para muito acima)
+            if validacao['nivel'] == 'muito_acima' and not st.session_state.get('salario_confirmado'):
+                col_a, col_b = st.columns(2)
+                with col_a:
+                    if st.button("🔙 Voltar e Ajustar Salário", use_container_width=True, key="ajustar_sal"):
+                        st.session_state.fase = 'FASE_1_BRIEFING'
+                        st.rerun()
+                with col_b:
+                    if st.button("✅ Manter Valor Informado", use_container_width=True, key="manter_sal"):
+                        st.session_state.salario_confirmado = True
+                        st.rerun()
 
     # ── 2) Análise ATS (TF-IDF real) ──
     resultado_ats = _executar_analise_ats()
