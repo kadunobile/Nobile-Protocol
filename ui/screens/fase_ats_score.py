@@ -157,7 +157,7 @@ def fase_ats_score():
         st.markdown("### ✅ Skills Encontradas no CV")
         pontos_fortes = resultado.get('pontos_fortes', [])
         if pontos_fortes:
-            for i, termo in enumerate(pontos_fortes[:8]):
+            for termo in pontos_fortes[:8]:
                 st.markdown(f"<span style='background:#1a472a; color:#4ade80; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block; margin:4px;'>✅ {termo}</span>", unsafe_allow_html=True)
         st.markdown("")
     
@@ -165,7 +165,7 @@ def fase_ats_score():
         st.markdown("### ❌ Skills Faltantes")
         gaps = resultado.get('gaps_identificados', [])
         if gaps:
-            for i, termo in enumerate(gaps[:10]):
+            for termo in gaps[:10]:
                 st.markdown(f"<span style='background:#4a1a1a; color:#f87171; padding:4px 10px; border-radius:20px; font-size:0.85rem; white-space:nowrap; display:inline-block; margin:4px;'>❌ {termo}</span>", unsafe_allow_html=True)
         st.markdown("")
     
