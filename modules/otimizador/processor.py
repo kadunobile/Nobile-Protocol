@@ -5,6 +5,19 @@ from modules.otimizador.checkpoint_validacao import prompt_checkpoint_validacao
 from modules.otimizador.etapa2_reescrita_progressiva import prompt_etapa2_reescrita_progressiva, prompt_etapa2_reescrita_final
 from modules.otimizador.etapa6_otimizacao_linkedin import prompt_etapa6_otimizacao_linkedin
 
+# HEADHUNTER ELITE: Módulos dinâmicos com geração contextual de perguntas
+from modules.otimizador.etapa0_diagnostico_dinamico import (
+    gerar_pergunta_dinamica_gap,
+    verificar_resposta_negativa_gap,
+    deve_aprofundar_gap
+)
+from modules.otimizador.etapa1_coleta_dinamica import (
+    prompt_etapa1_coleta_dinamica_inicial,
+    gerar_proxima_pergunta_coleta,
+    verificar_pronto_para_avancar_coleta,
+    gerar_mensagem_transicao_coleta
+)
+
 # HEADHUNTER ELITE: Novos módulos de inteligência
 from modules.otimizador.market_knowledge import detectar_area_por_cargo, obter_conhecimento_mercado
 from modules.otimizador.classificador_perfil import classificar_senioridade_e_estrategia
@@ -38,6 +51,7 @@ except ImportError:
 # Configuration constants
 DEFAULT_MAX_EXPERIENCES = 3  # Default number of experiences to optimize
 MIN_RESPONSE_LENGTH = 10  # Minimum response length to be considered substantive
+ENABLE_DYNAMIC_QUESTIONS = True  # Enable dynamic question generation (set to False to use static prompts)
 
 # HEADHUNTER ELITE: Etapas com pause obrigatória
 ETAPAS_COM_PAUSE_OBRIGATORIA = [
@@ -234,7 +248,11 @@ def processar_modulo_otimizador(prompt):
         if 'dados_coleta_historico' not in st.session_state:
             st.session_state.dados_coleta_historico = []
         
-        return prompt_etapa1_coleta_focada()
+        # Usar prompt dinâmico ou estático baseado na configuração
+        if ENABLE_DYNAMIC_QUESTIONS:
+            return prompt_etapa1_coleta_dinamica_inicial()
+        else:
+            return prompt_etapa1_coleta_focada()
     
     if etapa == 'AGUARDANDO_DADOS_COLETA':
         # CRITICAL FIX: Aceitar QUALQUER resposta do usuário como dados coletados
@@ -277,6 +295,29 @@ def processar_modulo_otimizador(prompt):
                     salvar_dados_coleta({'raw_response': prompt})
                 except Exception as e:
                     logger.warning(f"Erro ao salvar dados incrementais: {e}")
+                
+                # === MODO DINÂMICO: Gerar próxima pergunta com GPT ===
+                if ENABLE_DYNAMIC_QUESTIONS:
+                    # Verificar se já coletou dados suficientes (stop condition)
+                    if verificar_pronto_para_avancar_coleta():
+                        logger.info("Stop condition atingida - mostrando mensagem de transição")
+                        return gerar_mensagem_transicao_coleta()
+                    
+                    # Gerar próxima pergunta dinâmica
+                    client = st.session_state.get('openai_client')
+                    if client:
+                        try:
+                            proxima_pergunta = gerar_proxima_pergunta_coleta(client, prompt)
+                            if proxima_pergunta:
+                                return proxima_pergunta
+                            else:
+                                # Stop condition atingida pela função
+                                return gerar_mensagem_transicao_coleta()
+                        except Exception as e:
+                            logger.error(f"Erro ao gerar próxima pergunta dinâmica: {e}", exc_info=True)
+                            # Fallback: continuar com fluxo normal (retornar None)
+                    else:
+                        logger.warning("Cliente OpenAI não disponível para geração dinâmica")
                 
                 # Se já coletou 3+ respostas, permitir avançar mas NÃO forçar
                 # O usuário ainda pode continuar respondendo ou digitar "continuar"

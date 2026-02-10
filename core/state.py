@@ -11,6 +11,22 @@ def inicializar_session_state():
         'modulo_ativo': None,
         'etapa_modulo': None,
         'force_scroll_top': False,
+        # Telemetria de chamadas GPT
+        'gpt_calls_count': 0,
+        'gpt_calls_by_context': {
+            'diagnostico': 0,
+            'coleta_focada': 0,
+            'reescrita': 0,
+            'linkedin': 0,
+            'validacao': 0,
+            'outros': 0,
+        },
+        # Cache do resumo do CV
+        'cv_resumo_cache': None,
+        # Histórico de Q&A por etapa (anti-loop)
+        'qa_history_diagnostico': [],
+        'qa_history_coleta': [],
+        'qa_history_deep_dive': [],
         # ATS e Reality Check
         'score_ats_inicial': None,
         'score_ats_final': None,
