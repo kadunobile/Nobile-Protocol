@@ -16,6 +16,10 @@ from core.dynamic_questions import adicionar_qa_historico, obter_historico_qa
 
 logger = logging.getLogger(__name__)
 
+# Constants for response validation
+MIN_SUBSTANTIVE_RESPONSE_LENGTH = 15  # Minimum length for a substantive response (already defined in dynamic_questions.py)
+MIN_NEGATIVE_RESPONSE_LENGTH = 20  # Responses shorter than this are checked for negative keywords
+
 # 10 keywords alvo para RevOps (da especificação)
 KEYWORDS_REVOPS = [
     'Revenue Operations (RevOps)',
@@ -252,7 +256,7 @@ def processar_resposta_keyword(resposta: str, keyword: str) -> bool:
     resposta_lower = resposta.lower().strip()
     
     # Resposta muito curta que é negativa
-    if len(resposta_lower) < 20:
+    if len(resposta_lower) < MIN_NEGATIVE_RESPONSE_LENGTH:
         tem_experiencia = not any(kw in resposta_lower for kw in NEGATIVE_KEYWORDS)
     else:
         # Resposta mais longa - verificar se começa com negativa
@@ -310,8 +314,10 @@ def gerar_resumo_seo_mapping() -> str:
 
 """
         for keyword in keywords_com_experiencia:
+            resposta = respostas[keyword]
+            resposta_preview = resposta[:100] + ('...' if len(resposta) > 100 else '')
             resumo += f"""**{keyword}**
-📝 _{respostas[keyword][:100]}..._
+📝 _{resposta_preview}_
 
 """
     

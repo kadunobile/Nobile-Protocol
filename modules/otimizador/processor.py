@@ -279,7 +279,7 @@ def processar_modulo_otimizador(prompt):
                               'próxima', 'proxima', 'próximo', 'proximo', 'avançar', 'avancar']
             
             if any(word in prompt.lower() for word in palavras_avanco):
-                # Usuário quer avançar - salvar dados e ir para SEO MAPPING
+                # Usuário quer avançar - salvar dados e ir para Mapeamento SEO
                 st.session_state.dados_coletados = {
                     'raw_response': prompt,
                     'historico': st.session_state.dados_coleta_historico,
