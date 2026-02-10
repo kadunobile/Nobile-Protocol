@@ -80,9 +80,7 @@ def fase_0_upload():
     st.markdown("---")
     
     # ─── Informação compacta com expanders para detalhes ───
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.info("📌 Para iniciar o Diagnóstico, precisamos do **PDF exportado do seu LinkedIn.**")
+    st.info("📌 Para iniciar o Diagnóstico, precisamos do **PDF exportado do seu LinkedIn.**")
     
     # ─── Passo a passo e avisos em expanders compactos ───
     with st.expander("📋 Como exportar seu perfil do LinkedIn?"):
