@@ -36,6 +36,16 @@ def inicializar_session_state():
         'gap_atual_index': 0,
         'experiencia_atual': 1,
         'total_experiencias': 3,
+        # Trigger flags para auto-triggers do chat
+        'etapa_0_diagnostico_triggered': False,
+        'etapa_0_gap_triggered': False,
+        'etapa_0_resumo_triggered': False,
+        'etapa_1_triggered': False,
+        'etapa_1_coleta_focada_triggered': False,
+        'etapa_6_linkedin_triggered': False,
+        'checkpoint_1_triggered': False,
+        'etapa_2_reescrita_triggered': False,
+        'etapa_2_final_triggered': False,
         # Autenticação
         'authenticated': False,
         'user': None,

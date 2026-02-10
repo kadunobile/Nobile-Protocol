@@ -34,35 +34,7 @@ def fase_chat():
             with st.chat_message("user"):
                 st.markdown(msg["content"])
 
-    # Auto-trigger ETAPA_1_SEO if just entering that state (but not if still waiting for Iniciar button)
-    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
-        st.session_state.get('etapa_modulo') == 'ETAPA_1_SEO' and
-        not st.session_state.get('etapa_1_triggered')):
-        
-        st.session_state.etapa_1_triggered = True
-        try:
-            prompt_otimizador = processar_modulo_otimizador("")
-        except Exception as e:
-            logger.error(f"Erro ao processar módulo otimizador (ETAPA_1_SEO): {e}")
-            prompt_otimizador = None
-        
-        if prompt_otimizador:
-            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
-            with st.chat_message("assistant"):
-                with st.spinner("🤔 Analisando keywords para seu cargo..."):
-                    resp = chamar_gpt(
-                        st.session_state.openai_client, 
-                        st.session_state.mensagens,
-                        temperature=0.3,
-                        seed=42
-                    )
-                    if resp:
-                        st.markdown(resp)
-                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
-                        # Move to next state - wait for OK to continue
-                        st.session_state.etapa_modulo = 'AGUARDANDO_OK_KEYWORDS'
-            st.rerun()
-    
+
     # Auto-trigger ETAPA_0_DIAGNOSTICO (novo fluxo)
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
         st.session_state.get('etapa_modulo') == 'ETAPA_0_DIAGNOSTICO' and
@@ -174,6 +146,88 @@ def fase_chat():
                         st.session_state.etapa_modulo = 'AGUARDANDO_ESCOLHA_HEADLINE'
             st.rerun()
 
+    # Auto-trigger CHECKPOINT_1_VALIDACAO
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'CHECKPOINT_1_VALIDACAO' and
+        not st.session_state.get('checkpoint_1_triggered')):
+        
+        st.session_state.checkpoint_1_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
+            with st.chat_message("assistant"):
+                with st.spinner("✅ Validando dados coletados..."):
+                    resp = chamar_gpt(
+                        st.session_state.openai_client, 
+                        st.session_state.mensagens,
+                        temperature=0.3,
+                        seed=42
+                    )
+                    if resp:
+                        st.markdown(resp)
+                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
+                        # Move to next state - wait for approval
+                        st.session_state.etapa_modulo = 'AGUARDANDO_APROVACAO_VALIDACAO'
+            st.rerun()
+    
+    # Auto-trigger ETAPA_2_REESCRITA_EXP_* (dynamic states)
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo', '').startswith('ETAPA_2_REESCRITA_EXP_') and
+        not st.session_state.get('etapa_2_reescrita_triggered')):
+        
+        st.session_state.etapa_2_reescrita_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
+            with st.chat_message("assistant"):
+                with st.spinner("✍️ Reescrevendo experiência profissional..."):
+                    resp = chamar_gpt(
+                        st.session_state.openai_client, 
+                        st.session_state.mensagens,
+                        temperature=0.4,
+                        seed=42
+                    )
+                    if resp:
+                        st.markdown(resp)
+                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
+                        # Extract experience number from etapa
+                        etapa = st.session_state.get('etapa_modulo', '')
+                        try:
+                            exp_num = int(etapa.split('_')[-1])
+                        except (ValueError, IndexError) as e:
+                            logger.error(f"Erro ao extrair número da experiência de etapa '{etapa}': {e}")
+                            exp_num = 1  # Fallback to first experience
+                        # Move to approval state for this experience
+                        st.session_state.etapa_modulo = f'AGUARDANDO_APROVACAO_EXP_{exp_num}'
+            st.rerun()
+    
+    # Auto-trigger ETAPA_2_REESCRITA_FINAL
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_2_REESCRITA_FINAL' and
+        not st.session_state.get('etapa_2_final_triggered')):
+        
+        st.session_state.etapa_2_final_triggered = True
+        prompt_otimizador = processar_modulo_otimizador("")
+        
+        if prompt_otimizador:
+            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
+            with st.chat_message("assistant"):
+                with st.spinner("🎯 Finalizando reescrita do CV..."):
+                    resp = chamar_gpt(
+                        st.session_state.openai_client, 
+                        st.session_state.mensagens,
+                        temperature=0.3,
+                        seed=42
+                    )
+                    if resp:
+                        st.markdown(resp)
+                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
+                        # Move to next state - wait to continue
+                        st.session_state.etapa_modulo = 'AGUARDANDO_CONTINUAR_CHECKPOINT2'
+            st.rerun()
+
     # ===== RENDERIZAR BOTÕES DE CONTINUAÇÃO =====
     # Mapa completo de botões contextuais para todos os estados AGUARDANDO_*
     if st.session_state.get('modulo_ativo') == 'OTIMIZADOR':
@@ -188,7 +242,6 @@ def fase_chat():
             'AGUARDANDO_CONTINUAR_CHECKPOINT2': ('🚀 Ir para Validação ATS', 'continuar'),
             'AGUARDANDO_OK_SKILLS': ('✅ Aprovar Skills', 'ok'),
             'AGUARDANDO_APROVACAO_ABOUT': ('✅ Aprovar e Exportar', 'aprovar'),
-            'AGUARDANDO_OK_KEYWORDS': ('✅ Continuar', 'ok'),
         }
         
         # Tratar estados dinâmicos AGUARDANDO_APROVACAO_EXP_N
