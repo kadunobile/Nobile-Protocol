@@ -506,7 +506,7 @@ def fase_15_reality_check():
 
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("🚀 AVANÇAR — OTIMIZAR CV + LINKEDIN", use_container_width=True, type="primary"):
+        if st.button("🚀 INICIAR HEADHUNTER ELITE", use_container_width=True, type="primary"):
             if not st.session_state.get('cv_texto'):
                 st.error("⚠️ CV não encontrado. Faça upload novamente.")
                 st.session_state.fase = 'FASE_0_UPLOAD'
@@ -522,8 +522,30 @@ def fase_15_reality_check():
                 st.session_state.gaps_alvo = resultado_ats.get('gaps_identificados', [])
                 st.session_state.gaps_identificados = resultado_ats.get('gaps_identificados', [])
 
-            st.session_state.mensagens = []
-            st.session_state.modulo_ativo = None
-            st.session_state.etapa_modulo = None
-            st.session_state.fase = 'FASE_BRIDGE_OTIMIZACAO'
+            # Limpar TODAS as flags de trigger
+            st.session_state.etapa_0_diagnostico_triggered = False
+            st.session_state.etapa_0_gap_triggered = False
+            st.session_state.etapa_0_resumo_triggered = False
+            st.session_state.etapa_1_coleta_focada_triggered = False
+            st.session_state.etapa_1_triggered = False
+            st.session_state.etapa_6_linkedin_triggered = False
+            st.session_state.checkpoint_1_triggered = False
+            st.session_state.etapa_2_reescrita_triggered = False
+            st.session_state.etapa_2_final_triggered = False
+            
+            # Configurar módulo otimizador
+            st.session_state.modulo_ativo = 'OTIMIZADOR'
+            st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO'
+            
+            # Reconstruir mensagens com system prompt
+            from core.prompts import SYSTEM_PROMPT
+            cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
+            cv_texto = st.session_state.cv_texto
+            st.session_state.mensagens = [
+                {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {cv_texto}\n\nCARGO-ALVO: {cargo}"}
+            ]
+            
+            # IR DIRETO PARA CHAT (pula FASE_BRIDGE_OTIMIZACAO)
+            st.session_state.fase = 'FASE_ANALISE_INICIO'
+            st.session_state.force_scroll_top = True
             st.rerun()

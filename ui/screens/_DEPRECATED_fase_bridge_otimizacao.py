@@ -1,4 +1,15 @@
 """
+⚠️ DEPRECATED: Este arquivo não é mais usado no fluxo.
+A transição Reality Check → Headhunter Elite agora é DIRETA.
+
+Histórico:
+- Antes: FASE_15_REALITY → FASE_BRIDGE_OTIMIZACAO → FASE_ANALISE_INICIO
+- Agora: FASE_15_REALITY → FASE_ANALISE_INICIO (direto)
+
+Data de depreciação: 2026-02-10
+
+---
+
 Fase Bridge Otimização - Ponte estratégica entre Reality Check e Otimização de CV.
 
 Versão simplificada: usa dados já calculados no Reality Check (ATS v3.2)
