@@ -242,7 +242,7 @@ def _executar_analise_ats():
     Executa análise ATS real usando TF-IDF do CV contra Job Description do cargo.
     Usa cache no session_state.
     """
-    # ─── CACHE: Reutilizar score se for Recolocação no mesmo cargo ───
+    # --- CACHE: Reutilizar score se for Recolocação no mesmo cargo ---
     perfil = st.session_state.get('perfil', {})
     cargo_alvo = perfil.get('cargo_alvo')
     cargo_atual = st.session_state.get('cargo_atual')
@@ -260,7 +260,7 @@ def _executar_analise_ats():
         st.session_state.reality_ats_resultado = resultado_cached
         return resultado_cached
     
-    # ─── Se não for cache, calcular normalmente ───
+    # --- Se não for cache, calcular normalmente ---
     if st.session_state.get('reality_ats_resultado'):
         return st.session_state.reality_ats_resultado
 

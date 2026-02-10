@@ -42,7 +42,7 @@ def fase_1_diagnostico():
                 cargo_atual,
                 client=st.session_state.openai_client,
                 objetivo=None,  # Ainda não definiu objetivo
-                cargo_atual=cargo_atual  # Passar explicitamente para consistência
+                cargo_atual=cargo_atual  # Required to ensure same prompt generation as FASE_15_REALITY
             )
             
             st.session_state.score_ats_inicial = resultado_ats
