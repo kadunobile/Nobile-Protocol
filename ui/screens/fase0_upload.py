@@ -79,10 +79,13 @@ def fase_0_upload():
     st.markdown("# 📄 [1] Upload de CV")
     st.markdown("---")
     
-    st.info("📌 Para iniciar o Diagnóstico, precisamos do **PDF exportado do seu LinkedIn.**")
+    # ─── Informação compacta com expanders para detalhes ───
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.info("📌 Para iniciar o Diagnóstico, precisamos do **PDF exportado do seu LinkedIn.**")
     
-    # ─── Passo a passo como tooltip compacto ───
-    with st.expander("📋 Como exportar seu perfil do LinkedIn? (clique para ver o passo a passo)"):
+    # ─── Passo a passo e avisos em expanders compactos ───
+    with st.expander("📋 Como exportar seu perfil do LinkedIn?"):
         st.markdown("""
         **1.** Abra seu perfil no **LinkedIn** (pelo computador é mais fácil)  
         **2.** Clique no botão **"Mais / More"** (abaixo da foto)  
@@ -91,13 +94,15 @@ def fase_0_upload():
         **5.** Envie esse arquivo aqui embaixo 👇
         """)
     
-    st.markdown("")
-    
-    st.warning(
-        "⚠️ **Importante:** Envie o **Perfil exportado do LinkedIn.** "
-        "CVs feitos no Word, Canva ou outros modelos não funcionam corretamente "
-        "para otimização ATS e podem não funcionar na ferramenta."
-    )
+    with st.expander("⚠️ Por que só PDF do LinkedIn?"):
+        st.markdown("""
+        **Importante:** Envie o **Perfil exportado do LinkedIn.**
+        
+        CVs feitos no Word, Canva ou outros modelos não funcionam corretamente para otimização ATS 
+        e podem não funcionar na ferramenta.
+        
+        O PDF do LinkedIn possui a estrutura padronizada que nossa IA precisa para fazer a análise mais precisa.
+        """)
     
     st.markdown("---")
     

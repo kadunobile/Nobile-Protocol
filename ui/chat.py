@@ -400,7 +400,6 @@ Use o CV do contexto."""
 
         with st.chat_message("assistant"):
             with st.spinner("🤔 Analisando..."):
-                from core.gpt_telemetry import chamar_gpt_com_telemetria, CONTEXTO_OUTROS
                 resp = chamar_gpt_com_telemetria(
                     st.session_state.openai_client, 
                     st.session_state.mensagens,
