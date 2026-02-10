@@ -14,7 +14,10 @@ def fase_1_briefing():
         with col1:
             p1 = st.selectbox("**P1. Objetivo Principal:**",
                 ["", "Recolocação no Mercado", "Transição de Carreira", "Promoção Interna", "Trabalho Internacional"])
+            # Pre-fill with cargo extracted from CV (if available)
+            cargo_sugerido = st.session_state.get('cargo_atual', '')
             p2 = st.text_input("**P2. Cargo que você procura:**",
+                value=cargo_sugerido,
                 placeholder="Ex: Gerente de Vendas")
 
         with col2:
@@ -41,6 +44,7 @@ def fase_1_briefing():
                 st.session_state.perfil = {
                     'objetivo': p1,
                     'cargo_alvo': p2,
+                    'cargo_atual': st.session_state.get('cargo_atual', ''),
                     'pretensao_salarial': f"{p3:,}".replace(",", "."),
                     'localizacao': p4,
                     'remoto': remoto

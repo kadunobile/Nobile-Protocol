@@ -70,7 +70,11 @@ def fase_chat():
         not st.session_state.get('etapa_0_gap_triggered')):
         
         st.session_state.etapa_0_gap_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_0_GAP_INDIVIDUAL): {e}", exc_info=True)
+            prompt_otimizador = None
         
         if prompt_otimizador:
             with st.chat_message("assistant"):
@@ -86,7 +90,11 @@ def fase_chat():
         not st.session_state.get('etapa_0_resumo_triggered')):
         
         st.session_state.etapa_0_resumo_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_0_DIAGNOSTICO_RESUMO): {e}", exc_info=True)
+            prompt_otimizador = None
         
         if prompt_otimizador:
             with st.chat_message("assistant"):
@@ -102,7 +110,11 @@ def fase_chat():
         not st.session_state.get('etapa_1_coleta_focada_triggered')):
         
         st.session_state.etapa_1_coleta_focada_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_1_COLETA_FOCADA): {e}", exc_info=True)
+            prompt_otimizador = None
         
         if prompt_otimizador:
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
@@ -127,7 +139,11 @@ def fase_chat():
         not st.session_state.get('etapa_6_linkedin_triggered')):
         
         st.session_state.etapa_6_linkedin_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_6_LINKEDIN): {e}", exc_info=True)
+            prompt_otimizador = None
         
         if prompt_otimizador:
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
@@ -152,7 +168,11 @@ def fase_chat():
         not st.session_state.get('checkpoint_1_triggered')):
         
         st.session_state.checkpoint_1_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (CHECKPOINT_1_VALIDACAO): {e}", exc_info=True)
+            prompt_otimizador = None
         
         if prompt_otimizador:
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
@@ -177,7 +197,11 @@ def fase_chat():
         not st.session_state.get('etapa_2_reescrita_triggered')):
         
         st.session_state.etapa_2_reescrita_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_2_REESCRITA_EXP): {e}", exc_info=True)
+            prompt_otimizador = None
         
         if prompt_otimizador:
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
@@ -209,7 +233,11 @@ def fase_chat():
         not st.session_state.get('etapa_2_final_triggered')):
         
         st.session_state.etapa_2_final_triggered = True
-        prompt_otimizador = processar_modulo_otimizador("")
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_2_REESCRITA_FINAL): {e}", exc_info=True)
+            prompt_otimizador = None
         
         if prompt_otimizador:
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
@@ -273,7 +301,12 @@ def fase_chat():
             st.markdown(prompt)
 
         if st.session_state.get('modulo_ativo') == 'OTIMIZADOR':
-            prompt_otimizador = processar_modulo_otimizador(prompt)
+            try:
+                prompt_otimizador = processar_modulo_otimizador(prompt)
+            except Exception as e:
+                logger.error(f"Erro ao processar módulo otimizador: {e}", exc_info=True)
+                prompt_otimizador = None
+                st.error("⚠️ Erro ao processar. Tente novamente ou clique no botão abaixo.")
 
             if prompt_otimizador:
                 st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
@@ -282,12 +315,19 @@ def fase_chat():
                         resp = chamar_gpt(
                             st.session_state.openai_client, 
                             st.session_state.mensagens,
-                            temperature=0.3,  # Consistência para otimização
-                            seed=42           # Determinístico
+                            temperature=0.3,
+                            seed=42
                         )
                         if resp:
                             st.markdown(resp)
                             st.session_state.mensagens.append({"role": "assistant", "content": resp})
+                st.rerun()
+                return
+            else:
+                # Processor returned None - let normal chat handle it
+                # This happens when processor doesn't recognize the prompt for current state
+                # Rerun to show the button instead
+                st.rerun()
                 return
 
         if hasattr(st.session_state, 'aguardando_vaga') and st.session_state.aguardando_vaga:
