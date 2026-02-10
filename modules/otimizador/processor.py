@@ -34,15 +34,20 @@ MIN_RESPONSE_LENGTH = 10  # Minimum response length to be considered substantive
 
 # Keywords que indicam que o usuário não tem experiência com um gap
 NEGATIVE_RESPONSE_KEYWORDS = [
+    # Absolute lack of possession
     'não tenho', 'nao tenho', 
     'não possuo', 'nao possuo',
+    'nunca tive',
+    # Lack of knowledge
     'não sei', 'nao sei',
-    'nunca usei', 'nunca trabalhei', 'nunca utilizei',
     'não conheço', 'nao conheço',
+    'desconheço', 'desconheco',
+    # No experience/usage
+    'nunca usei', 'nunca trabalhei', 'nunca utilizei',
     'não tive contato', 'nao tive contato',
     'sem experiência', 'sem experiencia',
-    'nunca tive', 'jamais',
-    'desconheço', 'desconheco',
+    # Absolute negation
+    'jamais',
 ]
 
 

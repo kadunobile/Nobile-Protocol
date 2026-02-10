@@ -194,7 +194,11 @@ def fase_chat():
                         st.session_state.mensagens.append({"role": "assistant", "content": resp})
                         # Extract experience number from etapa
                         etapa = st.session_state.get('etapa_modulo', '')
-                        exp_num = int(etapa.split('_')[-1])
+                        try:
+                            exp_num = int(etapa.split('_')[-1])
+                        except (ValueError, IndexError) as e:
+                            logger.error(f"Erro ao extrair número da experiência de etapa '{etapa}': {e}")
+                            exp_num = 1  # Fallback to first experience
                         # Move to approval state for this experience
                         st.session_state.etapa_modulo = f'AGUARDANDO_APROVACAO_EXP_{exp_num}'
             st.rerun()
