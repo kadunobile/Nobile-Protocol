@@ -3,7 +3,8 @@ import logging
 from core.prompts import SYSTEM_PROMPT
 from core.utils import chamar_gpt, scroll_topo, forcar_topo
 from core.ats_scorer import calcular_score_ats, classificar_score
-from core.salary_bands import validar_salario_banda, formatar_banda_display
+from core.ats_constants import SKILL_DESCRIPTIONS
+from core.salary_lookup import buscar_salario_real, formatar_dados_salariais_para_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -120,6 +121,14 @@ def _gerar_reality_check():
     remoto = 'Sim' if perfil.get('remoto') else 'Não'
     senioridade = perfil.get('senioridade', 'Não identificada')
 
+    # Fetch real salary data from salario.com.br
+    # Note: This performs an external HTTP request during page render.
+    # The request has a 10-second timeout and uses session_state caching
+    # to avoid repeated calls on Streamlit reruns. If the request fails,
+    # it gracefully falls back to None and GPT proceeds without salary data.
+    dados_salariais = buscar_salario_real(cargo, cache_dict=st.session_state)
+    dados_salariais_texto = formatar_dados_salariais_para_prompt(dados_salariais)
+
     msgs = [
         {"role": "system", "content": SYSTEM_PROMPT + f"""
 
@@ -146,6 +155,8 @@ IMPORTANTE SOBRE NOMENCLATURAS:
 - Inclua o nível (Jr, Pleno, Sr) quando relevante
 
 INSTRUÇÕES PARA ANÁLISE SALARIAL:
+{dados_salariais_texto}
+
 - Analise a SENIORIDADE REAL do candidato com base no CV (anos de experiência, cargos ocupados, empresas)
 - Considere o CARGO-ALVO específico, não uma faixa genérica do mercado
 - Considere a LOCALIDADE e se aceita remoto
@@ -377,13 +388,17 @@ def _renderizar_ats(resultado_ats):
                     descricao = skill_desc
                     break
             
+            # Fallback se skill não está no dicionário
+            if not descricao:
+                descricao = "Competência relevante para o cargo — pesquise mais sobre esta skill para entender como aplicá-la."
+            
             st.markdown(f"""
 <div style="background:#2a1a1a; border-left:3px solid #f87171; padding:10px 14px; border-radius:6px; margin:6px 0;">
     <div style="color:#f87171; font-weight:bold; font-size:0.95rem;">❌ {nome_gap}</div>
     <div style="color:#ccc; font-size:0.82rem; margin-top:4px;">
         📌 Skill exigida para <strong>{cargo}</strong> — não encontrada no seu CV atual
     </div>
-    {f'<div style="color:#888; font-size:0.8rem; margin-top:6px; padding-top:6px; border-top:1px solid #333;">ℹ️ <strong>O que é:</strong> {descricao}</div>' if descricao else ''}
+    <div style="color:#888; font-size:0.8rem; margin-top:6px; padding-top:6px; border-top:1px solid #333;">ℹ️ <strong>O que é:</strong> {descricao}</div>
 </div>
 """, unsafe_allow_html=True)
         st.markdown("")
@@ -502,60 +517,6 @@ def fase_15_reality_check():
 
     # Exibir resultado do Reality Check
     st.markdown(reality)
-
-    # ── Validação de Salário com Salary Bands ──
-    st.markdown("---")
-    perfil = st.session_state.get('perfil', {})
-    pretensao = perfil.get('pretensao_salarial', '')
-    cargo = perfil.get('cargo_alvo', '')
-    localizacao = perfil.get('localizacao', '')
-    
-    if pretensao and pretensao != 'Não informada':
-        # Validar salary usando novo sistema de bandas
-        validacao = validar_salario_banda(
-            pretensao_str=pretensao,
-            cargo=cargo,
-            localizacao=localizacao,
-            perfil=perfil
-        )
-        
-        # Sempre mostrar faixa de mercado
-        banda = validacao.get('banda')
-        if banda:
-            st.markdown("### 💰 Faixa Salarial de Mercado")
-            
-            banda_texto = formatar_banda_display(banda)
-            # Emoji indicates data source: real data (🏢) or estimated (📊)
-            fonte_banda_emoji = "🏢" if not banda.get('is_fallback') else "📊"
-            
-            st.info(f"""
-**Cargo:** {cargo}
-
-{fonte_banda_emoji} **Faixa de mercado:** {banda_texto}
-
-*Valores CLT, mercado brasileiro, sem bônus (2024-2025).*
-""")
-        
-        # Mostrar warning se salary acima da banda
-        if validacao['nivel'] in ['acima', 'muito_acima']:
-            st.markdown("---")
-            
-            if validacao['nivel'] == 'muito_acima':
-                st.warning(validacao['mensagem'])
-            else:
-                st.info(validacao['mensagem'])
-            
-            # Opção de ajustar (apenas para muito acima)
-            if validacao['nivel'] == 'muito_acima' and not st.session_state.get('salario_confirmado'):
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    if st.button("🔙 Voltar e Ajustar Salário", use_container_width=True, key="ajustar_sal"):
-                        st.session_state.fase = 'FASE_1_BRIEFING'
-                        st.rerun()
-                with col_b:
-                    if st.button("✅ Manter Valor Informado", use_container_width=True, key="manter_sal"):
-                        st.session_state.salario_confirmado = True
-                        st.rerun()
 
     # ── 2) Análise ATS (TF-IDF real) ──
     resultado_ats = _executar_analise_ats()

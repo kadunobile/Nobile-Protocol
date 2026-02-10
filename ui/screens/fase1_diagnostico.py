@@ -119,13 +119,17 @@ def fase_1_diagnostico():
             # Buscar descrição da skill (O(1) lookup)
             descricao = skill_descriptions_lower.get(nome_gap.lower())
             
+            # Fallback se skill não está no dicionário
+            if not descricao:
+                descricao = "Competência relevante para o cargo — pesquise mais sobre esta skill para entender como aplicá-la."
+            
             st.markdown(f"""
 <div style="background:#2a1a1a; border-left:3px solid #e74c3c; padding:10px 14px; border-radius:6px; margin:6px 0;">
     <div style="color:#e74c3c; font-weight:bold; font-size:0.95rem;">❌ {nome_gap}</div>
     <div style="color:#ccc; font-size:0.82rem; margin-top:4px;">
         📌 Skill exigida para <strong>{cargo_atual}</strong> — não encontrada no seu CV atual
     </div>
-    {f'<div style="color:#888; font-size:0.8rem; margin-top:6px; padding-top:6px; border-top:1px solid #333;">ℹ️ <strong>O que é:</strong> {descricao}</div>' if descricao else ''}
+    <div style="color:#888; font-size:0.8rem; margin-top:6px; padding-top:6px; border-top:1px solid #333;">ℹ️ <strong>O que é:</strong> {descricao}</div>
 </div>
 """, unsafe_allow_html=True)
         st.markdown("")
