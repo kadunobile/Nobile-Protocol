@@ -81,19 +81,15 @@ def fase_0_upload():
     
     st.info("📌 Para iniciar o Diagnóstico, precisamos do **PDF exportado do seu LinkedIn.**")
     
-    # ─── Passo a passo visual ───
-    st.markdown("### 📋 Como exportar seu perfil do LinkedIn:")
-    
-    st.markdown("""
-    <div style="background: rgba(233, 69, 96, 0.08); border-left: 4px solid #e94560; 
-                padding: 1.2rem; border-radius: 0 8px 8px 0; margin: 1rem 0;">
-        <p style="margin: 0.4rem 0;"><strong>1.</strong> Abra seu perfil no <strong>LinkedIn</strong> (pelo computador é mais fácil)</p>
-        <p style="margin: 0.4rem 0;"><strong>2.</strong> Clique no botão <strong>"Mais / More"</strong> (abaixo da foto)</p>
-        <p style="margin: 0.4rem 0;"><strong>3.</strong> Selecione <strong>"Salvar como PDF / Save to PDF"</strong></p>
-        <p style="margin: 0.4rem 0;"><strong>4.</strong> O LinkedIn vai gerar o PDF — <strong>faça o download</strong></p>
-        <p style="margin: 0.4rem 0;"><strong>5.</strong> Envie esse arquivo aqui embaixo 👇</p>
-    </div>
-    """, unsafe_allow_html=True)
+    # ─── Passo a passo como tooltip compacto ───
+    with st.expander("📋 Como exportar seu perfil do LinkedIn? (clique para ver o passo a passo)"):
+        st.markdown("""
+        **1.** Abra seu perfil no **LinkedIn** (pelo computador é mais fácil)  
+        **2.** Clique no botão **"Mais / More"** (abaixo da foto)  
+        **3.** Selecione **"Salvar como PDF / Save to PDF"**  
+        **4.** O LinkedIn vai gerar o PDF — **faça o download**  
+        **5.** Envie esse arquivo aqui embaixo 👇
+        """)
     
     st.markdown("")
     

@@ -181,16 +181,20 @@ def processar_modulo_otimizador(prompt):
                 if st.session_state.gap_atual_index < len(gaps):
                     # Continuar com o próximo gap
                     st.session_state.etapa_modulo = 'ETAPA_0_GAP_INDIVIDUAL'
+                    # Reset trigger flag so next gap can be shown
+                    st.session_state.etapa_0_gap_triggered = False
                     return prompt_etapa0_diagnostico_gap_individual(st.session_state.gap_atual_index)
                 else:
                     # Todos os gaps foram processados - ir para resumo
                     st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
+                    st.session_state.etapa_0_resumo_triggered = False  # Reset trigger for resumo
                     return gerar_resumo_diagnostico()
         except Exception as e:
             gap_info = f"índice {gap_index}, gap: {gap}" if 'gap' in locals() and 'gap_index' in locals() else "índice desconhecido"
             logger.error(f"Erro ao processar resposta de gap [{gap_info}]: {e}", exc_info=True)
             # Tentar recuperar indo para resumo
             st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO_RESUMO'
+            st.session_state.etapa_0_resumo_triggered = False  # Reset trigger for resumo
             return gerar_resumo_diagnostico()
         
         return None
@@ -201,6 +205,7 @@ def processar_modulo_otimizador(prompt):
     if etapa == 'AGUARDANDO_OK_DIAGNOSTICO':
         # Usuário confirmou o resumo - avançar para coleta
         st.session_state.etapa_modulo = 'ETAPA_1_COLETA_FOCADA'
+        st.session_state.etapa_1_coleta_focada_triggered = False  # Reset trigger for coleta
         return prompt_etapa1_coleta_focada()
     
     # ETAPA 1: COLETA FOCADA
