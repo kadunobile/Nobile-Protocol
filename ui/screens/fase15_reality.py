@@ -471,12 +471,6 @@ def fase_15_reality_check():
                 # Set gaps_alvo and gaps_identificados for the optimizer
                 st.session_state.gaps_alvo = resultado_ats.get('gaps_identificados', [])
                 st.session_state.gaps_identificados = resultado_ats.get('gaps_identificados', [])
-                
-                # Ensure perfil has cargo_alvo
-                if 'perfil' not in st.session_state:
-                    st.session_state.perfil = {}
-                if 'cargo_alvo' not in st.session_state.perfil:
-                    st.session_state.perfil['cargo_alvo'] = st.session_state.get('perfil', {}).get('cargo_alvo', '')
 
             st.session_state.mensagens = []
             st.session_state.modulo_ativo = None
