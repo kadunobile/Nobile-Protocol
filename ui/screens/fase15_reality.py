@@ -538,7 +538,7 @@ def fase_15_reality_check():
             st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO'
             
             # Reconstruir mensagens com system prompt
-            from core.prompts import SYSTEM_PROMPT
+            # (SYSTEM_PROMPT já está importado no topo do arquivo)
             cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
             cv_texto = st.session_state.cv_texto
             st.session_state.mensagens = [
