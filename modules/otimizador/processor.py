@@ -34,8 +34,15 @@ MIN_RESPONSE_LENGTH = 10  # Minimum response length to be considered substantive
 
 # Keywords que indicam que o usuário não tem experiência com um gap
 NEGATIVE_RESPONSE_KEYWORDS = [
-    'não tenho', 'nao tenho', 'não', 'nao', 
-    'não sei', 'nao sei', 'nunca', 'jamais'
+    'não tenho', 'nao tenho', 
+    'não possuo', 'nao possuo',
+    'não sei', 'nao sei',
+    'nunca usei', 'nunca trabalhei', 'nunca utilizei',
+    'não conheço', 'nao conheço',
+    'não tive contato', 'nao tive contato',
+    'sem experiência', 'sem experiencia',
+    'nunca tive', 'jamais',
+    'desconheço', 'desconheco',
 ]
 
 
@@ -292,13 +299,12 @@ def processar_modulo_otimizador(prompt):
     
     if etapa == 'AGUARDANDO_CONTINUAR_CHECKPOINT2':
         if any(word in prompt.lower() for word in ['continuar', 'ok', 'aprovar', 'sim']):
-            # TODO: Salvar CV otimizado das mensagens reescritas
-            # Por enquanto, marcar para gerar na fase de validação
             if not st.session_state.get('cv_otimizado'):
-                # Placeholder - o CV otimizado deveria ser construído das reescritas
                 st.session_state.cv_otimizado = st.session_state.get('cv_texto', '')
-            st.session_state.fase = 'FASE_VALIDACAO_SCORE_ATS'
-            return None  # Vai para tela de validação
+            # Go to LinkedIn optimization FIRST, then exports
+            st.session_state.etapa_modulo = 'ETAPA_6_LINKEDIN'
+            st.session_state.etapa_6_linkedin_triggered = False  # Reset flag
+            return None
         return None
     
     # ETAPA 6: OTIMIZAÇÃO LINKEDIN (novo fluxo)
@@ -322,8 +328,7 @@ def processar_modulo_otimizador(prompt):
     
     if etapa == 'AGUARDANDO_APROVACAO_ABOUT':
         if any(word in prompt.lower() for word in ['aprovar', 'aprovado', 'ok', 'sim', 'perfeito']):
-            # Salvar dados de LinkedIn e ir para exports
-            st.session_state.fase = 'FASE_EXPORTS_COMPLETO'
+            st.session_state.fase = 'FASE_VALIDACAO_SCORE_ATS'
             return None
         return None
 

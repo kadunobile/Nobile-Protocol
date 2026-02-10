@@ -65,6 +65,42 @@ def _gerar_reality_check():
     dados_salariais = buscar_salario_real(cargo, cache_dict=st.session_state)
     dados_salariais_texto = formatar_dados_salariais_para_prompt(dados_salariais)
 
+    # Build salary instruction based on whether we have real data
+    if dados_salariais and dados_salariais_texto.strip():
+        instrucao_salarial = f"""
+INSTRUÇÕES PARA ANÁLISE SALARIAL — DADOS REAIS DISPONÍVEIS:
+{dados_salariais_texto}
+
+⚠️ REGRA ABSOLUTA: Use os dados acima como BASE OBRIGATÓRIA.
+- Os percentis P25, P50, P75 DEVEM ser derivados dos dados acima
+- NÃO invente valores diferentes dos dados fornecidos
+- Você pode contextualizar e explicar os dados, mas NÃO alterar os valores
+- Se a pretensão do candidato está fora da faixa dos dados, diga explicitamente
+"""
+        referencia_texto = f"*Referências: Dados baseados em pesquisas salariais de mercado (Robert Half, Michael Page, Glassdoor, Catho, Gupy Trends) para {cargo} nível {senioridade} em {local}, período 2024-2025.*"
+    else:
+        instrucao_salarial = f"""
+INSTRUÇÕES PARA ANÁLISE SALARIAL — SEM DADOS CONFIRMADOS:
+
+⚠️ IMPORTANTE: Não foi possível obter dados salariais confirmados de fontes externas para o cargo "{cargo}" em "{local}".
+
+REGRAS OBRIGATÓRIAS:
+- NÃO invente valores salariais específicos como se fossem dados reais
+- NÃO cite fontes como Robert Half, Michael Page, Glassdoor como se tivesse consultado — você NÃO consultou
+- Em vez disso, diga EXPLICITAMENTE: "Não foi possível consultar dados salariais confirmados para este cargo"
+- Você PODE dar uma estimativa QUALITATIVA (ex: "faixa tipicamente alta para o mercado de SP") mas NÃO dê números específicos como se fossem dados reais
+- Se der uma estimativa, deixe CLARO que é uma estimativa sem confirmação de dados
+- Sugira ao candidato consultar fontes como Glassdoor, Levels.fyi, Robert Half Guide para obter dados atualizados
+
+FORMATO DA SEÇÃO SALARIAL QUANDO SEM DADOS:
+Em vez da tabela de percentis, use:
+"**Dados salariais:** Não foi possível obter dados confirmados de mercado para {cargo} em {local}. 
+Recomendamos consultar: Glassdoor, Levels.fyi, Guia Salarial Robert Half 2025, pesquisa salarial Catho."
+
+Depois dê uma avaliação QUALITATIVA da pretensão baseada no perfil geral do candidato.
+"""
+        referencia_texto = "*⚠️ Dados salariais estimados — consulte Glassdoor, Robert Half Guide 2025, Catho para valores atualizados.*"
+
     msgs = [
         {"role": "system", "content": SYSTEM_PROMPT + f"""
 
@@ -90,29 +126,13 @@ IMPORTANTE SOBRE NOMENCLATURAS:
 - Inclua variações em português E inglês
 - Inclua o nível (Jr, Pleno, Sr) quando relevante
 
-INSTRUÇÕES PARA ANÁLISE SALARIAL:
-{dados_salariais_texto}
+{instrucao_salarial}
 
 - Analise a SENIORIDADE REAL do candidato com base no CV (anos de experiência, cargos ocupados, empresas)
 - Considere o CARGO-ALVO específico, não uma faixa genérica do mercado
 - Considere a LOCALIDADE e se aceita remoto
 - A faixa salarial deve refletir o perfil REAL do candidato (não range genérico de Jr a Sr)
 - Se o candidato tem 10+ anos de experiência e cargos de gerência/direção, a faixa deve refletir senioridade alta
-- Use dados realistas do mercado brasileiro atual (2024-2025) para o cargo E senioridade específicos
-- NUNCA dê faixas genéricas que misturam Jr com Sr — seja ESPECÍFICO para o perfil
-
-FORMATO OBRIGATÓRIO DA ANÁLISE SALARIAL:
-- Use PERCENTIS (P25, P50, P75) para dar contexto real ao candidato
-- P25 = Início de faixa (empresas menores, interior, candidatos em transição)
-- P50 = Mediana do mercado (mercado geral para este nível na região)
-- P75 = Top de faixa (multinacionais, grandes empresas, perfis disputados)
-- Diferencie CLT vs PJ: mostre que valores PJ são ~30-40% maiores (sem benefícios CLT)
-- Contexto por porte de empresa:
-  * Startups/PMEs: faixa menor (P25-P40), mas mais equity/flexibilidade
-  * Empresas médias: faixa mediana (P40-P60)
-  * Multinacionais/grandes: faixa maior (P60-P75), mais benefícios estruturados
-- Cite FONTES: Mencione que dados são baseados em pesquisas salariais como Robert Half, Michael Page, Glassdoor, Catho, Gupy Trends
-- Contexto regional explícito: São Paulo paga X% a mais que média nacional, capitais vs interior, remoto pode nivelar diferenças, etc.
 
 IMPORTANTE: Seja ESPECÍFICO e REALISTA. Base-se APENAS no CV fornecido e nas expectativas reais do mercado para {cargo} em {local}.
 
@@ -165,7 +185,7 @@ FORMATO EXATO OBRIGATÓRIO:
 
 **Contexto Regional:** [Explicação de 2-3 linhas sobre o mercado para esse cargo específico na região informada, considerando se aceita remoto, diferenças entre capitais e interior, e como a região se compara à média nacional]
 
-*Referências: Dados baseados em pesquisas salariais de mercado (Robert Half, Michael Page, Glassdoor, Catho, Gupy Trends) para {cargo} nível {senioridade} em {local}, período 2024-2025.*
+{referencia_texto}
 
 ---
 
