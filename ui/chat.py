@@ -11,7 +11,7 @@ def fase_chat():
     """Interface de chat do Protocolo Nóbile com logging integrado."""
     logger.info("Iniciando fase de chat")
     
-    # ===== DEFENSIVE INITIALIZATION =====
+    # ===== Defensive initialization =====
     # Ensure mensagens exists before iterating - critical for auto-trigger to work
     if 'mensagens' not in st.session_state:
         st.session_state.mensagens = []
