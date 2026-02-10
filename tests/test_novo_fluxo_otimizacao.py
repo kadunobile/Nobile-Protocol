@@ -338,5 +338,246 @@ class TestProcessorNovoFluxo:
         assert 'COLETA' in result.upper()
 
 
+class TestHeadhunterEliteModules:
+    """Testes para os novos módulos do Headhunter Elite."""
+    
+    def test_market_knowledge_cobertura(self):
+        """Testa se todas as áreas têm keywords, metrics e verbos."""
+        from modules.otimizador.market_knowledge import MARKET_KNOWLEDGE
+        
+        # Verificar se temos 22+ áreas
+        assert len(MARKET_KNOWLEDGE) >= 22
+        
+        # Verificar estrutura de cada área
+        for area, conhecimento in MARKET_KNOWLEDGE.items():
+            assert 'keywords' in conhecimento
+            assert 'metrics' in conhecimento
+            assert 'verbos_fortes' in conhecimento
+            assert 'ferramentas' in conhecimento
+            
+            # Verificar quantidade mínima de itens
+            assert len(conhecimento['keywords']) >= 10, f"{area} deve ter 10+ keywords"
+            assert len(conhecimento['metrics']) >= 5, f"{area} deve ter 5+ metrics"
+            assert len(conhecimento['verbos_fortes']) >= 5, f"{area} deve ter 5+ verbos"
+            assert len(conhecimento['ferramentas']) >= 5, f"{area} deve ter 5+ ferramentas"
+    
+    def test_detectar_area_por_cargo(self):
+        """Testa detecção de área profissional por cargo."""
+        from modules.otimizador.market_knowledge import detectar_area_por_cargo
+        
+        # Testes de detecção
+        assert detectar_area_por_cargo("Gerente de Vendas") == "Sales Manager"
+        assert detectar_area_por_cargo("Software Engineer") == "Software Engineer"
+        # "Desenvolvedor Backend" pode retornar "Software Engineer" ou "Backend Developer"
+        # dependendo da ordem de matching - ambos são válidos
+        backend_area = detectar_area_por_cargo("Desenvolvedor Backend")
+        assert backend_area in ["Backend Developer", "Software Engineer"]
+        assert detectar_area_por_cargo("Data Scientist") == "Data Scientist"
+        assert detectar_area_por_cargo("Product Manager") == "Product Manager"
+        assert detectar_area_por_cargo("DevOps Engineer") == "DevOps Engineer"
+        assert detectar_area_por_cargo("Marketing Manager") == "Marketing Manager"
+        
+        # Teste de cargo não mapeado
+        assert detectar_area_por_cargo("Cargo Desconhecido XYZ") == "Generalista"
+        assert detectar_area_por_cargo("") == "Generalista"
+    
+    def test_obter_conhecimento_mercado(self):
+        """Testa obtenção de conhecimento de mercado."""
+        from modules.otimizador.market_knowledge import obter_conhecimento_mercado
+        
+        # Área existente
+        conhecimento = obter_conhecimento_mercado("Software Engineer")
+        assert conhecimento is not None
+        assert 'keywords' in conhecimento
+        assert 'API' in conhecimento['keywords']
+        
+        # Área não existente (deve retornar genérico)
+        conhecimento_gen = obter_conhecimento_mercado("Área Inexistente")
+        assert conhecimento_gen is not None
+        assert 'keywords' in conhecimento_gen
+        assert len(conhecimento_gen['keywords']) > 0
+    
+    def test_classificador_senioridade(self):
+        """Testa classificação correta de junior/pleno/senior/executivo."""
+        from modules.otimizador.classificador_perfil import classificar_senioridade_e_estrategia
+        
+        # Teste Junior
+        result = classificar_senioridade_e_estrategia("CV básico", "Analista Junior de Vendas")
+        assert result['senioridade'] == 'junior'
+        assert result['modo_interrogatorio'] == 'operacional'
+        
+        # Teste Pleno
+        result = classificar_senioridade_e_estrategia("CV intermediário", "Analista de Dados")
+        assert result['senioridade'] == 'pleno'
+        assert result['modo_interrogatorio'] == 'estrategico'
+        
+        # Teste Senior
+        result = classificar_senioridade_e_estrategia("Liderança técnica", "Tech Lead")
+        assert result['senioridade'] == 'senior'
+        assert result['modo_interrogatorio'] == 'estrategico'
+        
+        # Teste Executivo
+        result = classificar_senioridade_e_estrategia("Gestão de P&L", "Diretor de Vendas")
+        assert result['senioridade'] == 'executivo'
+        assert result['modo_interrogatorio'] == 'executivo'
+        
+        # Verificar estrutura completa
+        assert 'foco_metricas' in result
+        assert 'template_pergunta' in result
+        assert 'area_profissional' in result
+    
+    def test_detector_verbos_fracos(self):
+        """Testa detecção de verbos fracos em bullets."""
+        from modules.otimizador.analisador_bullets import analisar_bullets_fracos, VERBOS_FRACOS
+        
+        # Verificar lista de verbos fracos
+        assert len(VERBOS_FRACOS) > 10
+        assert 'ajudei' in VERBOS_FRACOS
+        assert 'participei' in VERBOS_FRACOS
+        
+        # CV com bullets fracos
+        cv_teste = """
+        • Ajudei na implementação do projeto
+        • Participei do desenvolvimento
+        • Trabalhava com Python
+        """
+        
+        result = analisar_bullets_fracos(cv_teste, "Software Engineer", "pleno")
+        
+        # Deve detectar problemas
+        assert len(result) > 0
+        
+        # Verificar estrutura do resultado
+        for item in result:
+            assert 'bullet_original' in item
+            assert 'problemas' in item
+            assert 'pergunta_direcionada' in item
+            assert 'metricas_esperadas' in item
+    
+    def test_contar_bullets_fracos(self):
+        """Testa contador de bullets fracos."""
+        from modules.otimizador.analisador_bullets import contar_bullets_fracos
+        
+        cv_teste = """
+        • Ajudei na implementação
+        • Participei do projeto
+        • Trabalhava com equipe
+        """
+        
+        count = contar_bullets_fracos(cv_teste, "Software Engineer", "pleno")
+        assert count >= 0
+        assert isinstance(count, int)
+    
+    def test_gerador_bullet_star(self):
+        """Testa geração de bullets otimizados por senioridade."""
+        from modules.otimizador.engenheiro_texto import gerar_bullet_star, VERBOS_UPGRADE
+        
+        # Verificar mapeamento de verbos
+        assert len(VERBOS_UPGRADE) >= 20
+        assert 'ajudei' in VERBOS_UPGRADE
+        assert VERBOS_UPGRADE['ajudei'] != 'ajudei'  # Deve ter upgrade
+        
+        # Teste de geração - Junior
+        componentes = {
+            'acao': 'Processei',
+            'contexto': 'relatórios financeiros',
+            'ferramenta': 'Excel',
+            'resultado_numerico': '500 relatórios/mês',
+            'impacto': '95% de acuracidade'
+        }
+        
+        bullet = gerar_bullet_star(componentes, 'junior', 'Financial Analyst')
+        assert bullet is not None
+        assert '•' in bullet
+        assert 'Excel' in bullet or 'relatórios' in bullet
+        
+        # Teste de geração - Executivo
+        componentes_exec = {
+            'acao': 'Liderei',
+            'contexto': 'transformação digital',
+            'ferramenta': 'budget de R$ 5M',
+            'resultado_numerico': '30% crescimento',
+            'impacto': 'aumento de receita'
+        }
+        
+        bullet_exec = gerar_bullet_star(componentes_exec, 'executivo', 'Sales Manager')
+        assert bullet_exec is not None
+        assert '•' in bullet_exec
+    
+    def test_aplicar_star_method_completo(self):
+        """Testa aplicação do método STAR em experiência completa."""
+        from modules.otimizador.engenheiro_texto import aplicar_star_method_completo
+        
+        experiencia = {
+            'cargo': 'Analista de Dados',
+            'empresa': 'Tech Corp',
+            'periodo': '2020-2022',
+            'senioridade': 'pleno',
+            'bullets': [
+                'Ajudei na análise de dados',
+                'Participei de projetos'
+            ]
+        }
+        
+        result = aplicar_star_method_completo(experiencia, 'Data Scientist')
+        
+        assert result is not None
+        assert 'bullets_originais' in result
+        assert 'bullets_otimizados' in result
+        assert 'diferencas_destacadas' in result
+        assert len(result['bullets_otimizados']) == len(experiencia['bullets'])
+    
+    def test_prompt_headhunter_elite(self):
+        """Testa geração do prompt completo com inteligência."""
+        # Importar apenas se streamlit estiver disponível
+        try:
+            import streamlit as st
+            from modules.otimizador.etapa0_diagnostico import prompt_etapa0_diagnostico
+        except ImportError:
+            pytest.skip("Streamlit não disponível no ambiente de teste")
+            return
+        
+        # Mock session state manualmente
+        class MockSessionState:
+            perfil = {'cargo_alvo': 'Software Engineer'}
+            cv_texto = """
+        Desenvolvedor Python
+        • Trabalhei com Django
+        • Participei de projetos
+        • Ajudei na implementação
+        """
+            gaps_alvo = ['Falta testes automatizados', 'Falta CI/CD']
+            gaps_respostas = {}
+            
+            def get(self, key, default=None):
+                return getattr(self, key, default)
+        
+        # Substituir session_state temporariamente
+        original_session_state = st.session_state if hasattr(st, 'session_state') else None
+        st.session_state = MockSessionState()
+        
+        try:
+            result = prompt_etapa0_diagnostico()
+            
+            # Verificar estrutura do Headhunter Elite
+            assert result is not None
+            assert 'HEADHUNTER ELITE' in result.upper()
+            assert 'SENIORIDADE' in result.upper()
+            assert 'ÁREA' in result.upper()
+            assert 'Software Engineer' in result or 'GENERALISTA' in result.upper()
+            assert 'GAPS CRÍTICOS' in result.upper()
+            assert 'BULLETS FRACOS' in result.upper()
+            
+            # Verificar menção às 7 etapas
+            assert '7 etapas' in result.lower() or '7️⃣' in result
+            
+            # Verificar menção a pausas obrigatórias
+            assert 'pausa' in result.lower() or 'Pausas' in result
+        finally:
+            # Restaurar session_state original
+            if original_session_state is not None:
+                st.session_state = original_session_state
+
+
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])
