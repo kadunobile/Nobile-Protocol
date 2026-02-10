@@ -44,7 +44,7 @@ def fase_chat():
         try:
             prompt_otimizador = processar_modulo_otimizador("")
         except Exception as e:
-            logger.error(f"Erro ao processar módulo otimizador (ETAPA_0_DIAGNOSTICO): {e}")
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_0_DIAGNOSTICO): {e}", exc_info=True)
             prompt_otimizador = None
         
         if prompt_otimizador:
@@ -285,7 +285,6 @@ def fase_chat():
                 # Usar key único baseado no etapa para evitar duplicatas
                 if st.button(texto_botao, use_container_width=True, type="primary", key=f"btn_{etapa}"):
                     # Processar comando através do otimizador
-                    from modules.otimizador.processor import processar_modulo_otimizador
                     resultado = processar_modulo_otimizador(comando)
                     if resultado:
                         st.session_state.mensagens.append({"role": "assistant", "content": resultado})
