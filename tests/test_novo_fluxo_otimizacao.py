@@ -31,7 +31,7 @@ class TestNovoFluxoOtimizacao:
         # Novo prompt com persona Headhunter Elite
         assert 'HEADHUNTER ELITE' in result.upper()
         assert 'Gerente de Vendas' in result
-        assert 'gaps' in result.lower() or 'gap' in result.lower()
+        assert 'gap' in result.lower()
         # Deve incluir as novas seções do fluxo refinado
         assert 'SEO MAPPING' in result.upper() or 'SEO' in result
         assert 'DEEP DIVE' in result.upper() or 'DADOS CONCRETOS' in result.upper()
