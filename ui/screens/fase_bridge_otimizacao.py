@@ -249,6 +249,6 @@ def fase_bridge_otimizacao():
                 {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {cv_texto}\n\nCARGO-ALVO: {cargo}"}
             ]
             
-            st.session_state.fase = 'CHAT'
+            st.session_state.fase = 'FASE_ANALISE_INICIO'
             st.session_state.force_scroll_top = True
             st.rerun()

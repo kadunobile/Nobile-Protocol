@@ -17,6 +17,7 @@ from ui.screens.fase_interview import fase_prep_entrevista
 from ui.screens.fase_comparador import fase_comparador_cv
 # Novas fases do fluxo otimizado
 from ui.screens.fase_bridge_otimizacao import fase_bridge_otimizacao
+from ui.screens.fase_analise_inicio import fase_analise_inicio
 from ui.screens.fase_validacao_score_ats import fase_validacao_score_ats
 from ui.screens.fase_exports_completo import fase_exports_completo
 from ui.chat import fase_chat
@@ -180,6 +181,7 @@ def main():
         'FASE_INTERVIEW': fase_prep_entrevista,
         'FASE_COMPARADOR': fase_comparador_cv,
         'FASE_BRIDGE_OTIMIZACAO': fase_bridge_otimizacao,
+        'FASE_ANALISE_INICIO': fase_analise_inicio,
         'FASE_VALIDACAO_SCORE_ATS': fase_validacao_score_ats,
         'FASE_EXPORTS_COMPLETO': fase_exports_completo,
         'CHAT': fase_chat
