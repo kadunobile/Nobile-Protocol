@@ -208,10 +208,11 @@ def gerar_mensagem_transicao_coleta() -> str:
         Mensagem formatada de transição
     """
     total_perguntas = len(obter_historico_qa('coleta'))
+    pergunta_texto = "pergunta" if total_perguntas == 1 else "perguntas"
     
     return f"""✅ **COLETA FOCADA CONCLUÍDA!**
 
-Coletei **{total_perguntas} informações importantes** sobre suas experiências.
+Coletei **{total_perguntas} {pergunta_texto} importantes** sobre suas experiências.
 
 ---
 

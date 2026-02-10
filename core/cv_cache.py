@@ -70,6 +70,10 @@ O resumo DEVE ter no máximo 400 palavras e incluir:
 
 **RESUMO CONCISO:**"""
     
+    # NOTA: Enviamos até 10.000 caracteres do CV (~2500 tokens de input) para
+    # gerar um resumo de ~500 tokens (400 palavras). O GPT-4 precisa ver contexto
+    # suficiente para criar um resumo representativo, mas não precisamos do CV completo.
+    
     try:
         msgs = [{"role": "user", "content": prompt}]
         resumo = chamar_gpt(

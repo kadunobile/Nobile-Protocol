@@ -16,6 +16,9 @@ from core.gpt_telemetry import chamar_gpt_com_telemetria
 
 logger = logging.getLogger(__name__)
 
+# Constants for response validation
+MIN_SUBSTANTIVE_RESPONSE_LENGTH = 15  # Minimum length for a substantive response
+
 
 def adicionar_qa_historico(etapa: str, pergunta: str, resposta: str):
     """
@@ -253,7 +256,7 @@ def detectar_resposta_evasiva(resposta: str) -> bool:
     resposta_lower = resposta.lower().strip()
     
     # Respostas muito curtas
-    if len(resposta_lower) < 15:
+    if len(resposta_lower) < MIN_SUBSTANTIVE_RESPONSE_LENGTH:
         return True
     
     # Keywords de evasão
