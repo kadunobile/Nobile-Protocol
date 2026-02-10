@@ -1,6 +1,8 @@
 import logging
 import streamlit as st
-from core.utils import chamar_gpt, forcar_topo
+from core.utils import forcar_topo
+from core.gpt_telemetry import chamar_gpt_com_telemetria, renderizar_badge_gpt_calls, CONTEXTO_DIAGNOSTICO, CONTEXTO_COLETA, CONTEXTO_REESCRITA, CONTEXTO_LINKEDIN, CONTEXTO_VALIDACAO
+from core.cv_cache import obter_resumo_cv_cached, inicializar_cache_cv_async
 from modules.otimizador.processor import processar_modulo_otimizador
 
 # Configurar logger para este módulo
@@ -21,6 +23,18 @@ def fase_chat():
     
     st.markdown("# 💬 [5] Headhunter Elite — Otimização Ativa")
     st.markdown("---")
+    
+    # ===== RENDERIZAR BADGE DE CHAMADAS GPT =====
+    renderizar_badge_gpt_calls()
+    
+    # Inicializar cache do CV em background se ainda não foi feito
+    if (st.session_state.get('cv_texto') and 
+        not st.session_state.get('cv_resumo_cache') and
+        st.session_state.get('openai_client')):
+        try:
+            inicializar_cache_cv_async(st.session_state.openai_client)
+        except Exception as e:
+            logger.warning(f"Erro ao inicializar cache do CV: {e}")
     
     # Show brief instructions ONCE before auto-trigger (only if chat is starting)
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
@@ -82,9 +96,10 @@ def fase_chat():
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("🔍 Diagnosticando gaps no seu CV..."):
-                    resp = chamar_gpt(
+                    resp = chamar_gpt_com_telemetria(
                         st.session_state.openai_client, 
                         st.session_state.mensagens,
+                        contexto=CONTEXTO_DIAGNOSTICO,
                         temperature=0.3,
                         seed=42
                     )
@@ -153,9 +168,10 @@ def fase_chat():
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("📝 Preparando coleta de dados..."):
-                    resp = chamar_gpt(
+                    resp = chamar_gpt_com_telemetria(
                         st.session_state.openai_client, 
                         st.session_state.mensagens,
+                        contexto=CONTEXTO_COLETA,
                         temperature=0.3,
                         seed=42
                     )
@@ -182,9 +198,10 @@ def fase_chat():
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("🔵 Otimizando seu perfil LinkedIn..."):
-                    resp = chamar_gpt(
+                    resp = chamar_gpt_com_telemetria(
                         st.session_state.openai_client, 
                         st.session_state.mensagens,
+                        contexto=CONTEXTO_LINKEDIN,
                         temperature=0.5,  # Mais criatividade para headlines
                         seed=42
                     )
@@ -211,9 +228,10 @@ def fase_chat():
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("✅ Validando dados coletados..."):
-                    resp = chamar_gpt(
+                    resp = chamar_gpt_com_telemetria(
                         st.session_state.openai_client, 
                         st.session_state.mensagens,
+                        contexto=CONTEXTO_VALIDACAO,
                         temperature=0.3,
                         seed=42
                     )
@@ -240,9 +258,10 @@ def fase_chat():
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("✍️ Reescrevendo experiência profissional..."):
-                    resp = chamar_gpt(
+                    resp = chamar_gpt_com_telemetria(
                         st.session_state.openai_client, 
                         st.session_state.mensagens,
+                        contexto=CONTEXTO_REESCRITA,
                         temperature=0.4,
                         seed=42
                     )
@@ -276,9 +295,10 @@ def fase_chat():
             st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
             with st.chat_message("assistant"):
                 with st.spinner("🎯 Finalizando reescrita do CV..."):
-                    resp = chamar_gpt(
+                    resp = chamar_gpt_com_telemetria(
                         st.session_state.openai_client, 
                         st.session_state.mensagens,
+                        contexto=CONTEXTO_REESCRITA,
                         temperature=0.3,
                         seed=42
                     )
@@ -344,9 +364,10 @@ def fase_chat():
                 st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
                 with st.chat_message("assistant"):
                     with st.spinner("🤔 Processando etapa..."):
-                        resp = chamar_gpt(
+                        resp = chamar_gpt_com_telemetria(
                             st.session_state.openai_client, 
                             st.session_state.mensagens,
+                            contexto=CONTEXTO_COLETA,
                             temperature=0.3,
                             seed=42
                         )
@@ -379,7 +400,12 @@ Use o CV do contexto."""
 
         with st.chat_message("assistant"):
             with st.spinner("🤔 Analisando..."):
-                resp = chamar_gpt(st.session_state.openai_client, st.session_state.mensagens)
+                from core.gpt_telemetry import chamar_gpt_com_telemetria, CONTEXTO_OUTROS
+                resp = chamar_gpt_com_telemetria(
+                    st.session_state.openai_client, 
+                    st.session_state.mensagens,
+                    contexto=CONTEXTO_OUTROS
+                )
                 if resp:
                     st.markdown(resp)
                     st.session_state.mensagens.append({"role": "assistant", "content": resp})
