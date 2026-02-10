@@ -15,10 +15,14 @@ logger = logging.getLogger(__name__)
 
 def _validar_plausibilidade_salario(pretensao_str, cargo, senioridade):
     """
-    DEPRECATED: This function is deprecated and kept only for compatibility.
-    Use validar_salario_banda from core.salary_bands instead.
+    DEPRECATED: This function is deprecated. Use validar_salario_banda from core.salary_bands instead.
     
-    Returns basic validation result.
+    This legacy function has been simplified to always return a valid result.
+    The actual salary validation logic has been moved to core.salary_bands module
+    which provides more accurate validation using real market data.
+    
+    Returns:
+        dict: Always returns {'plausivel': True, 'mensagem': '', 'faixa_sugerida': ''}
     """
     return {'plausivel': True, 'mensagem': '', 'faixa_sugerida': ''}
 
@@ -469,6 +473,9 @@ def fase_15_reality_check():
             # Ensure all required state variables are set for downstream phases
             if resultado_ats:
                 # Set gaps_alvo and gaps_identificados for the optimizer
+                # Both variables point to the same gaps list for compatibility with different phases
+                # gaps_alvo: used by processor.py for the optimizer flow
+                # gaps_identificados: expected by various UI screens for display
                 st.session_state.gaps_alvo = resultado_ats.get('gaps_identificados', [])
                 st.session_state.gaps_identificados = resultado_ats.get('gaps_identificados', [])
 
