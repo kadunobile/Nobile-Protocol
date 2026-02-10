@@ -28,11 +28,14 @@ class TestNovoFluxoOtimizacao:
         result = prompt_etapa0_diagnostico()
         
         assert result is not None
-        assert 'DIAGNÓSTICO' in result.upper()
+        # Novo prompt com persona Headhunter Elite
+        assert 'HEADHUNTER ELITE' in result.upper()
         assert 'Gerente de Vendas' in result
         assert 'gaps' in result.lower() or 'gap' in result.lower()
-        # Deve mostrar introdução com lista de gaps
-        assert '2' in result  # Quantidade de gaps
+        # Deve incluir as novas seções do fluxo refinado
+        assert 'SEO MAPPING' in result.upper() or 'SEO' in result
+        assert 'DEEP DIVE' in result.upper() or 'DADOS CONCRETOS' in result.upper()
+        assert 'ARQUIVO MESTRE' in result.upper() or 'ARQUIVO' in result.upper()
     
     @patch('streamlit.session_state')
     def test_etapa0_diagnostico_gap_individual(self, mock_session_state):
@@ -237,7 +240,8 @@ class TestProcessorNovoFluxo:
         result = processar_modulo_otimizador("")
         
         assert result is not None
-        assert 'DIAGNÓSTICO' in result.upper()
+        # Novo prompt com persona Headhunter Elite
+        assert 'HEADHUNTER ELITE' in result.upper() or 'OTIMIZAÇÃO' in result.upper()
         assert 'Gerente' in result
     
     @patch('streamlit.session_state')

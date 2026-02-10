@@ -54,9 +54,11 @@ Você tem experiência prática com **{gap_atual}**?
 
 def prompt_etapa0_diagnostico():
     """
-    Gera prompt inicial da etapa de diagnóstico.
+    Gera prompt inicial da etapa de diagnóstico com persona Headhunter Elite.
     
-    Inicia o processo de perguntar sobre cada gap individualmente.
+    Apresenta a abordagem refinada de otimização pré-chat que inclui:
+    - SEO Mapping, Deep Dive, Curadoria, Engenharia de Texto, Validação Final
+    - Arquivo Mestre com LinkedIn metadata e CV completo
     
     Returns:
         str: Prompt formatado para o GPT
@@ -64,6 +66,7 @@ def prompt_etapa0_diagnostico():
     cargo = st.session_state.perfil.get('cargo_alvo', 'cargo desejado')
     cv_texto = st.session_state.get('cv_texto', '')
     gaps = st.session_state.get('gaps_alvo', [])
+    perfil = st.session_state.get('perfil', {})
     
     if not cv_texto:
         return """⚠️ **ERRO:** CV não encontrado na sessão.
@@ -81,32 +84,124 @@ Por favor, retorne ao início e faça upload do seu CV novamente.
         st.session_state.gaps_respostas = {}
     
     # Preparar lista de gaps formatada
-    gaps_texto = "\n".join([f"{i+1}. {gap}" for i, gap in enumerate(gaps)])
+    gaps_texto = "\n".join([f"  • {gap}" for gap in gaps])
     
-    return f"""🔍 **ETAPA 0: DIAGNÓSTICO ESTRATÉGICO**
+    # Identificar dados faltantes do perfil
+    dados_faltantes = []
+    if not perfil.get('objetivo'):
+        dados_faltantes.append("• **Objetivo principal** (recolocação / transição / promoção)")
+    if not perfil.get('pretensao_salarial'):
+        dados_faltantes.append("• **Pretensão salarial**")
+    if not perfil.get('localizacao'):
+        dados_faltantes.append("• **Localização** (onde mora / onde quer trabalhar)")
+    
+    dados_faltantes_texto = "\n".join(dados_faltantes) if dados_faltantes else "✅ _Todos os dados básicos já foram coletados._"
+    
+    # Montar o prompt com o fluxo completo do Headhunter Elite
+    return f"""# 🎩 **HEADHUNTER ELITE** - Otimização Pré-Chat
 
-**CARGO-ALVO:** {cargo}
+Olá! Sou o **Headhunter Elite**, especialista em recolocação e otimização de CVs para cargos estratégicos.
 
----
-
-### 📊 Gaps Identificados no Reality Check
-
-Identificamos **{len(gaps)}** gap(s) que podem ser otimizados no seu CV:
+Já recebi seu CV (mantido em sigilo para análise interna) e identifiquei os seguintes **gaps de otimização** do Reality Check:
 
 {gaps_texto}
 
 ---
 
-### 🎯 Como Funciona
+## 📋 **FLUXO DE OTIMIZAÇÃO**
 
-Vamos perguntar sobre **cada gap individualmente** para entender:
-- ✅ Onde você já tem experiência com essa skill/conhecimento
-- ✅ Em qual empresa/cargo você trabalhou com isso
-- ✅ Como podemos destacar isso no seu CV otimizado
+Vou conduzir você por um processo estruturado e interativo:
 
-Se você não tiver experiência com algum gap, sem problemas! Vamos focar nos pontos fortes que você já tem.
+### **1️⃣ COLETA DE DADOS FALTANTES**
+
+Preciso confirmar/coletar apenas as informações que ainda não tenho:
+
+{dados_faltantes_texto}
+
+**→ PERGUNTA 1:** Se algum dado acima está faltando, me informe agora. Caso contrário, confirme que tudo já está OK.
 
 ---
 
-⏭️ **Vamos começar com o primeiro gap...**
+### **2️⃣ SEO MAPPING (Palavras-chave Estratégicas)**
+
+Vou listar **10 palavras-chave essenciais** para o cargo-alvo: **{cargo}**.
+
+Se identificar que alguma palavra-chave está faltando no seu CV ou nos gaps, vou perguntar especificamente sobre ela. **Vou pausar após cada pergunta** para você responder.
+
+---
+
+### **3️⃣ DEEP DIVE (Dados Concretos)**
+
+Para cada experiência com pontos genéricos ou gaps identificados, vou pedir **dados concretos**:
+- Impacto em **R$**, **%**, **tempo**
+- Tamanho de **equipe** ou **projeto**
+- **Métricas pertinentes** ao cargo-alvo
+
+**Não quero apenas números**, mas o **contexto + resultado/impacto**. Vou pausar para cada pergunta.
+
+---
+
+### **4️⃣ CURADORIA (Conquistas e Soft Skills)**
+
+Vou perguntar sobre **conquistas, projetos ou soft skills indispensáveis** que ainda não foram cobertos.
+
+Avaliarei cada item:
+- ✅ **Relevante** para o cargo-alvo → incluir
+- ⚠️ **Ruído** → alertar se não agregar valor
+
+Vou pausar após cada pergunta.
+
+---
+
+### **5️⃣ ENGENHARIA DE TEXTO (Reescrita Estratégica)**
+
+Vou reescrever:
+
+**📝 RESUMO:**
+- Hook inicial
+- Metodologia de trabalho
+- 2 impactos com contexto + resultado/impacto
+- Palavras-chave, hard skills, soft skills e stack técnico
+
+**💼 EXPERIÊNCIAS:**
+Para cada experiência relevante:
+- Formato: **Cargo | Empresa**
+- Foco principal
+- 2 bullets: **ação + ferramenta + resultado/impacto**
+- 5-8 hard skills como palavras-chave
+
+---
+
+### **6️⃣ VALIDAÇÃO FINAL**
+
+Vou mostrar um **rascunho** com o Resumo e Experiências reescritas.
+
+**→ PERGUNTA FINAL:** O conteúdo está robusto e alinhado com o cargo-alvo?
+
+---
+
+### **7️⃣ ARQUIVO MESTRE**
+
+Após aprovação, vou compilar tudo em um **bloco único** estruturado:
+
+**📄 SEÇÃO 1 - LinkedIn Metadata:**
+- Headlines otimizadas
+- Lista de skills e nomenclaturas do cargo
+
+**📄 SEÇÃO 2 - CV Completo:**
+- Header
+- `SUMMARY` (Resumo otimizado)
+- `EXPERIENCE` (Experiências otimizadas)
+- `EDUCATION` (Educação)
+- `LANGUAGES` (Idiomas)
+
+**⚠️ IMPORTANTE:** Ainda não vou incluir instruções de exportação ou FlowCV neste momento.
+
+---
+
+## 🚀 **VAMOS COMEÇAR!**
+
+Me confirme se os dados básicos estão completos ou se preciso coletar algo. Depois, seguiremos para o SEO Mapping e as próximas etapas.
+
+**Sua resposta:**
 """
