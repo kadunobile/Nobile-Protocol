@@ -1,9 +1,28 @@
+"""Sidebar simplificada - apenas progresso visual."""
 import streamlit as st
-from core.prompts import SYSTEM_PROMPT
-from core.utils import chamar_gpt
-from core.auth import logout
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def renderizar_sidebar():
+    """Renderiza sidebar com progresso visual apenas."""
+    
+    # Mapa de fases para exibição
+    fases_display = {
+        'FASE_0_INTRO': ('0️⃣', 'Introdução'),
+        'FASE_0_UPLOAD': ('1️⃣', 'Upload de CV'),
+        'FASE_1_DIAGNOSTICO': ('2️⃣', 'Diagnóstico'),
+        'FASE_1_BRIEFING': ('3️⃣', 'Briefing'),
+        'FASE_15_REALITY': ('4️⃣', 'Reality Check'),
+        'CHAT': ('5️⃣', 'Headhunter Elite'),
+        'FASE_VALIDACAO_SCORE_ATS': ('6️⃣', 'Validação ATS'),
+        'FASE_EXPORTS_COMPLETO': ('7️⃣', 'Exports'),
+    }
+    
+    fase_atual = st.session_state.get('fase', 'FASE_0_INTRO')
+    emoji, nome = fases_display.get(fase_atual, ('❓', 'Desconhecida'))
+    
     with st.sidebar:
         st.markdown("# 🎯 Protocolo Nóbile")
         
@@ -12,7 +31,14 @@ def renderizar_sidebar():
             st.caption(f"👤 {st.session_state.get('user')}")
         
         st.markdown("---")
+        
+        # ── Progresso Visual ──
+        st.markdown("### 📍 Você está em:")
+        st.info(f"**{emoji} {nome}**")
+        
+        st.markdown("---")
 
+        # ── Perfil do Usuário (se disponível) ──
         if st.session_state.perfil.get('cargo_alvo'):
             st.markdown("### 📋 Seu Perfil")
             st.info(f"""
@@ -22,99 +48,8 @@ def renderizar_sidebar():
 **Local:** {st.session_state.perfil.get('localizacao', 'N/A')}
             """)
             st.markdown("---")
-
-        st.markdown("### ⚡ Comandos")
-        habilitado = st.session_state.fase == 'CHAT'
-
-        if st.button("🔧 Otimizar CV + LinkedIn", disabled=not habilitado, key="b1", use_container_width=True):
-            # Reset state before transitioning to loading phase
-            st.session_state.mensagens = []
-            st.session_state.modulo_ativo = None
-            st.session_state.etapa_modulo = None
-            st.session_state.force_scroll_top = True  # Force scroll to top
-            st.session_state.fase = 'FASE_ANALISE_LOADING'
-            st.rerun()
-
-        if st.button("🏢 Empresas Discovery", disabled=not habilitado, key="b2", use_container_width=True):
-            with st.spinner("🔍 Buscando empresas..."):
-                cargo = st.session_state.perfil.get('cargo_alvo', 'seu cargo')
-                local = st.session_state.perfil.get('localizacao', 'Brasil')
-                st.session_state.mensagens = [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": f"""[/empresas_discovery]
-
-Perfil:
-- Cargo: {cargo}
-- Local: {local}
-- Pretensão: {st.session_state.perfil.get('pretensao_salarial', 'N/A')} mensal
-
-Etapa 1: Pergunte sobre fit cultural.
-Etapa 2: Liste 5-10 empresas com Match + Localização + Cultura.
-Adicione o "Porquê" e Raio-X Salarial."""}
-                ]
-                resp = chamar_gpt(st.session_state.openai_client, st.session_state.mensagens)
-                if resp:
-                    st.session_state.mensagens.append({"role": "assistant", "content": resp})
-                    st.session_state.modulo_ativo = "EMPRESAS"
-                    st.rerun()
-
-        if st.button("🎯 Analisar Vaga (Fit)", disabled=not habilitado, key="b3", use_container_width=True):
-            st.session_state.aguardando_vaga = True
-            st.session_state.modulo_ativo = "FIT"
-            st.info("👇 Cole a descrição da vaga no chat")
-
-        if st.button("🎤 Prep. Entrevista", disabled=not habilitado, key="b4", use_container_width=True):
-            with st.spinner("📚 Preparando..."):
-                cargo = st.session_state.perfil.get('cargo_alvo', 'seu cargo')
-                st.session_state.mensagens = [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": f"""[/entrevista]
-
-Cargo: {cargo}
-
-Etapa 1: Dossiê + Talking Points
-Etapa 2: Simulação STAR com 5 perguntas difíceis + respostas modelo"""}
-                ]
-                resp = chamar_gpt(st.session_state.openai_client, st.session_state.mensagens)
-                if resp:
-                    st.session_state.mensagens.append({"role": "assistant", "content": resp})
-                    st.session_state.modulo_ativo = "ENTREVISTA"
-                    st.rerun()
-
-        if st.button("📊 Análise de Mercado", disabled=not habilitado, key="b5", use_container_width=True):
-            with st.spinner("📈 Analisando..."):
-                cargo = st.session_state.perfil.get('cargo_alvo', 'seu cargo')
-                local = st.session_state.perfil.get('localizacao', 'Brasil')
-                st.session_state.mensagens = [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": f"""Analise mercado para {cargo} em {local}:
-1. Tendências salariais
-2. Skills em alta
-3. Setores em crescimento
-4. Certificações valorizadas"""}
-                ]
-                resp = chamar_gpt(st.session_state.openai_client, st.session_state.mensagens)
-                if resp:
-                    st.session_state.mensagens.append({"role": "assistant", "content": resp})
-                    st.session_state.modulo_ativo = "MERCADO"
-                    st.rerun()
-
-        if st.button("🔄 Comparar CVs", disabled=not habilitado, key="b_comparador", use_container_width=True):
-            st.session_state.fase = 'FASE_COMPARADOR'
-            st.rerun()
-
-        st.markdown("### 📝 Ferramentas Extras")
-
-        if st.button("🤖 Score ATS", disabled=not habilitado, key="b_ats", use_container_width=True):
-            st.session_state.fase = 'FASE_ATS_SCORE'
-            st.rerun()
-
-        if st.button("✉️ Carta de Apresentação", disabled=not habilitado, key="b_carta", use_container_width=True):
-            st.session_state.fase = 'FASE_CARTA'
-            st.rerun()
-
-        st.markdown("---")
         
+        # ── Glossário ──
         with st.expander("❓ Glossário de Termos"):
             st.markdown("""
             **ATS (Applicant Tracking System)**  
@@ -154,17 +89,20 @@ Etapa 2: Simulação STAR com 5 perguntas difíceis + respostas modelo"""}
             """)
         
         st.markdown("---")
-        if not habilitado:
-            st.warning("⚠️ Complete o briefing para desbloquear")
-
-        st.markdown("---")
         
-        # ── Logout ──
+        # ── Botão de Reiniciar (apenas se não estiver na intro) ──
+        if fase_atual != 'FASE_0_INTRO':
+            if st.button("🔄 Reiniciar Protocolo", use_container_width=True):
+                logger.info("Usuário solicitou reiniciar protocolo")
+                # Limpar TUDO exceto autenticação
+                for key in list(st.session_state.keys()):
+                    if key not in ['authenticated', 'api_key_hash', 'user', 'openai_client']:
+                        del st.session_state[key]
+                st.session_state.fase = 'FASE_0_INTRO'
+                st.rerun()
+        
+        # ── Logout (se tiver função de logout) ──
         if st.button("🚪 Sair", type="secondary", use_container_width=True):
+            from core.auth import logout
             logout()
-            st.rerun()
-        
-        if st.button("🔄 Reiniciar Tudo", type="secondary", use_container_width=True):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
             st.rerun()

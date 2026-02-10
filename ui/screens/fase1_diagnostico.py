@@ -19,7 +19,7 @@ def fase_1_diagnostico():
     # ─── Extrair cargo para o título ───
     cargo_atual = st.session_state.get('cargo_atual', CARGO_FALLBACK)
     
-    st.markdown(f"# 🔍 Diagnóstico do Perfil — {cargo_atual}")
+    st.markdown(f"# 🔍 [2] Diagnóstico do Perfil — {cargo_atual}")
     st.markdown("---")
     
     # ─── Calcular ATS (apenas uma vez) ───

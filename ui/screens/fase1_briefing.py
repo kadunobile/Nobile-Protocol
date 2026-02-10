@@ -3,7 +3,7 @@ from core.utils import scroll_topo, filtrar_cidades
 
 def fase_1_briefing():
     scroll_topo()
-    st.markdown("# 🎯 Briefing Estratégico")
+    st.markdown("# 🎯 [3] Briefing Estratégico")
     st.markdown("---")
     st.markdown("**Para traçar a estratégia correta, responda apenas:**")
 
