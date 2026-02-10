@@ -40,7 +40,9 @@ def fase_1_diagnostico():
             resultado_ats = calcular_score_ats(
                 st.session_state.cv_texto,
                 cargo_atual,
-                client=st.session_state.openai_client
+                client=st.session_state.openai_client,
+                objetivo=None,  # Ainda não definiu objetivo
+                cargo_atual=cargo_atual  # Required to ensure same prompt generation as FASE_15_REALITY
             )
             
             st.session_state.score_ats_inicial = resultado_ats
