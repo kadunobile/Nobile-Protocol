@@ -85,7 +85,7 @@ MARKET_KNOWLEDGE = {
             'ciclo de vendas (dias)', 'CAC', 'LTV'
         ],
         'verbos_fortes': [
-            'Fechei', 'Negociei', 'Prospecte', 'Gerei', 'Expandi',
+            'Fechei', 'Negociei', 'Prospectei', 'Gerei', 'Expandi',
             'Conquistei', 'Atingi', 'Superei'
         ],
         'ferramentas': [
@@ -338,7 +338,7 @@ MARKET_KNOWLEDGE = {
         ],
         'verbos_fortes': [
             'Produzi', 'Gerenciei', 'Criei', 'Otimizei', 'Planejei',
-            'Distribui', 'Aumentei', 'Posicionei'
+            'Distribuí', 'Aumentei', 'Posicionei'
         ],
         'ferramentas': [
             'WordPress', 'HubSpot', 'SEMrush', 'Google Analytics', 'Canva',
