@@ -23,7 +23,7 @@ O fluxo anterior apresentava várias limitações:
 ```
 Reality Check ✓
     ↓
-[NOVA] PONTE ESTRATÉGICA (Score ATS Inicial + Resumo Reality)
+[TRANSIÇÃO DIRETA] → CHAT (Headhunter Elite)
     ↓
 ETAPA 0: DIAGNÓSTICO (Identificar experiências com dados dos gaps)
     ↓
@@ -45,12 +45,10 @@ CHECKPOINT 2: REVIEW FINAL (CV completo revisado)
 ## 📂 Arquivos Criados
 
 ### Novas Telas (UI)
-1. **`ui/screens/fase_bridge_otimizacao.py`**
-   - Ponte estratégica entre Reality Check e otimização
-   - Calcula e mostra Score ATS inicial
-   - Extrai 3 gaps críticos do Reality Check
-   - Mostra meta esperada (padrão: 80)
-   - Confirmação para iniciar otimização
+1. **`ui/screens/fase_bridge_otimizacao.py`** - **[DEPRECATED]**
+   - ~~Ponte estratégica entre Reality Check e otimização~~
+   - **REMOVIDA**: Transição agora é direta do Reality Check para o chat
+   - Arquivo renomeado para `_DEPRECATED_fase_bridge_otimizacao.py`
 
 2. **`ui/screens/fase_validacao_score_ats.py`**
    - Calcula Score ATS do CV otimizado
@@ -132,9 +130,10 @@ Novas variáveis de estado adicionadas:
 - Transições automáticas entre fases
 
 ### 3. `ui/screens/fase15_reality.py`
-- Botão "Otimizar CV + LinkedIn" agora redireciona para `FASE_BRIDGE_OTIMIZACAO`
-- Salva `reality_check_resultado` no session_state
-- Limpa estado anterior (mensagens, modulo_ativo, etapa_modulo)
+- Botão "🚀 INICIAR HEADHUNTER ELITE" agora vai **direto para CHAT**
+- Configura todos os estados necessários (trigger flags, modulo_ativo, etapa_modulo)
+- Salva `reality_check_resultado` e gaps no session_state
+- Prepara mensagens com system prompt
 
 ### 4. `ui/chat.py`
 - Auto-triggers para novos estados:
@@ -145,9 +144,10 @@ Novas variáveis de estado adicionadas:
 ### 5. `app.py`
 - Importações das novas fases
 - Registro no dicionário `fases`:
-  - `FASE_BRIDGE_OTIMIZACAO`
+  - ~~`FASE_BRIDGE_OTIMIZACAO`~~ - **[DEPRECATED]** agora redireciona para CHAT
   - `FASE_VALIDACAO_SCORE_ATS`
   - `FASE_EXPORTS_COMPLETO`
+  - `CHAT` (fase_chat)
 
 ## 🧪 Testes
 
