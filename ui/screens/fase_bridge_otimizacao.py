@@ -228,11 +228,16 @@ def fase_bridge_otimizacao():
 
     with col2:
         if st.button("🚀 INICIAR OTIMIZAÇÃO COMPLETA", use_container_width=True, type="primary"):
-            # Limpar TODAS as flags de trigger para evitar que prompts sejam vistos pelo usuário
+            # Limpar TODAS as flags de trigger
             st.session_state.etapa_0_diagnostico_triggered = False
+            st.session_state.etapa_0_gap_triggered = False
+            st.session_state.etapa_0_resumo_triggered = False
             st.session_state.etapa_1_coleta_focada_triggered = False
             st.session_state.etapa_1_triggered = False
             st.session_state.etapa_6_linkedin_triggered = False
+            st.session_state.checkpoint_1_triggered = False
+            st.session_state.etapa_2_reescrita_triggered = False
+            st.session_state.etapa_2_final_triggered = False
             
             st.session_state.modulo_ativo = 'OTIMIZADOR'
             st.session_state.etapa_modulo = 'ETAPA_0_DIAGNOSTICO'

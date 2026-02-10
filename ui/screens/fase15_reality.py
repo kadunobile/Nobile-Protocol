@@ -80,26 +80,67 @@ INSTRUÇÕES PARA ANÁLISE SALARIAL — DADOS REAIS DISPONÍVEIS:
         referencia_texto = f"*Referências: Dados baseados em pesquisas salariais de mercado (Robert Half, Michael Page, Glassdoor, Catho, Gupy Trends) para {cargo} nível {senioridade} em {local}, período 2024-2025.*"
     else:
         instrucao_salarial = f"""
-INSTRUÇÕES PARA ANÁLISE SALARIAL — SEM DADOS CONFIRMADOS:
+INSTRUÇÕES PARA ANÁLISE SALARIAL — SEM DADOS CONFIRMADOS DE FONTES EXTERNAS:
 
-⚠️ IMPORTANTE: Não foi possível obter dados salariais confirmados de fontes externas para o cargo "{cargo}" em "{local}".
+⚠️ Não foi possível obter dados salariais de fontes externas para o cargo "{cargo}" em "{local}".
 
-REGRAS OBRIGATÓRIAS:
-- NÃO invente valores salariais específicos como se fossem dados reais
-- NÃO cite fontes como Robert Half, Michael Page, Glassdoor como se tivesse consultado — você NÃO consultou
-- Em vez disso, diga EXPLICITAMENTE: "Não foi possível consultar dados salariais confirmados para este cargo"
-- Você PODE dar uma estimativa QUALITATIVA (ex: "faixa tipicamente alta para o mercado de SP") mas NÃO dê números específicos como se fossem dados reais
-- Se der uma estimativa, deixe CLARO que é uma estimativa sem confirmação de dados
-- Sugira ao candidato consultar fontes como Glassdoor, Levels.fyi, Robert Half Guide para obter dados atualizados
-
-FORMATO DA SEÇÃO SALARIAL QUANDO SEM DADOS:
-Em vez da tabela de percentis, use:
-"**Dados salariais:** Não foi possível obter dados confirmados de mercado para {cargo} em {local}. 
-Recomendamos consultar: Glassdoor, Levels.fyi, Guia Salarial Robert Half 2025, pesquisa salarial Catho."
-
-Depois dê uma avaliação QUALITATIVA da pretensão baseada no perfil geral do candidato.
+REGRAS:
+- Você PODE e DEVE dar estimativas de P25, P50 e P75 baseadas no seu conhecimento geral do mercado brasileiro
+- As estimativas devem ser REALISTAS para o cargo, senioridade e localidade
+- DEIXE CLARO que são estimativas, NÃO dados confirmados
+- NÃO cite fontes específicas como se tivesse consultado — diga "estimativas baseadas em conhecimento geral do mercado"
+- Considere: cargo "{cargo}", senioridade do candidato, localidade "{local}", mercado 2024-2025
+- Para cargos de gerência/direção em SP: P50 geralmente entre R$15.000-R$35.000 dependendo do setor
+- Para cargos executivos/C-level em SP: P50 geralmente entre R$25.000-R$50.000+
+- Ajuste conforme o setor (tech/SaaS tende a pagar mais)
 """
-        referencia_texto = "*⚠️ Dados salariais estimados — consulte Glassdoor, Robert Half Guide 2025, Catho para valores atualizados.*"
+        referencia_texto = f"*⚠️ Valores estimados com base em conhecimento geral do mercado — para dados atualizados, consulte Glassdoor, Guia Salarial Robert Half 2025, Catho, Levels.fyi.*"
+    
+    # Build conditional salary template for user message
+    if dados_salariais and dados_salariais_texto.strip():
+        # Template WITH table (when we have real data)
+        secao_salarial_template = f"""### 📊 ANÁLISE SALARIAL
+
+**Pretensão Informada:** {pretensao} mensal
+
+**Faixa Salarial CLT (para este perfil/senioridade em {local}):**
+
+| Percentil | Valor Mensal | Contexto |
+|-----------|-------------|----------|
+| P25 (Início de faixa) | R$ X.XXX | Empresas menores, interior ou candidatos em transição |
+| P50 (Mediana) | R$ X.XXX | Mercado geral para este nível em {local} |
+| P75 (Top de faixa) | R$ X.XXX | Multinacionais, grandes empresas, perfis disputados |
+
+**Equivalente PJ estimado:** R$ X.XXX a R$ X.XXX/mês (sem benefícios CLT, ~30-40% acima do CLT)
+
+**Veredito:** [Abaixo do P25 / Entre P25-P50 / Na Mediana (P50) / Entre P50-P75 / Acima do P75]
+
+**Contexto Regional:** [Explicação de 2-3 linhas sobre o mercado para esse cargo específico na região]
+
+{referencia_texto}"""
+    else:
+        # Template WITHOUT table (when no real data) — GPT gives estimates with disclaimer
+        secao_salarial_template = f"""### 📊 ANÁLISE SALARIAL
+
+**Pretensão Informada:** {pretensao} mensal
+
+**Faixa Salarial ESTIMADA CLT (para este perfil/senioridade em {local}):**
+
+⚠️ *Estimativas baseadas em conhecimento geral do mercado — NÃO são dados confirmados de pesquisas salariais.*
+
+| Percentil | Valor Mensal Estimado | Contexto |
+|-----------|----------------------|----------|
+| P25 (Início de faixa) | R$ X.XXX | Empresas menores, interior ou candidatos em transição |
+| P50 (Mediana) | R$ X.XXX | Mercado geral para este nível em {local} |
+| P75 (Top de faixa) | R$ X.XXX | Multinacionais, grandes empresas, perfis disputados |
+
+**Equivalente PJ estimado:** R$ X.XXX a R$ X.XXX/mês (sem benefícios CLT, ~30-40% acima do CLT)
+
+**Veredito:** [Abaixo do P25 / Entre P25-P50 / Na Mediana (P50) / Entre P50-P75 / Acima do P75]
+
+**Contexto Regional:** [Explicação de 2-3 linhas sobre o mercado para esse cargo na região]
+
+*⚠️ Valores estimados com base em conhecimento geral. Para dados atualizados, consulte: Glassdoor, Guia Salarial Robert Half 2025, Catho, Levels.fyi.*"""
 
     msgs = [
         {"role": "system", "content": SYSTEM_PROMPT + f"""
@@ -167,25 +208,7 @@ FORMATO EXATO OBRIGATÓRIO:
 
 ---
 
-### 📊 ANÁLISE SALARIAL
-
-**Pretensão Informada:** {pretensao} mensal
-
-**Faixa Salarial CLT (para este perfil/senioridade em {local}):**
-
-| Percentil | Valor Mensal | Contexto |
-|-----------|-------------|----------|
-| P25 (Início de faixa) | R$ X.XXX | Empresas menores, interior ou candidatos em transição |
-| P50 (Mediana) | R$ X.XXX | Mercado geral para este nível em {local} |
-| P75 (Top de faixa) | R$ X.XXX | Multinacionais, grandes empresas, perfis disputados |
-
-**Equivalente PJ estimado:** R$ X.XXX a R$ X.XXX/mês (sem benefícios CLT, ~30-40% acima do CLT)
-
-**Veredito:** [Abaixo do P25 / Entre P25-P50 / Na Mediana (P50) / Entre P50-P75 / Acima do P75]
-
-**Contexto Regional:** [Explicação de 2-3 linhas sobre o mercado para esse cargo específico na região informada, considerando se aceita remoto, diferenças entre capitais e interior, e como a região se compara à média nacional]
-
-{referencia_texto}
+{secao_salarial_template}
 
 ---
 
