@@ -1,8 +1,14 @@
 """
+DEPRECATED: Este arquivo não é mais usado.
+A transição Reality Check → Headhunter Elite agora é DIRETA.
+
 Fase Bridge Otimização - Ponte estratégica entre Reality Check e Otimização de CV.
 
 Versão simplificada: usa dados já calculados no Reality Check (ATS v3.2)
 para mostrar resumo rápido antes de iniciar o otimizador.
+
+NOTA: Este arquivo foi deprecado em favor de uma transição direta do Reality Check
+para o chat do Headhunter Elite, eliminando telas intermediárias desnecessárias.
 """
 
 import streamlit as st
