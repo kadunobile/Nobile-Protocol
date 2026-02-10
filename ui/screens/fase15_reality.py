@@ -242,29 +242,47 @@ def _executar_analise_ats():
     Executa análise ATS real usando TF-IDF do CV contra Job Description do cargo.
     Usa cache no session_state.
     """
+    # ─── CACHE: Reutilizar score se for Recolocação no mesmo cargo ───
+    perfil = st.session_state.get('perfil', {})
+    cargo_alvo = perfil.get('cargo_alvo')
+    cargo_atual = st.session_state.get('cargo_atual')
+    objetivo = perfil.get('objetivo')
+    
+    # Se for Recolocação (mesmo cargo) e já temos o score inicial, reutilizar
+    if (objetivo == 'Recolocação no Mercado' and 
+        cargo_alvo == cargo_atual and
+        st.session_state.get('score_ats_inicial')):
+        
+        logger.info(f"Cache ATS: Recolocação no mesmo cargo ({cargo_atual}), reutilizando score inicial")
+        
+        # Reutilizar resultado completo (não só o número)
+        resultado_cached = st.session_state.get('score_ats_inicial')
+        st.session_state.reality_ats_resultado = resultado_cached
+        return resultado_cached
+    
+    # ─── Se não for cache, calcular normalmente ───
     if st.session_state.get('reality_ats_resultado'):
         return st.session_state.reality_ats_resultado
 
     cv_texto = st.session_state.get('cv_texto')
-    cargo = st.session_state.get('perfil', {}).get('cargo_alvo')
+    cargo = perfil.get('cargo_alvo')
 
     if not cv_texto or not cargo:
         return None
 
     with st.spinner("🤖 Calculando Score ATS — CV × Skills do Cargo..."):
-        perfil = st.session_state.get('perfil', {})
         resultado = calcular_score_ats(
             cv_texto=cv_texto,
             cargo_alvo=cargo,
             client=st.session_state.openai_client,
-            objetivo=perfil.get('objetivo'),
-            cargo_atual=perfil.get('cargo_atual')
+            objetivo=objetivo,
+            cargo_atual=cargo_atual
         )
 
     if resultado:
         st.session_state.reality_ats_resultado = resultado
         if not st.session_state.get('score_ats_inicial'):
-            st.session_state.score_ats_inicial = resultado['score_total']
+            st.session_state.score_ats_inicial = resultado
         logger.info(f"ATS Score calculado: {resultado['score_total']}/100")
 
     return resultado

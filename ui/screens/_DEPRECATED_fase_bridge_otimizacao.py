@@ -61,8 +61,8 @@ def fase_bridge_otimizacao():
                 cv_texto=st.session_state.cv_texto,
                 cargo_alvo=cargo,
                 client=st.session_state.get('openai_client'),
-                objetivo=perfil.get('objetivo'),
-                cargo_atual=perfil.get('cargo_atual')
+                objetivo=perfil.get('objetivo'),  # ← ADICIONAR
+                cargo_atual=perfil.get('cargo_atual')  # ← ADICIONAR
             )
             st.session_state.reality_ats_resultado = ats_resultado
             logger.info(f"ATS recalculado na Bridge: {ats_resultado.get('score_total')}/100")
