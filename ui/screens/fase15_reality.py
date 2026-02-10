@@ -542,7 +542,7 @@ def fase_15_reality_check():
             cargo = st.session_state.get('perfil', {}).get('cargo_alvo', 'cargo desejado')
             cv_texto = st.session_state.get('cv_texto', '')
             st.session_state.mensagens = [
-                {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno): {cv_texto}\n\nCARGO-ALVO: {cargo}"}
+                {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {cv_texto}\n\nCARGO-ALVO: {cargo}"}
             ]
             
             # IR DIRETO PARA CHAT (não para Bridge)
