@@ -548,10 +548,21 @@ def fase_15_reality_check():
             st.session_state.etapa_0_resumo_triggered = False
             st.session_state.etapa_1_coleta_focada_triggered = False
             st.session_state.etapa_1_triggered = False
+            st.session_state.etapa_1_5_seo_intro_triggered = False
+            st.session_state.etapa_1_5_seo_keyword_triggered = False
+            st.session_state.etapa_1_5_seo_resumo_triggered = False
             st.session_state.etapa_6_linkedin_triggered = False
             st.session_state.checkpoint_1_triggered = False
             st.session_state.etapa_2_reescrita_triggered = False
             st.session_state.etapa_2_final_triggered = False
+            
+            # Limpar estado de SEO Mapping
+            if 'seo_keywords_respondidas' in st.session_state:
+                del st.session_state.seo_keywords_respondidas
+            if 'seo_keywords_respostas' in st.session_state:
+                del st.session_state.seo_keywords_respostas
+            if 'seo_keyword_index' in st.session_state:
+                del st.session_state.seo_keyword_index
             
             # Configurar módulo otimizador
             st.session_state.modulo_ativo = 'OTIMIZADOR'

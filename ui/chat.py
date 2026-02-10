@@ -182,6 +182,68 @@ def fase_chat():
                         st.session_state.etapa_modulo = 'AGUARDANDO_DADOS_COLETA'
             st.rerun()
     
+    # Auto-trigger ETAPA_1_5_SEO_INTRO
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_1_5_SEO_INTRO' and
+        not st.session_state.get('etapa_1_5_seo_intro_triggered')):
+        
+        st.session_state.etapa_1_5_seo_intro_triggered = True
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_1_5_SEO_INTRO): {e}", exc_info=True)
+            prompt_otimizador = None
+        
+        if prompt_otimizador:
+            with st.chat_message("assistant"):
+                st.markdown(prompt_otimizador)
+                st.session_state.mensagens.append({"role": "assistant", "content": prompt_otimizador})
+                # Move to next state - wait to start asking keywords
+                st.session_state.etapa_modulo = 'AGUARDANDO_INICIO_SEO'
+            st.rerun()
+    
+    # Auto-trigger SEO keyword individual
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_1_5_SEO_KEYWORD' and
+        not st.session_state.get('etapa_1_5_seo_keyword_triggered')):
+        
+        st.session_state.etapa_1_5_seo_keyword_triggered = True
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_1_5_SEO_KEYWORD): {e}", exc_info=True)
+            prompt_otimizador = None
+        
+        if prompt_otimizador:
+            with st.chat_message("assistant"):
+                st.markdown(prompt_otimizador)
+                st.session_state.mensagens.append({"role": "assistant", "content": prompt_otimizador})
+                # Move to next state - wait for keyword response
+                st.session_state.etapa_modulo = 'AGUARDANDO_RESPOSTA_SEO_KEYWORD'
+                # Reset trigger for next keyword
+                st.session_state.etapa_1_5_seo_keyword_triggered = False
+            st.rerun()
+    
+    # Auto-trigger resumo do SEO Mapping
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_1_5_SEO_RESUMO' and
+        not st.session_state.get('etapa_1_5_seo_resumo_triggered')):
+        
+        st.session_state.etapa_1_5_seo_resumo_triggered = True
+        try:
+            prompt_otimizador = processar_modulo_otimizador("")
+        except Exception as e:
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_1_5_SEO_RESUMO): {e}", exc_info=True)
+            prompt_otimizador = None
+        
+        if prompt_otimizador:
+            with st.chat_message("assistant"):
+                st.markdown(prompt_otimizador)
+                st.session_state.mensagens.append({"role": "assistant", "content": prompt_otimizador})
+                # Move to next state - wait for OK to continue
+                st.session_state.etapa_modulo = 'AGUARDANDO_OK_SEO'
+            st.rerun()
+    
     # Auto-trigger ETAPA_6_LINKEDIN
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
         st.session_state.get('etapa_modulo') == 'ETAPA_6_LINKEDIN' and

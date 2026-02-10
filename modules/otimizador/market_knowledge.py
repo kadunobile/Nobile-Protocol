@@ -470,6 +470,30 @@ MARKET_KNOWLEDGE = {
             'React', 'Vue', 'Angular', 'TypeScript', 'JavaScript', 'Sass', 'Webpack',
             'Vite', 'Figma', 'Git', 'Chrome DevTools', 'Storybook'
         ]
+    },
+    
+    'Revenue Operations Manager': {
+        'keywords': [
+            'Revenue Operations (RevOps)', 'Sales Operations (Sales Ops)',
+            'Go-To-Market (GTM) Strategy', 'Forecast Accuracy',
+            'SaaS Metrics (CAC, LTV, Churn, ARR)', 'Data-Driven Culture',
+            'Pipeline Management', 'Net Revenue Retention (NRR)',
+            'Salesforce / CRM Governance', 'Business Intelligence (Power BI/SQL)'
+        ],
+        'metrics': [
+            'forecast accuracy (%)', 'ARR (R$/US$)', 'CAC reduzido (R$/%)',
+            'LTV aumentado (R$/US$)', 'churn reduzido (%)', 'NRR (%)',
+            'pipeline gerenciado (R$/US$)', 'SLA de dados (%)',
+            'ROI de ferramentas (%)', 'eficiência operacional (%)'
+        ],
+        'verbos_fortes': [
+            'Estruturei', 'Otimizei', 'Implementei', 'Automatizei', 'Governei',
+            'Aumentei', 'Reduzi', 'Integrei'
+        ],
+        'ferramentas': [
+            'Salesforce', 'HubSpot', 'Power BI', 'Tableau', 'SQL', 'Excel',
+            'Gong', 'Clari', 'Looker', 'Gainsight', 'ChurnZero', 'Zapier'
+        ]
     }
 }
 
@@ -549,6 +573,11 @@ def detectar_area_por_cargo(cargo: str) -> str:
         'back-end': 'Backend Developer',
         'frontend': 'Frontend Developer',
         'front-end': 'Frontend Developer',
+        'revops': 'Revenue Operations Manager',
+        'revenue operations': 'Revenue Operations Manager',
+        'rev ops': 'Revenue Operations Manager',
+        'sales ops': 'Revenue Operations Manager',
+        'sales operations': 'Revenue Operations Manager',
     }
     
     # Tentar matching direto primeiro
