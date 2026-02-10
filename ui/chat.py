@@ -22,11 +22,14 @@ def fase_chat():
     st.markdown("# 💬 [5] Headhunter Elite — Otimização Ativa")
     st.markdown("---")
     
-    # Show brief instructions ONCE before auto-trigger (only if chat is empty or just system prompt)
+    # Show brief instructions ONCE before auto-trigger (only if chat is starting)
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
         st.session_state.get('etapa_modulo') == 'ETAPA_0_DIAGNOSTICO' and
         not st.session_state.get('etapa_0_diagnostico_triggered') and
-        len([m for m in st.session_state.mensagens if not m.get("internal")]) <= 1):
+        not st.session_state.get('chat_instructions_shown', False)):
+        
+        # Mark instructions as shown to avoid re-rendering on every rerun
+        st.session_state.chat_instructions_shown = True
         
         st.info("""
         **🎯 Como funciona o Headhunter Elite:**
