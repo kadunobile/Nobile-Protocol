@@ -321,14 +321,11 @@ def fase_chat():
                         if resp:
                             st.markdown(resp)
                             st.session_state.mensagens.append({"role": "assistant", "content": resp})
-                st.rerun()
-                return
-            else:
-                # Processor returned None - let normal chat handle it
-                # This happens when processor doesn't recognize the prompt for current state
-                # Rerun to show the button instead
-                st.rerun()
-                return
+            # Rerun whether processor succeeded or returned None
+            # - If succeeded: rerun to display result
+            # - If None: rerun to show the button instead
+            st.rerun()
+            return
 
         if hasattr(st.session_state, 'aguardando_vaga') and st.session_state.aguardando_vaga:
             cargo = st.session_state.perfil.get('cargo_alvo', 'N/A')
