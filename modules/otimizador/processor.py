@@ -132,7 +132,12 @@ def processar_modulo_otimizador(prompt):
     
     # ETAPA 0: DIAGNÓSTICO (introdução)
     if etapa == 'ETAPA_0_DIAGNOSTICO':
-        return prompt_etapa0_diagnostico()
+        try:
+            return prompt_etapa0_diagnostico()
+        except Exception as e:
+            logger.error(f"Erro ao gerar prompt ETAPA_0_DIAGNOSTICO: {e}", exc_info=True)
+            # Retornar None para que ui/chat.py mostre erro ao usuário
+            return None
     
     # ETAPA 0: PERGUNTAR SOBRE CADA GAP INDIVIDUALMENTE
     if etapa == 'AGUARDANDO_INICIO_GAPS':

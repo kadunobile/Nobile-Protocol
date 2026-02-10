@@ -11,6 +11,12 @@ def fase_chat():
     """Interface de chat do Protocolo Nóbile com logging integrado."""
     logger.info("Iniciando fase de chat")
     
+    # ===== DEFENSIVE INITIALIZATION =====
+    # Ensure mensagens exists before iterating - critical for auto-trigger to work
+    if 'mensagens' not in st.session_state:
+        st.session_state.mensagens = []
+        logger.warning("mensagens não inicializada - criando lista vazia")
+    
     # ===== FORÇAR SCROLL ANTES DE QUALQUER RENDERIZAÇÃO =====
     st.markdown('<div id="top-anchor"></div>', unsafe_allow_html=True)
     
@@ -40,11 +46,25 @@ def fase_chat():
         st.session_state.get('etapa_modulo') == 'ETAPA_0_DIAGNOSTICO' and
         not st.session_state.get('etapa_0_diagnostico_triggered')):
         
+        logger.info("Auto-trigger ETAPA_0_DIAGNOSTICO disparado")
         st.session_state.etapa_0_diagnostico_triggered = True
+        
+        # Verificar estado mínimo exigido
+        if not st.session_state.get('cv_texto'):
+            logger.error("Auto-trigger falhou: cv_texto não encontrado")
+            st.error("⚠️ CV não encontrado. Por favor, faça upload do CV novamente.")
+            st.session_state.fase = 'FASE_0_UPLOAD'
+            st.rerun()
+            return
+        
+        if not st.session_state.get('gaps_alvo'):
+            logger.warning("Auto-trigger: gaps_alvo não encontrado - continuando sem gaps")
+        
         try:
             prompt_otimizador = processar_modulo_otimizador("")
         except Exception as e:
-            logger.error(f"Erro ao processar módulo otimizador (ETAPA_0_DIAGNOSTICO): {e}")
+            logger.error(f"Erro ao processar módulo otimizador (ETAPA_0_DIAGNOSTICO): {e}", exc_info=True)
+            st.error(f"⚠️ Erro ao iniciar diagnóstico: {str(e)}")
             prompt_otimizador = None
         
         if prompt_otimizador:
@@ -63,6 +83,10 @@ def fase_chat():
                         # Move to next state - wait to start asking gaps
                         st.session_state.etapa_modulo = 'AGUARDANDO_INICIO_GAPS'
             st.rerun()
+        else:
+            # Prompt não foi gerado - mostrar erro ao usuário
+            logger.error("processar_modulo_otimizador retornou None para ETAPA_0_DIAGNOSTICO")
+            st.error("⚠️ Não foi possível iniciar o diagnóstico. Verifique se o CV e os dados do perfil estão completos.")
     
     # Auto-trigger primeiro gap individual
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
