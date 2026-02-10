@@ -6,6 +6,12 @@ v5.0: Arquitetura Híbrida LLM + TF-IDF com 3 cenários:
 - Cenário B: Título + arquétipo + double-check (análise inteligente)
 - Cenário C: Fallback TF-IDF offline (v3.2)
 
+v5.1: Context-Aware Gap Detection for Senior Profiles:
+- Helper functions to identify senior positions and tactical tools
+- Smart gap filtering: tactical tools (Outreach, Gong) only marked as gaps
+  for senior profiles if role requires hands-on operation
+- Considers strategic/management experience as equivalent to tactical tool usage
+
 v4.0: Análise contextual via LLM (GPT-4o) com fallback TF-IDF.
 - Quando OpenAI client disponível: análise semântica inteligente
 - Quando offline: TF-IDF + Cosine Similarity (v3.2)
@@ -144,6 +150,98 @@ def _limpar_texto(texto: str) -> str:
     texto = re.sub(r'[^\w\s]', '', texto)
     texto = re.sub(r'\s+', ' ', texto).strip()
     return texto
+
+
+def _is_senior_position(cargo: str) -> bool:
+    """
+    Verifica se o cargo é de nível sênior, gerência ou direção.
+    
+    Args:
+        cargo: Nome do cargo a ser analisado
+        
+    Returns:
+        bool: True se for posição sênior/gerencial/diretoria
+    """
+    cargo_lower = cargo.lower()
+    
+    # Palavras-chave que indicam posição sênior
+    senior_keywords = [
+        'senior', 'sênior', 'sr.',
+        'gerente', 'manager', 'gestor',
+        'diretor', 'director', 'head',
+        'coordenador', 'coordinator',
+        'líder', 'leader', 'lead',
+        'chief', 'vp', 'vice president',
+        'executiv', 'c-level', 'cto', 'ceo', 'cfo', 'cmo', 'coo'
+    ]
+    
+    return any(keyword in cargo_lower for keyword in senior_keywords)
+
+
+def _is_tactical_tool(gap_name: str) -> bool:
+    """
+    Verifica se o gap é uma ferramenta tática de operação hands-on.
+    
+    Args:
+        gap_name: Nome da skill/ferramenta
+        
+    Returns:
+        bool: True se for ferramenta tática
+    """
+    gap_lower = gap_name.lower()
+    
+    # Ferramentas táticas que são tipicamente hands-on
+    tactical_tools = [
+        'outreach', 'gong', 'salesloft', 'chorus',
+        'apollo', 'zoominfo', 'drift', 'intercom'
+    ]
+    
+    return any(tool in gap_lower for tool in tactical_tools)
+
+
+def _should_skip_gap_for_senior(gap_name: str, cargo: str, cv_texto: str) -> tuple[bool, str]:
+    """
+    Determina se um gap deve ser ignorado para perfis sênior.
+    
+    Para perfis sênior/gerência/direção, ferramentas táticas só são gaps
+    se o cargo explicitamente requer operação hands-on.
+    
+    Args:
+        gap_name: Nome da skill/ferramenta
+        cargo: Cargo alvo
+        cv_texto: Texto do CV (para verificar experiência estratégica)
+        
+    Returns:
+        tuple: (should_skip: bool, reason: str)
+    """
+    # Se não for posição sênior, não pular gap
+    if not _is_senior_position(cargo):
+        return (False, "")
+    
+    # Se não for ferramenta tática, não pular gap
+    if not _is_tactical_tool(gap_name):
+        return (False, "")
+    
+    # É posição sênior E ferramenta tática - verificar se candidato tem exp estratégica
+    cv_lower = cv_texto.lower()
+    
+    # Indicadores de experiência estratégica/gestão
+    strategic_indicators = [
+        'gestão de equipe', 'coordenação', 'liderança',
+        'strategy', 'strategic', 'estratégi',
+        'implementação', 'implementation',
+        'supervisão', 'oversight',
+        'direção', 'direction',
+        'sales operations', 'revenue operations', 'revops',
+        'sales management', 'gerenciamento de vendas'
+    ]
+    
+    has_strategic_exp = any(indicator in cv_lower for indicator in strategic_indicators)
+    
+    if has_strategic_exp:
+        return (True, f"candidato tem experiência estratégica/gestão de equipes que usam ferramentas similares")
+    
+    return (False, "")
 
 
 def _analisar_compatibilidade(cv_texto: str, vaga_texto: str) -> Dict:
@@ -408,7 +506,13 @@ def _analisar_com_llm(
         "2. **Gaps**: Liste APENAS Hard Skills, Ferramentas e Certificações RELEVANTES para o cargo.\n"
         "   - ✅ INCLUIR: Ferramentas específicas faltantes, certificações relevantes, tecnologias core\n"
         "   - ❌ NÃO INCLUIR: stopwords, verbos genéricos, erros de tradução, n-grams genéricos, "
-        "ferramentas de outros arquétipos\n\n"
+        "ferramentas de outros arquétipos\n"
+        "   - ⚠️ CONTEXTO SÊNIOR: Para perfis sênior/gerência/direção (Senior, Gerente, Diretor, Head, Lead), "
+        "ferramentas táticas hands-on (Outreach, Gong, Salesloft, etc.) SÓ são gaps se:\n"
+        "     * O cargo explicitamente requer operação tática dessas ferramentas\n"
+        "     * E o candidato NÃO tem experiência estratégica/gestão equivalente\n"
+        "   - Se candidato tem experiência em gestão de equipes, coordenação, implementação estratégica, "
+        "ou usa ferramentas similares: NÃO marque como gap — adicione aos gaps_falsos_ignorados.\n\n"
         "3. **Gaps Falsos Ignorados**: OBRIGATÓRIO - Liste skills que você CONSIDEROU mas DESCARTOU "
         "como gap (double-check/chain-of-thought). Justifique por que não são gaps válidos.\n\n"
         "⚠️ REGRA CRÍTICA PARA gaps_falsos_ignorados:\n"

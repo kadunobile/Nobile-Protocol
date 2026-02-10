@@ -551,6 +551,9 @@ class TestHeadhunterEliteModules:
             
             def get(self, key, default=None):
                 return getattr(self, key, default)
+            
+            def __contains__(self, key):
+                return hasattr(self, key)
         
         # Substituir session_state temporariamente
         original_session_state = st.session_state if hasattr(st, 'session_state') else None

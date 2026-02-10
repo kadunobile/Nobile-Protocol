@@ -495,7 +495,8 @@ def fase_15_reality_check():
     """)
 
     # ── 1) Reality Check (GPT) ──
-    reality = _gerar_reality_check()
+    with st.spinner("🧠 Gerando Reality Check — analisando seu perfil e o mercado..."):
+        reality = _gerar_reality_check()
 
     if not reality:
         st.error("❌ Não foi possível gerar o Reality Check. Tente novamente.")
@@ -516,7 +517,8 @@ def fase_15_reality_check():
     st.markdown(reality)
 
     # ── 2) Análise ATS (TF-IDF real) ──
-    resultado_ats = _executar_analise_ats()
+    with st.spinner("🤖 Calculando Score ATS — analisando compatibilidade com o cargo..."):
+        resultado_ats = _executar_analise_ats()
     _renderizar_ats(resultado_ats)
 
     # ── 3) Botão único: Avançar ──

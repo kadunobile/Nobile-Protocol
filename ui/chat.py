@@ -21,7 +21,38 @@ def fase_chat():
     
     st.markdown("# 💬 [5] Headhunter Elite — Otimização Ativa")
     st.markdown("---")
-
+    
+    # Show brief instructions ONCE before auto-trigger (only if chat is starting)
+    if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
+        st.session_state.get('etapa_modulo') == 'ETAPA_0_DIAGNOSTICO' and
+        not st.session_state.get('etapa_0_diagnostico_triggered') and
+        not st.session_state.get('chat_instructions_shown', False)):
+        
+        # Mark instructions as shown to avoid re-rendering on every rerun
+        st.session_state.chat_instructions_shown = True
+        
+        st.info("""
+        **🎯 Como funciona o Headhunter Elite:**
+        
+        O robô vai te fazer perguntas estratégicas sobre suas experiências e competências. 
+        
+        **Como responder:**
+        - Seja específico e concreto
+        - Compartilhe números, resultados e contexto
+        - Se não souber ou não tiver experiência com algo, diga "não tenho"
+        
+        **O que vai acontecer:**
+        1. Diagnóstico de gaps no seu CV
+        2. Coleta de dados das suas experiências
+        3. Reescrita otimizada do CV
+        4. Otimização do perfil LinkedIn
+        
+        ⏱️ **Tempo estimado:** 15-20 minutos
+        
+        Vamos começar! 🚀
+        """)
+    
+    # Render messages
     for msg in st.session_state.mensagens:
         # Skip internal messages (prompts do sistema não devem aparecer para o usuário)
         if msg.get("internal") == True:
@@ -82,6 +113,8 @@ def fase_chat():
                 st.session_state.mensagens.append({"role": "assistant", "content": prompt_otimizador})
                 # Move to next state - wait for gap response
                 st.session_state.etapa_modulo = 'AGUARDANDO_RESPOSTA_GAP'
+                # Reset trigger for next gap
+                st.session_state.etapa_0_gap_triggered = False
             st.rerun()
     
     # Auto-trigger resumo do diagnóstico
