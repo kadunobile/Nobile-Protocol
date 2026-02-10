@@ -15,79 +15,15 @@ logger = logging.getLogger(__name__)
 
 def _validar_plausibilidade_salario(pretensao_str, cargo, senioridade):
     """
-    DEPRECATED: Legacy function kept for compatibility.
-    Use validar_salario_banda from core.salary_bands instead.
+    DEPRECATED: This function is deprecated. Use validar_salario_banda from core.salary_bands instead.
     
-    Valida se o valor salarial informado está dentro de uma faixa plausível.
+    This legacy function has been simplified to always return a valid result.
+    The actual salary validation logic has been moved to core.salary_bands module
+    which provides more accurate validation using real market data.
     
     Returns:
-        dict com 'plausivel': bool, 'mensagem': str, 'faixa_sugerida': str
+        dict: Always returns {'plausivel': True, 'mensagem': '', 'faixa_sugerida': ''}
     """
-    # Extrair valor numérico da pretensão
-    try:
-        # Remove R$, pontos e vírgulas, converte para float
-        valor_limpo = pretensao_str.replace('R$', '').replace('.', '').replace(',', '.').strip()
-        valor = float(valor_limpo)
-    except (ValueError, AttributeError):
-        return {'plausivel': True, 'mensagem': '', 'faixa_sugerida': ''}
-    
-    # Heurísticas simples baseadas em senioridade e mercado brasileiro 2024-2025
-    # Valores em R$ mensal bruto CLT
-    faixas_plausibilidade = {
-        'Júnior': (2000, 8000),
-        'Junior': (2000, 8000),
-        'Pleno': (5000, 15000),
-        'Sênior': (10000, 30000),
-        'Senior': (10000, 30000),
-        'Especialista': (12000, 35000),
-        'Coordenação': (8000, 20000),
-        'Coordenador': (8000, 20000),
-        'Gerência': (12000, 35000),
-        'Gerente': (12000, 35000),
-        'Direção': (20000, 80000),
-        'Diretor': (20000, 80000),
-        'C-Level': (30000, 150000),
-    }
-    
-    # Tentar identificar a faixa baseada na senioridade
-    faixa = None
-    for key, range_vals in faixas_plausibilidade.items():
-        if key.lower() in senioridade.lower() or key.lower() in cargo.lower():
-            faixa = range_vals
-            break
-    
-    # Se não encontrou uma faixa específica, usar range amplo genérico
-    if not faixa:
-        faixa = (2000, 80000)
-    
-    minimo, maximo = faixa
-    
-    # Verificar se está muito abaixo (< 50% do mínimo) ou muito acima (> 200% do máximo)
-    if valor < minimo * 0.5:
-        return {
-            'plausivel': False,
-            'mensagem': f'⚠️ Valor informado (R$ {valor:,.2f}) está **muito abaixo** da faixa típica. Faixa esperada: R$ {minimo:,.2f} - R$ {maximo:,.2f}',
-            'faixa_sugerida': f'R$ {minimo:,.2f} - R$ {maximo:,.2f}'
-        }
-    elif valor > maximo * 2:
-        return {
-            'plausivel': False,
-            'mensagem': f'⚠️ Valor informado (R$ {valor:,.2f}) está **muito acima** da faixa típica. Faixa esperada: R$ {minimo:,.2f} - R$ {maximo:,.2f}',
-            'faixa_sugerida': f'R$ {minimo:,.2f} - R$ {maximo:,.2f}'
-        }
-    elif valor < minimo:
-        return {
-            'plausivel': True,
-            'mensagem': f'ℹ️ Valor informado (R$ {valor:,.2f}) está um pouco abaixo da faixa típica (R$ {minimo:,.2f} - R$ {maximo:,.2f}). Confirme se está correto.',
-            'faixa_sugerida': f'R$ {minimo:,.2f} - R$ {maximo:,.2f}'
-        }
-    elif valor > maximo:
-        return {
-            'plausivel': True,
-            'mensagem': f'ℹ️ Valor informado (R$ {valor:,.2f}) está um pouco acima da faixa típica (R$ {minimo:,.2f} - R$ {maximo:,.2f}). Confirme se está correto.',
-            'faixa_sugerida': f'R$ {minimo:,.2f} - R$ {maximo:,.2f}'
-        }
-    
     return {'plausivel': True, 'mensagem': '', 'faixa_sugerida': ''}
 
 
@@ -533,6 +469,15 @@ def fase_15_reality_check():
                 st.session_state.fase = 'FASE_0_UPLOAD'
                 st.rerun()
                 return
+
+            # Ensure all required state variables are set for downstream phases
+            if resultado_ats:
+                # Set gaps_alvo and gaps_identificados for the optimizer
+                # Both variables point to the same gaps list for compatibility with different phases
+                # gaps_alvo: used by processor.py for the optimizer flow
+                # gaps_identificados: expected by various UI screens for display
+                st.session_state.gaps_alvo = resultado_ats.get('gaps_identificados', [])
+                st.session_state.gaps_identificados = resultado_ats.get('gaps_identificados', [])
 
             st.session_state.mensagens = []
             st.session_state.modulo_ativo = None
