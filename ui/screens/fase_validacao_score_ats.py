@@ -26,7 +26,7 @@ def fase_validacao_score_ats():
     st.markdown('<div id="top-anchor"></div>', unsafe_allow_html=True)
     forcar_topo()
     
-    st.markdown("# 📊 Validação Score ATS - Antes × Depois")
+    st.markdown("# 📊 [6] Validação Score ATS - Antes × Depois")
     st.markdown("---")
     
     # Verificar se temos CV otimizado

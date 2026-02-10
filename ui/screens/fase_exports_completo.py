@@ -30,7 +30,7 @@ def fase_exports_completo():
     st.markdown('<div id="top-anchor"></div>', unsafe_allow_html=True)
     forcar_topo()
     
-    st.markdown("# 📥 Exports & Analytics - Resultados Completos")
+    st.markdown("# 📥 [7] Exports & Analytics - Resultados Completos")
     st.markdown("---")
     
     # Verificar dados disponíveis

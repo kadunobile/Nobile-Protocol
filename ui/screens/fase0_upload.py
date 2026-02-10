@@ -76,7 +76,7 @@ def validar_pdf_linkedin(texto: str) -> dict:
 
 
 def fase_0_upload():
-    st.markdown("# 📄 Envie seu Perfil do LinkedIn")
+    st.markdown("# 📄 [1] Upload de CV")
     st.markdown("---")
     
     st.info("📌 Para iniciar o Diagnóstico, precisamos do **PDF exportado do seu LinkedIn.**")

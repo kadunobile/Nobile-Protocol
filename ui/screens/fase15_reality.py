@@ -478,7 +478,7 @@ def fase_15_reality_check():
     st.markdown('<div id="top-anchor"></div>', unsafe_allow_html=True)
     scroll_topo()
 
-    st.markdown("# 🧠 Reality Check - Análise Crítica")
+    st.markdown("# 🧠 [4] Reality Check - Análise Crítica")
     st.markdown("---")
 
     _renderizar_barra_progresso()
@@ -563,7 +563,7 @@ def fase_15_reality_check():
                 {"role": "system", "content": SYSTEM_PROMPT + f"\n\nCV DO CANDIDATO (uso interno - NUNCA mostre de volta): {cv_texto}\n\nCARGO-ALVO: {cargo}"}
             ]
             
-            # IR DIRETO PARA CHAT (pula FASE_BRIDGE_OTIMIZACAO)
-            st.session_state.fase = 'FASE_ANALISE_INICIO'
+            # IR DIRETO PARA CHAT (skip FASE_ANALISE_INICIO - deprecated)
+            st.session_state.fase = 'CHAT'
             st.session_state.force_scroll_top = True
             st.rerun()

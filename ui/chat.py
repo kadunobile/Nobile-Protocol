@@ -19,7 +19,7 @@ def fase_chat():
         forcar_topo()
         st.session_state.force_scroll_top = False
     
-    st.markdown("# 💬 Sessão Ativa - Protocolo Nóbile")
+    st.markdown("# 💬 [5] Headhunter Elite — Otimização Ativa")
     st.markdown("---")
 
     for msg in st.session_state.mensagens:
