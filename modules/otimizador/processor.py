@@ -4,6 +4,13 @@ from modules.otimizador.etapa1_coleta_focada import prompt_etapa1_coleta_focada
 from modules.otimizador.checkpoint_validacao import prompt_checkpoint_validacao
 from modules.otimizador.etapa2_reescrita_progressiva import prompt_etapa2_reescrita_progressiva, prompt_etapa2_reescrita_final
 from modules.otimizador.etapa6_otimizacao_linkedin import prompt_etapa6_otimizacao_linkedin
+
+# HEADHUNTER ELITE: Novos módulos de inteligência
+from modules.otimizador.market_knowledge import detectar_area_por_cargo, obter_conhecimento_mercado
+from modules.otimizador.classificador_perfil import classificar_senioridade_e_estrategia
+from modules.otimizador.analisador_bullets import analisar_bullets_fracos
+from modules.otimizador.engenheiro_texto import gerar_bullet_star, aplicar_star_method_completo
+
 import streamlit as st
 import logging
 
@@ -31,6 +38,15 @@ except ImportError:
 # Configuration constants
 DEFAULT_MAX_EXPERIENCES = 3  # Default number of experiences to optimize
 MIN_RESPONSE_LENGTH = 10  # Minimum response length to be considered substantive
+
+# HEADHUNTER ELITE: Etapas com pause obrigatória
+ETAPAS_COM_PAUSE_OBRIGATORIA = [
+    'ETAPA_0_DIAGNOSTICO_RESUMO',     # Pausa após resumo de diagnóstico
+    'AGUARDANDO_OK_DIAGNOSTICO',      # Pausa para usuário confirmar diagnóstico
+    'CHECKPOINT_1_VALIDACAO',         # Pausa após validação de mapeamento
+    'AGUARDANDO_APROVACAO_VALIDACAO', # Pausa para usuário aprovar validação
+    'AGUARDANDO_CONTINUAR_CHECKPOINT2', # Pausa antes de LinkedIn
+]
 
 # Keywords que indicam que o usuário não tem experiência com um gap
 NEGATIVE_RESPONSE_KEYWORDS = [
