@@ -62,7 +62,7 @@ def prompt_etapa1_coleta_dinamica_inicial() -> str:
 
 ### 📋 COMO FUNCIONA O DEEP DIVE:
 
-Agora vou fazer perguntas **CIRÚRGICAS e ESPECÍFICAS** sobre suas experiências profissionais.
+Agora vou fazer **4-6 perguntas CIRÚRGICAS** sobre suas experiências profissionais.
 
 **FOCO em coletar:**
 1. 📊 **Métricas e resultados quantificáveis** (%, R$, volume, impacto)
@@ -72,21 +72,14 @@ Agora vou fazer perguntas **CIRÚRGICAS e ESPECÍFICAS** sobre suas experiência
 
 **IMPORTANTE:**
 - As perguntas serão **adaptadas ao seu perfil** e às suas respostas
+- **Não vou pedir empresa/cargo/período** (já tenho do seu CV acima)
 - Não vou repetir perguntas sobre temas já cobertos
 - Você pode ser específico e detalhado - quanto mais dados, melhor!
 - Se não souber alguma informação, pode dizer "não sei" ou "não lembro"
 
 ---
 
-**Vamos começar com a primeira experiência relevante do seu CV...**
-
-Qual foi a sua **experiência profissional mais recente ou mais relevante** para o cargo de **{cargo}**?
-
-Por favor, me diga:
-- **Empresa**
-- **Cargo**
-- **Período** (mês/ano início - fim)
-- **Breve descrição** do que você fazia (2-3 linhas)"""
+⏭️ **Vamos começar! Aguarde a primeira pergunta...**"""
 
 
 def gerar_proxima_pergunta_coleta(
@@ -159,10 +152,11 @@ Analise o histórico de perguntas/respostas e identifique o que AINDA NÃO foi c
 
 **FORMATO DA PERGUNTA:**
 - Seja ESPECÍFICO ao cargo-alvo ({cargo})
-- Seja DIRETO e objetivo
-- Pergunte UMA coisa por vez
-- Use dados do CV quando relevante
-- NÃO repita temas já cobertos no histórico"""
+- Seja DIRETO e objetivo (UMA pergunta por vez)
+- Use dados do CV quando relevante para contextualizar
+- NÃO repita temas já cobertos no histórico
+- **NUNCA peça empresa/cargo/período** (já temos no CV acima)
+- Foque em DADOS CONCRETOS: métricas, ferramentas, resultados, volume"""
 
     if resposta_evasiva:
         contexto_especifico += "\n\n**ATENÇÃO:** O candidato deu uma resposta vaga. Reformule a pergunta de forma mais específica ou passe para outro tópico."

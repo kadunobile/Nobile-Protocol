@@ -275,6 +275,7 @@ def fase_chat():
             st.rerun()
 
     # Auto-trigger CHECKPOINT_1_VALIDACAO
+    # IMPORTANT: Checkpoint does NOT use GPT - it just displays collected data
     if (st.session_state.get('modulo_ativo') == 'OTIMIZADOR' and 
         st.session_state.get('etapa_modulo') == 'CHECKPOINT_1_VALIDACAO' and
         not st.session_state.get('checkpoint_1_triggered')):
@@ -287,21 +288,12 @@ def fase_chat():
             prompt_otimizador = None
         
         if prompt_otimizador:
-            st.session_state.mensagens.append({"role": "user", "content": prompt_otimizador, "internal": True})
+            # Checkpoint displays data directly WITHOUT GPT processing
             with st.chat_message("assistant"):
-                with st.spinner("✅ Validando dados coletados..."):
-                    resp = chamar_gpt_com_telemetria(
-                        st.session_state.openai_client, 
-                        st.session_state.mensagens,
-                        contexto=CONTEXTO_VALIDACAO,
-                        temperature=0.3,
-                        seed=42
-                    )
-                    if resp:
-                        st.markdown(resp)
-                        st.session_state.mensagens.append({"role": "assistant", "content": resp})
-                        # Move to next state - wait for approval
-                        st.session_state.etapa_modulo = 'AGUARDANDO_APROVACAO_VALIDACAO'
+                st.markdown(prompt_otimizador)
+                st.session_state.mensagens.append({"role": "assistant", "content": prompt_otimizador})
+                # Move to next state - wait for approval
+                st.session_state.etapa_modulo = 'AGUARDANDO_APROVACAO_VALIDACAO'
             st.rerun()
     
     # Auto-trigger ETAPA_2_REESCRITA_EXP_* (dynamic states)
