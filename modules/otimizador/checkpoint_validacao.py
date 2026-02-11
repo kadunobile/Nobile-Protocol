@@ -12,6 +12,9 @@ from core.dynamic_questions import obter_historico_qa
 
 logger = logging.getLogger(__name__)
 
+# Constants
+MAX_RESPONSE_PREVIEW_LENGTH = 200  # Maximum length for truncated response previews
+
 
 def prompt_checkpoint_validacao():
     """
@@ -57,7 +60,7 @@ def prompt_checkpoint_validacao():
         for i, (gap, info) in enumerate(gaps_com_experiencia.items(), 1):
             resposta = info.get('resposta', '(resposta não capturada)')
             # Truncar resposta longa
-            resposta_display = resposta[:200] + ('...' if len(resposta) > 200 else '')
+            resposta_display = resposta[:MAX_RESPONSE_PREVIEW_LENGTH] + ('...' if len(resposta) > MAX_RESPONSE_PREVIEW_LENGTH else '')
             
             checkpoint += f"""**Gap {i}: {gap}**
 
@@ -76,7 +79,7 @@ def prompt_checkpoint_validacao():
 
 """
         for keyword, resposta in seo_respostas.items():
-            resposta_display = resposta[:200] + ('...' if len(resposta) > 200 else '')
+            resposta_display = resposta[:MAX_RESPONSE_PREVIEW_LENGTH] + ('...' if len(resposta) > MAX_RESPONSE_PREVIEW_LENGTH else '')
             checkpoint += f"""**{keyword}**
 📝 _{resposta_display}_
 
@@ -90,7 +93,7 @@ def prompt_checkpoint_validacao():
 """
         for i, qa in enumerate(historico_coleta, 1):
             pergunta = qa['pergunta'][:150] + ('...' if len(qa['pergunta']) > 150 else '')
-            resposta = qa['resposta'][:200] + ('...' if len(qa['resposta']) > 200 else '')
+            resposta = qa['resposta'][:MAX_RESPONSE_PREVIEW_LENGTH] + ('...' if len(qa['resposta']) > MAX_RESPONSE_PREVIEW_LENGTH else '')
             
             checkpoint += f"""**P{i}:** {pergunta}
 **R{i}:** _{resposta}_

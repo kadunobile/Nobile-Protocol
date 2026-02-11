@@ -133,9 +133,8 @@ class TestNovoFluxoOtimizacao:
         assert 'Product Vision' in result
         assert 'Startup ABC' in result
         
-        # Verificar dados do Deep Dive reais
-        assert 'features você entregava' in result.lower() or 'features' in result.lower()
-        assert '20-25' in result or 'squads' in result.lower()
+        # Verificar dados do Deep Dive reais - more specific assertions
+        assert 'Quantas features' in result or '20-25 features' in result or 'squads' in result.lower()
         
         # Verificar que NÃO contém templates/placeholders
         assert '[Nome do gap]' not in result

@@ -12,42 +12,8 @@ from core.dynamic_questions import obter_historico_qa
 
 logger = logging.getLogger(__name__)
 
-
-def extrair_experiencias_do_cv(cv_texto: str, max_exp: int = 3) -> list:
-    """
-    Extrai as principais experiências profissionais do CV bruto.
-    
-    Args:
-        cv_texto: Texto completo do CV
-        max_exp: Número máximo de experiências a extrair
-        
-    Returns:
-        Lista de dicionários com empresa, cargo, periodo, descricao
-    """
-    # Padrões comuns de formatação de experiências em CVs brasileiros
-    # Esta é uma extração simples - em produção poderia usar NLP mais sofisticado
-    
-    import re
-    
-    experiencias = []
-    
-    # Tentar identificar blocos de experiência por padrões comuns
-    # Padrão: Cargo | Empresa | Período
-    # Padrão: Empresa - Cargo (Período)
-    # Padrão: Cargo\nEmpresa\nPeríodo
-    
-    # Por ora, retornar estrutura placeholder que será preenchida via GPT
-    # Mas com contexto real do CV
-    for i in range(1, max_exp + 1):
-        experiencias.append({
-            'numero': i,
-            'empresa': f'[A ser identificado pela GPT na experiência #{i}]',
-            'cargo': f'[A ser identificado pela GPT na experiência #{i}]',
-            'periodo': f'[A ser identificado pela GPT na experiência #{i}]',
-            'descricao_original': '[A ser extraído do CV pelo GPT]'
-        })
-    
-    return experiencias
+# Constants
+MAX_CV_LENGTH_FOR_PROMPT = 3000  # Maximum CV length to include in prompt (preserves ~2-3 experiences)
 
 
 def prompt_etapa2_reescrita_progressiva(experiencia_num=1):
@@ -104,6 +70,16 @@ def prompt_etapa2_reescrita_progressiva(experiencia_num=1):
     
     total_exp = st.session_state.get('total_experiencias', 3)
     
+    # Truncate CV text intelligently - try to preserve complete sections
+    cv_para_prompt = cv_texto
+    if len(cv_texto) > MAX_CV_LENGTH_FOR_PROMPT:
+        # Try to find a good breaking point (end of line) near the limit
+        truncate_at = cv_texto.rfind('\n', 0, MAX_CV_LENGTH_FOR_PROMPT)
+        if truncate_at < MAX_CV_LENGTH_FOR_PROMPT * 0.8:  # If break point is too early, use hard limit
+            truncate_at = MAX_CV_LENGTH_FOR_PROMPT
+        cv_para_prompt = cv_texto[:truncate_at]
+        logger.info(f"CV truncated from {len(cv_texto)} to {truncate_at} characters for prompt")
+    
     # Prompt COMPACTO e DATA-DRIVEN (não template)
     return f"""✍️ **REESCRITA - EXPERIÊNCIA #{experiencia_num} de {total_exp}**
 
@@ -120,8 +96,8 @@ def prompt_etapa2_reescrita_progressiva(experiencia_num=1):
 Com base no CV completo abaixo e nos dados coletados acima:
 
 ```
-{cv_texto[:2000]}...
-[CV truncado para economia de tokens]
+{cv_para_prompt}
+[CV {'truncado' if len(cv_texto) > MAX_CV_LENGTH_FOR_PROMPT else 'completo'} para economia de tokens]
 ```
 
 **TAREFA:**
