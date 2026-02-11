@@ -84,19 +84,63 @@ class TestNovoFluxoOtimizacao:
     
     @patch('streamlit.session_state')
     def test_checkpoint_validacao_gera_prompt(self, mock_session_state):
-        """Testa se checkpoint de validação gera prompt corretamente."""
+        """Testa se checkpoint de validação gera prompt COM DADOS REAIS."""
         from modules.otimizador.checkpoint_validacao import prompt_checkpoint_validacao
+        from core.dynamic_questions import adicionar_qa_historico
         
-        # Mock session state
+        # Mock session state WITH REAL DATA
         mock_session_state.perfil = {'cargo_alvo': 'Product Manager'}
+        mock_session_state.gaps_respostas = {
+            'Product Discovery': {
+                'tem_experiencia': True,
+                'resposta': 'Trabalhei com discovery na empresa XYZ usando técnicas de design thinking'
+            },
+            'User Research': {
+                'tem_experiencia': False,
+                'resposta': None
+            }
+        }
+        mock_session_state.seo_keywords_respostas = {
+            'Product Vision': 'Defini a visão de produto na Startup ABC',
+            'Roadmap Planning': 'Gerenciei roadmap de 3 squads com 20+ features/trimestre'
+        }
+        # Mock histórico de coleta
+        mock_session_state.qa_history_coleta = [
+            {
+                'pergunta': 'Quantas features você entregava por trimestre?',
+                'resposta': 'Cerca de 20-25 features por trimestre, com 3 squads'
+            },
+            {
+                'pergunta': 'Quais métricas você acompanhava?',
+                'resposta': 'NPS, engagement rate, retention, conversion rate'
+            }
+        ]
         mock_session_state.get = lambda key, default=None: getattr(mock_session_state, key, default)
         
         result = prompt_checkpoint_validacao()
         
+        # Verificações básicas
         assert result is not None
         assert 'CHECKPOINT' in result.upper() or 'VALIDAÇÃO' in result.upper()
         assert 'Product Manager' in result
-        assert 'mapeamento' in result.lower() or 'gap' in result.lower()
+        
+        # CRITICAL: Verificar que mostra DADOS REAIS, não templates
+        assert 'Product Discovery' in result  # Gap com experiência
+        assert 'design thinking' in result.lower()  # Parte da resposta real
+        assert 'User Research' in result  # Gap sem experiência
+        
+        # Verificar keywords SEO reais
+        assert 'Product Vision' in result
+        assert 'Startup ABC' in result
+        
+        # Verificar dados do Deep Dive reais
+        assert 'features você entregava' in result.lower() or 'features' in result.lower()
+        assert '20-25' in result or 'squads' in result.lower()
+        
+        # Verificar que NÃO contém templates/placeholders
+        assert '[Nome do gap]' not in result
+        assert '[Empresa - Cargo]' not in result
+        assert '[Dado coletado]' not in result
     
     @patch('streamlit.session_state')
     def test_etapa2_reescrita_progressiva_gera_prompt(self, mock_session_state):

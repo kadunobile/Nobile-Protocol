@@ -183,10 +183,18 @@ def prompt_etapa1_5_seo_intro() -> str:
     keywords_a_perguntar = obter_keywords_a_perguntar()
     total = len(keywords_a_perguntar)
     
+    # NOTE: Esta função é chamada apenas se há keywords para perguntar,
+    # então total > 0 é garantido pelo processor.py
     if total == 0:
-        # Se não há keywords para perguntar, pular esta etapa
-        logger.info("Nenhuma keyword para perguntar - pulando SEO Mapping")
-        return None
+        # Fallback de segurança - não deveria acontecer
+        logger.warning("prompt_etapa1_5_seo_intro chamado sem keywords - retornando mensagem de skip")
+        return """✅ Não há keywords SEO para otimizar no momento.
+
+Todos os termos essenciais já estão presentes no seu CV!
+
+Vamos prosseguir para a próxima etapa...
+
+Digite "continuar" para prosseguir."""
     
     return f"""### 🎯 ETAPA 2: SEO MAPPING (TARGET)
 
