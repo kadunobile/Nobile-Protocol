@@ -17,6 +17,13 @@ from modules.otimizador.etapa1_coleta_dinamica import (
     verificar_pronto_para_avancar_coleta,
     gerar_mensagem_transicao_coleta
 )
+from modules.otimizador.etapa1_5_seo_mapping import (
+    prompt_etapa1_5_seo_intro,
+    prompt_etapa1_5_seo_keyword,
+    processar_resposta_keyword,
+    gerar_resumo_seo_mapping,
+    obter_keywords_a_perguntar
+)
 
 # HEADHUNTER ELITE: Novos módulos de inteligência
 from modules.otimizador.market_knowledge import detectar_area_por_cargo, obter_conhecimento_mercado
@@ -57,6 +64,8 @@ ENABLE_DYNAMIC_QUESTIONS = True  # Enable dynamic question generation (set to Fa
 ETAPAS_COM_PAUSE_OBRIGATORIA = [
     'ETAPA_0_DIAGNOSTICO_RESUMO',     # Pausa após resumo de diagnóstico
     'AGUARDANDO_OK_DIAGNOSTICO',      # Pausa para usuário confirmar diagnóstico
+    'ETAPA_1_5_SEO_RESUMO',           # Pausa após resumo de SEO Mapping
+    'AGUARDANDO_OK_SEO',              # Pausa para usuário confirmar SEO
     'CHECKPOINT_1_VALIDACAO',         # Pausa após validação de mapeamento
     'AGUARDANDO_APROVACAO_VALIDACAO', # Pausa para usuário aprovar validação
     'AGUARDANDO_CONTINUAR_CHECKPOINT2', # Pausa antes de LinkedIn
@@ -270,7 +279,7 @@ def processar_modulo_otimizador(prompt):
                               'próxima', 'proxima', 'próximo', 'proximo', 'avançar', 'avancar']
             
             if any(word in prompt.lower() for word in palavras_avanco):
-                # Usuário quer avançar - salvar dados e ir para validação
+                # Usuário quer avançar - salvar dados e ir para Mapeamento SEO
                 st.session_state.dados_coletados = {
                     'raw_response': prompt,
                     'historico': st.session_state.dados_coleta_historico,
@@ -281,8 +290,19 @@ def processar_modulo_otimizador(prompt):
                     salvar_dados_coleta(st.session_state.dados_coletados)
                 except Exception as e:
                     logger.warning(f"Erro ao salvar dados coletados: {e}")
-                st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'
-                return prompt_checkpoint_validacao()
+                
+                # Verificar se há keywords para perguntar na etapa de SEO
+                keywords_a_perguntar = obter_keywords_a_perguntar()
+                if keywords_a_perguntar:
+                    # Há keywords para perguntar - ir para SEO MAPPING
+                    st.session_state.etapa_modulo = 'ETAPA_1_5_SEO_INTRO'
+                    st.session_state.etapa_1_5_seo_intro_triggered = False  # Reset trigger
+                    return prompt_etapa1_5_seo_intro()
+                else:
+                    # Não há keywords para perguntar - pular para CHECKPOINT_1
+                    logger.info("Nenhuma keyword para perguntar - pulando SEO Mapping")
+                    st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'
+                    return prompt_checkpoint_validacao()
             
             # Se não for comando de avançar, SALVAR a resposta como dado coletado
             # e permitir que o chat continue normalmente para mais perguntas
@@ -329,6 +349,64 @@ def processar_modulo_otimizador(prompt):
             return None
         
         return None
+    
+    # ETAPA 1.5: SEO MAPPING (TARGET) - Perguntas sobre keywords essenciais
+    if etapa == 'ETAPA_1_5_SEO_INTRO':
+        return prompt_etapa1_5_seo_intro()
+    
+    if etapa == 'AGUARDANDO_INICIO_SEO':
+        # Usuário leu a introdução, vamos começar com a primeira keyword
+        st.session_state.seo_keyword_index = 0
+        st.session_state.etapa_modulo = 'ETAPA_1_5_SEO_KEYWORD'
+        return prompt_etapa1_5_seo_keyword(0)
+    
+    if etapa == 'ETAPA_1_5_SEO_KEYWORD':
+        # Perguntar sobre a keyword atual
+        keyword_index = st.session_state.get('seo_keyword_index', 0)
+        return prompt_etapa1_5_seo_keyword(keyword_index)
+    
+    if etapa == 'AGUARDANDO_RESPOSTA_SEO_KEYWORD':
+        # Processar resposta do usuário sobre a keyword atual
+        try:
+            keyword_index = st.session_state.get('seo_keyword_index', 0)
+            keywords_a_perguntar = obter_keywords_a_perguntar()
+            
+            if keyword_index < len(keywords_a_perguntar):
+                keyword = keywords_a_perguntar[keyword_index]
+                
+                # Processar resposta
+                processar_resposta_keyword(prompt, keyword)
+                
+                # Avançar para a próxima keyword
+                st.session_state.seo_keyword_index = keyword_index + 1
+                
+                # Verificar se há mais keywords
+                if st.session_state.seo_keyword_index < len(keywords_a_perguntar):
+                    # Continuar com a próxima keyword
+                    st.session_state.etapa_modulo = 'ETAPA_1_5_SEO_KEYWORD'
+                    st.session_state.etapa_1_5_seo_keyword_triggered = False  # Reset trigger
+                    return prompt_etapa1_5_seo_keyword(st.session_state.seo_keyword_index)
+                else:
+                    # Todas as keywords foram processadas - ir para resumo
+                    st.session_state.etapa_modulo = 'ETAPA_1_5_SEO_RESUMO'
+                    st.session_state.etapa_1_5_seo_resumo_triggered = False  # Reset trigger
+                    return gerar_resumo_seo_mapping()
+        except Exception as e:
+            logger.error(f"Erro ao processar resposta de keyword SEO: {e}", exc_info=True)
+            # Tentar recuperar indo para resumo ou checkpoint
+            st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'
+            return prompt_checkpoint_validacao()
+        
+        return None
+    
+    if etapa == 'ETAPA_1_5_SEO_RESUMO':
+        return gerar_resumo_seo_mapping()
+    
+    if etapa == 'AGUARDANDO_OK_SEO':
+        # Usuário confirmou o resumo de SEO - avançar para checkpoint
+        st.session_state.etapa_modulo = 'CHECKPOINT_1_VALIDACAO'
+        st.session_state.checkpoint_1_triggered = False  # Reset trigger
+        return prompt_checkpoint_validacao()
     
     # CHECKPOINT 1: VALIDAÇÃO
     if etapa == 'CHECKPOINT_1_VALIDACAO':
